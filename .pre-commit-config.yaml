@@ -1,0 +1,13 @@
+# Formatting is enforced at commit time so the tree stays black-clean.
+# Collaborators: run `pre-commit install` once after cloning.
+#
+# Line length and target version come from [tool.black] in pyproject.toml.
+repos:
+  - repo: https://github.com/psf/black
+    rev: 26.5.1
+    hooks:
+      - id: black
+        # The notebook is prose with worked examples, stored with its outputs.
+        # black's line-splitting makes those cells markedly harder to read, so
+        # it is formatted by hand rather than mechanically.
+        exclude: ^src/examples\.ipynb$

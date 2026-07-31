@@ -1,0 +1,376 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=2.6cm]{geometry}
+\usepackage{microtype}
+
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage[colorlinks,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+% Left-aligned expanding column, so tables fill the text block cleanly.
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+
+\DeclareMathOperator{\Tp}{Tp}
+\DeclareMathOperator{\mdeg}{mdeg}
+\DeclareMathOperator{\codim}{codim}
+\DeclareMathOperator{\Hom}{Hom}
+\DeclareMathOperator{\Sym}{Sym}
+
+\newcommand{\Qd}{\mathcal{Q}}
+\newcommand{\Nhat}{\widehat{N}}
+\newcommand{\eref}{\epsilon_{\mathrm{ref}}}
+
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}[proposition]{Lemma}
+\newtheorem{observation}[proposition]{Observation}
+\theoremstyle{definition}
+\newtheorem{definition}[proposition]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[proposition]{Remark}
+
+\title{\textbf{Chern++}: computational results on positivity\\[2pt]
+       for Morin Thom polynomials}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-2.4em}
+
+\begin{abstract}
+We report on a machine-checked study of the two positivity conjectures for Morin
+singularities. The infrastructure computes $\Qd_d$ for $d \le 6$ from the explicit orbit
+equations of B\'erczi--Szenes \S7.3, self-checked against every invariant fixed in advance.
+On top of it: Rim\'anyi's conjecture is verified for $A_6$ (first time), the two reductions of
+the $A_5$ handoff note are shown to survive at $d = 6$ while the proposed prefix-positivity
+route is shown to \emph{fail} at $d = 6$, and a notion of \emph{denominator certificate} is
+introduced whose successes are proofs and whose failures are theorems. The certificate
+machinery reproduces the $d = 4$ strong positivity theorem and Proposition~3 of the handoff
+note mechanically. It does not close the $A_6$ tail, and we show this is a limitation of the
+technique rather than of the search: after generalising Lemma~1 to an absorption criterion,
+$13\,090$ candidate certificates fail. Notation follows \texttt{rimanyi\_positivity.pdf},
+\texttt{report.pdf} and \texttt{a5\_weak\_positivity\_handoff.pdf}, cited as [N], [R], [H].
+\end{abstract}
+
+\section{Setting and notation}
+
+For the Morin singularity $A_d$, the B\'erczi--Szenes formula expresses $\Tp_{A_d}$ as an
+iterated residue whose only $d$-dependent input is $\Qd_d = \mdeg_{T_d}(\mathcal{O}_d)$, the
+equivariant multidegree of the Borel orbit closure $\mathcal{O}_d = \overline{B_d \cdot \eref}$
+inside $\Nhat_d \subset \Hom(\mathbb{C}^d, \Sym^2 \mathbb{C}^d)$. Normalising $z_d = 1$ and
+setting $x_j = z_j/z_{j+1}$, positivity is read off the chamber series
+\[
+  F_d(x) \;=\;
+  \frac{\prod_{m<l}\bigl(1 - z_m/z_l\bigr)\,\Qd_d}
+       {\prod_{m+r\le l}\bigl(1 - z_m/z_l - z_r/z_l\bigr)}
+  \;=\; \frac{N_d(x)}{\prod_{r}\bigl(1 - f_r(x)\bigr)}
+  \;=\; \sum_{\beta \ge 0} A_\beta x^\beta ,
+\]
+where every $f_r$ has nonnegative coefficients and zero constant term. Write
+$\tau(i,j,k,\dots) = (j-i,j,k,\dots)$ for the first adjacent transposition, and $C(M)$ for the
+$\ell$-free Chern coefficient of [R, Thm.~5].
+
+\section{Infrastructure}
+
+\subsection{Computing \texorpdfstring{$\Qd_d$}{Q\_d}}
+
+We take the route of [N, \S7.3]: rather than parametrise the orbit and eliminate the group
+variables, we write down the quadratic relations of Proposition~7.3 directly, saturate by the
+defect-zero coordinates to remove the spurious components that appear from $d = 6$ on
+([N, \S7.4]), and read the multidegree off an initial ideal. Runtime for $d \le 6$ is seconds.
+
+The design point worth stating is that every quantity the computation can be checked against is
+known in advance, and all of them are checked: multihomogeneity of each relation under the torus
+weights; the codimension $\dim \Nhat_d - \binom{d}{2}$ forced by homogeneity of the residue
+formula; vanishing on random $B_d$-translates of $\eref$; $\deg \Qd_d$; exactness of the chamber
+division; and the normalisation fixing the $c_1^d$ coefficient. The stage refuses to emit an
+artifact otherwise. Externally, all eleven classical $A_6$ coefficients are reproduced.
+
+\subsection{Scale of the objects}
+
+Table~\ref{tab:algebra} is the practical reason sampling is no substitute for a proof: roughly
+half the coefficients of $N_d$ are negative at every order, and the counts grow fast.
+
+\begin{table}[ht]
+\centering
+\caption{The mined chamber algebras. $\deg\Qd_d = \dim\Nhat_d - \binom{d}{2}$ is the
+codimension of the orbit closure.}
+\label{tab:algebra}
+\begin{tabularx}{\textwidth}{@{}Lrrrrrrr@{}}
+\toprule
+ & vars & $\dim\Nhat_d$ & $\deg\Qd_d$ & $\Qd_d$ terms & $N_d$ terms & $\deg N_d$
+ & $N_d$ negative \\
+\midrule
+$A_4$ & 3 & 7  & 1 & 3   & 54    & 13 & 27 \ (50\%) \\
+$A_5$ & 4 & 13 & 3 & 19  & 814   & 31 & 414 \ (51\%) \\
+$A_6$ & 5 & 22 & 7 & 418 & 26618 & 66 & 13309 \ (50\%) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Exactness}
+
+No result below depends on floating point. One point deserves emphasis because it is a trap:
+Laurent coefficients are accumulated in \texttt{int64}, and they outgrow it. A wrapped
+accumulator reads as a large \emph{negative} number, that is, as a spurious counterexample to
+the very conjecture under test. The evaluator therefore replays the fixed point in floating
+point as a magnitude probe and raises rather than returning wrapped values; this is what caps
+the $A_6$ sweep at $\ell = 5$ below.
+
+\section{Results for \texorpdfstring{$A_6$}{A\_6}}
+
+\begin{proposition}[verified]
+Rim\'anyi's conjecture holds for $A_6$ at every relative dimension $\ell \le 5$, and for $A_5$
+at $\ell \le 8$.
+\end{proposition}
+
+These are finite exact computations, not proofs of the infinite statement. For $A_5$,
+[R, Thm.~8] reaches $\ell \le 11$ using unbounded-precision arithmetic; our contribution at
+$d = 5$ is speed rather than range, and the $\ell$-free reduction makes the two nested anyway.
+The $A_6$ verification is new. Passing $\ell = 5$ requires exact arithmetic beyond
+\texttt{int64}; residue arithmetic modulo several primes with CRT reconstruction is the natural
+route.
+
+The negative Laurent coefficients of $F_6$ behave much as at $d = 5$; see
+Table~\ref{tab:series}. The first counterexample to strong Laurent positivity occurs at $d = 6$
+at the same $\beta$ as at $d = 5$, extended by a zero. The last column is the one that matters
+in \S\ref{sec:prefix}.
+
+\begin{table}[ht]
+\centering
+\caption{Negative Laurent coefficients of the chamber series, to total degree $11$.}
+\label{tab:series}
+\begin{tabularx}{\textwidth}{@{}Lrrlrr@{}}
+\toprule
+ & terms & negative & first negative & most negative & with $i = 0$ \\
+\midrule
+$A_4$ & 237 & 0  & ---           & ---  & 0 \\
+$A_5$ & 490 & 6  & $(1,1,2,1)$   & $-1$ & 0 \\
+$A_6$ & 796 & 10 & $(1,1,2,1,0)$ & $-2$ & 2 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{The reductions of [H] at \texorpdfstring{$d = 6$}{d = 6}}
+
+\begin{observation}
+Both reductions of [H] survive at $d = 6$ throughout the tested range ($\deg \le 11$): the
+unpaired tail $i > j \Rightarrow A_{i,j,\dots} \ge 0$, and the paired inequality
+$A_{i,j,\dots} + A_{j-i,j,\dots} \ge 0$ for $0 \le i \le j$.
+\end{observation}
+
+This is evidence that the $\tau$-pairing frame is structural rather than an $A_5$ accident.
+
+\subsection{Prefix positivity fails at \texorpdfstring{$d = 6$}{d = 6}}
+\label{sec:prefix}
+
+[H, \S8] observes that every tested coefficient of $B = F_5/(1-a)$ is nonnegative, and
+[H, \S11.4] proposes proving that as a stepping stone, since
+$B_{i,j,k,l} = \sum_{r \le i} A_{r,j,k,l}$ turns the paired inequality into a statement about
+adjacent differences of a prefix array.
+
+\begin{proposition}
+$F_6/(1-a)$ is not coefficientwise nonnegative. Indeed $A_{(0,2,3,2,2)} = -1$.
+\end{proposition}
+
+\begin{proof}
+The prefix sum runs over $r \le i$, so $B_{0,j,k,l} = A_{0,j,k,l}$ and any negative coefficient
+with $i = 0$ survives untouched. $F_5$ has no negative coefficient with $i = 0$ in the tested
+range; $F_6$ has two, the first being $A_{(0,2,3,2,2)} = -1$. Confirmed along two independent
+code paths, truncated series products in exact integers and the XLA fixed-point grid.
+\end{proof}
+
+The route of [H, \S11.4] is therefore specific to $d = 5$. Note that the obstruction is at the
+very first level of the prefix sum, so no refinement of the argument recovers it.
+
+\section{Denominator certificates}
+
+\begin{definition}
+Let $N / \prod_{r=1}^{R}(1 - f_r)$ with each $f_r$ nonnegative and of zero constant term. An
+\emph{order-$k$ certificate} is an identity
+\[
+  N \;=\; \sum_{|S| \le k} P_S \prod_{r \in S}(1 - f_r),
+  \qquad \text{every } P_S \text{ coefficientwise nonnegative,}
+\]
+over subsets $S \subseteq \{1, \dots, R\}$.
+\end{definition}
+
+Dividing through, $F = \sum_S P_S / \prod_{r \notin S}(1 - f_r)$ is a sum of products of
+nonnegative series, so $F \ge 0$. Order $0$ is the statement that $N$ itself is nonnegative.
+[H, \S10.3] reports a first-order search of this shape coming back infeasible.
+
+\subsection{Why a returned certificate is a proof}
+
+$P_\emptyset$ is not a free unknown: since $\prod_{r \in \emptyset}(1 - f_r) = 1$, it is the
+remainder $N - \sum_{S \ne \emptyset} P_S \prod_{r \in S}(1 - f_r)$. We therefore solve a
+feasibility LP in the nonempty parts only, snap the solver's floating-point answer to exact
+rationals, and recompute $P_\emptyset$ in exact arithmetic. The identity then holds by
+construction, and the single remaining question, whether that exact remainder is coefficientwise
+nonnegative, is decided exactly. The LP is demoted to a search heuristic; correctness never
+depends on it. The output is a finite algebraic identity checkable in any computer algebra
+system.
+
+\subsection{Why a failure is a theorem}
+
+\begin{lemma}[projection]
+A constraint on a monomial of total degree $T$ involves only the coefficients of the $P_S$ of
+degree $\le T$, because every $\prod_{r \in S}(1 - f_r)$ has constant term $1$ and no
+negative-degree terms. Truncating both the constraints and the unknowns at degree $T$ is
+therefore an exact \emph{projection} of the feasible set, not a further restriction.
+\end{lemma}
+
+Consequently infeasibility of the truncated program proves that no certificate of that order
+exists at \emph{any} degree. Failed searches become impossibility results.
+
+\subsection{\texorpdfstring{$A_4$}{A\_4}}
+
+\begin{proposition}
+$F_4$ admits an order-$4$ certificate with $\deg P_S \le 8$, exhibited explicitly and verified
+exactly; and no certificate of order $\le 3$ exists at any degree. The minimal order is $4$.
+\end{proposition}
+
+This is an independent computational proof of [N, Thm.~1] by a method using no special feature
+of $d = 4$. The lower bound already follows by hand at depth~$1$: writing $m_S$ for the constant
+term of $P_S$, matching the constant term of $N = 1 - a - b - c + \cdots$ forces
+$\sum_S m_S \le 1$, while matching the coefficients of $a$, $b$, $c$ forces
+\[
+  \sum_{S \ni f_0} m_S \ge \tfrac12, \qquad
+  \sum_{S \ni f_2} m_S \ge 1, \qquad
+  \sum_{S \ni f_5} m_S \ge 1,
+\]
+where $f_0 = 2a$, $f_2 = b + ab$, $f_5 = c + abc$ are the only factors containing the respective
+bare monomials. With a budget of $1$ these can only be met if a single $S$ contains all three.
+The machine-found certificate saturates all four bounds exactly, its only two constant terms
+being $\tfrac12(1-f_0)(1-f_2)(1-f_4)(1-f_5)$ and $\tfrac12(1-f_2)(1-f_4)(1-f_5)(1-f_6)$.
+
+\subsection{\texorpdfstring{$A_5$}{A\_5}: how far the obstruction reaches}
+
+\begin{proposition}
+No denominator certificate of order $\le 7$ exists at any degree for $F_5$, nor for
+$F_5/(1-a)$.
+\end{proposition}
+
+For $F_5$ this is expected, since $F_5 \not\ge 0$, and serves as a control that the engine never
+manufactures a certificate for a false statement. For the prefix series, which \emph{is}
+coefficientwise nonnegative as far as we compute, it is informative: it extends [H, \S10.3] from
+order~$1$ to order~$7$. The bound sharpens with probe depth: depth~$1$ gives $\ge 4$, depth~$2$
+gives $\ge 7$, depth~$3$ rules out everything up to $7$.
+
+\section{The unpaired tail}
+
+\subsection{One series}
+
+Set $H(a) = (1-a)/(1-2a)$ and $J_d = F_d / H$. After $H$ is removed, every occurrence of $a$ in
+a numerator or denominator monomial is accompanied by $b$: the chamber monomials containing $a$
+are $z_1/z_l = ab\cdots$, and only $z_1/z_2 = a$ is bare, which is exactly the factor $1 - 2a$
+that $H$ removes. Hence $\deg_a [b^j c^k \cdots] J_d \le j$, and convolving with
+$H(a) = 1 + \sum_{n \ge 1} 2^{n-1} a^n$ gives, for $i > j$,
+\[
+  A_{i,j,k,\dots} \;=\; 2^{\,i-1}\, [b^j c^k \cdots]\, J_d(1/2, b, c, \dots).
+\]
+The entire unpaired tail, infinitely many coefficients, is therefore one positivity question
+about a single series in $d - 2$ variables. This is [H, Lemma~2 and Prop.~3] for $d = 5$, stated
+so that it applies verbatim for any $d$.
+
+Our $J_5(1/2,b,c,e)$ agrees with [H, eq.~(9)] coefficient for coefficient to degree $12$, which
+is what validates the construction. $J_6(1/2,b,c,d,e)$ is coefficientwise nonnegative as far as
+we compute ($\deg \le 10$).
+
+\subsection{Multiplicative certificates}
+
+The two successful proofs in the literature, [N, Thm.~1] and [H, Prop.~3], are
+\emph{multiplicative}: products of ratios $(1-u)/(1-v)$, each nonnegative by Lemma~1 because
+$v - u \ge 0$. That shape is not a finite sum $\sum_S P_S \prod_{r \in S}(1 - f_r)$ with
+$P_S \ge 0$, so the additive certificates of \S4 structurally cannot find them.
+
+The diagnostic is decisive: the additive search is obstructed on $J_5(1/2,\cdot)$, a series
+whose nonnegativity \emph{is} Proposition~3. When a method fails on a known theorem, the method
+is wrong.
+
+Presenting the numerator in factored form, the Vandermonde part being already a factorisation,
+one can search for a matching of numerator factors to denominators satisfying the Lemma~1
+condition, cancel whatever divides exactly, and ask whether what remains is nonnegative.
+
+\begin{proposition}
+For $d = 5$ this closes: all nine numerator factors pair off, three denominators cancel exactly,
+and the leftover numerator is exactly $1$. Proposition~3 is reconstructed mechanically.
+\end{proposition}
+
+For $d = 6$ it does not. A maximum matching leaves
+\[
+  \frac{1 - cde - \tfrac32 bcde}{1 - 2cde},
+\]
+whose expansion has the negative family $b\,(cde)^{k}$, and no available denominator $v$
+dominates $u = cde + \tfrac32 bcde$. Maximum matching is in fact greedy in the wrong way: it
+consumes denominators the remainder needs. Returning two ratios to the remainder leaves twelve
+Lemma-1 ratios times a remainder ($207$-term numerator over nine denominators) that is
+nonnegative as far as we check.
+
+\subsection{Generalising Lemma~1, and a negative result}
+
+Lemma~1 requires the numerator in the shape $1 - u$. The following drops that and lets several
+denominators cooperate.
+
+\begin{lemma}[absorption]
+Write $N = N_+ - N_-$ with both parts coefficientwise nonnegative, and let $S$ be a set of
+denominators with $1 - W = \prod_{v \in S}(1 - v)$. If $N_- \le N_+ \cdot W$ coefficientwise,
+then $N / \prod_{\mathrm{all}}(1 - v)$ is coefficientwise nonnegative.
+\end{lemma}
+
+\begin{proof}
+$N - N_+ \prod_S (1-v) = N_+ W - N_- \ge 0$, so $N = N_+ \prod_S (1-v) + P$ with $P \ge 0$ and
+\[
+  \frac{N}{\prod_{\mathrm{all}}(1-v)}
+  \;=\; \frac{N_+}{\prod_{v \notin S}(1-v)} \;+\; \frac{P}{\prod_{\mathrm{all}}(1-v)},
+\]
+both nonnegative.
+\end{proof}
+
+Lemma~1 is the case $N = 1 - u$, $S = \{v\}$, where the condition reads $u \le v$; the criterion
+is strictly stronger, since it applies to numerators not of that shape.
+
+\begin{observation}
+Searching jointly over back-off subsets and absorbing subsets, $13\,090$ candidate criteria,
+closes nothing for $A_6$.
+\end{observation}
+
+Since $J_6(1/2,\cdot)$ is nonnegative as far as we compute, a proof exists. The content of the
+observation is that it is not of this form: the technique that proves $d = 5$ does not extend,
+and the obstruction is structural rather than a matter of searching harder. Concretely, the
+negativity of the residual factor is compensated by the \emph{other} ratios, so no local pairing
+argument can succeed.
+
+\section{Assessment}
+
+What the computations suggest about proof strategy:
+
+\begin{enumerate}[itemsep=3pt,topsep=3pt]
+\item The $\tau$-pairing reduction is the right frame, both its inequalities surviving at
+  $d = 6$, but the prefix-positivity stepping stone is not, and is unavailable from $d = 6$ on.
+\item Additive, Positivstellensatz-shaped certificates are obstructed on \emph{every} target
+  tried, including provable ones. On present evidence they are not the tool for this problem,
+  and we would not recommend further effort extending [H, \S10.3] in that direction.
+\item Multiplicative certificates are the tool that works, and they are now mechanised: they
+  reproduce both published proofs from scratch. Their reach stops before $A_6$.
+\item The natural remaining targets are the paired series $\mathcal{P}$ of [H, eq.~(12)], for
+  which the construction is now cheap since $S = J_5(1/2,\cdot)$ is exactly the object above,
+  the reflection is an index reflection, and [H, \S7] supplies the denominator; and closed-form
+  domination along the negative families of [R, \S7.2], where each family settled is infinitely
+  many cases.
+\end{enumerate}
+
+\section*{Reproducibility}
+
+Everything above is reproducible from a clean checkout of Chern++. Statements are separated
+throughout into finite exact verifications and proofs; the certificate machinery and the
+closed-form family arguments are the only components producing the latter. The annotated
+walkthrough is \texttt{src/examples.ipynb}, executed with its outputs.
+
+\end{document}
