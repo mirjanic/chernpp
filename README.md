@@ -55,9 +55,7 @@ Reproducible from a clean checkout:
   for the prefix series.
 - The **unpaired tail collapses onto one series** $J_d(1/2,\dots)$ in $d-2$ variables. Ours
   reproduces the published closed form at $d=5$ coefficient for coefficient, and the multiplicative
-  search reconstructs that proof with leftover exactly $1$. At $d=6$ it reduces the tail to twelve
-  Lemma-1 ratios times an explicit remainder — and generalising Lemma 1 to an absorption criterion
-  still closes nothing, so the $d=5$ technique provably does not extend.
+  certificate search reconstructs Proposition 3 mechanically, with leftover exactly $1$.
 
 ## Denominator certificates
 
@@ -96,7 +94,7 @@ src/chernpp/         Pure Python/JAX.  Reads the artifacts; never re-derives the
   experiments.py       command-line runner
   data/                the mined algebras, tracked
 src/examples.ipynb   annotated tour, from the published results to the new ones
-tests/               eight tiers, in dependency order
+tests/               seven tiers, in dependency order
 papers/              project reports plus Bérczi–Szenes, Annals 175 (2012)
 ```
 
@@ -170,13 +168,15 @@ chamber correction divides exactly, and that the resulting numerator has constan
 
 1. `test_1_polynomial.py` — ring laws, truncation, geometric series, exact rationals.
 2. `test_2_artifacts.py` — schema invariants and internal consistency of the mined algebras.
-3. `test_3_thom.py` — classical Thom polynomials, Chern multiset structure, $\ell$-independence,
-   and the overflow guard.
+3. `test_3_thom.py` — Thom polynomials against both the classical $\ell=0$ values and Rimányi's
+   published $\ell=1$ tables (`tests/data/published_thom_polynomials.json`), Chern multiset
+   structure, $\ell$-independence, the overflow guard, and CRT reconstruction.
 4. `test_4_chamber.py` — both conjectures, ballot combinatorics, the reductions at $d=5$ vs $d=6$,
    and a cross-validation of $C(M)$ between the two independent implementations.
 5. `test_5_certificates.py` — certificate verification, tamper rejection, order obstructions.
 6. `test_6_backends.py` — the backend registry: registration, lookup, family filtering, and the
    contract a backend's result must satisfy. Runs without SageMath.
+7. `test_7_tail.py` — the unpaired-tail series, multiplicative certificates, and absorption.
 
 ## Caveats
 

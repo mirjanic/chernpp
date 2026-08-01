@@ -24,12 +24,6 @@ logger = get_logger(__name__)
 
 FAMILY = "morin-a"
 
-CHAMBER_NAMES = {
-    4: ["a", "b", "c"],
-    5: ["a", "b", "c", "e"],
-    6: ["a", "b", "c", "d", "e"],
-}
-
 
 def weight_indices(d):
     """
@@ -55,17 +49,35 @@ def expected_multidegree_degree(d):
     return len(weight_indices(d)) - binomial(d, 2)
 
 
-def coordinate_ring(base_field, d):
+def variable_name(m, r, l):
+    return f"q_{l}_{m}_{r}"
+
+
+def defect_zero_names(d):
+    """
+    The coordinates ``q^{mr}_{m+r}``, on which ``eps_ref`` is 1.
+
+    These are the ones saturation removes components inside, and -- because
+    degrevlex is cheapest in its last variables -- the ones to place last.
+    """
+    return [variable_name(m, r, l) for (m, r, l) in weight_indices(d) if m + r == l]
+
+
+def coordinate_ring(base_field, d, order=None):
     """
     The polynomial ring on N_d, together with the weight of each variable.
 
     The variable for q^{mr}_l is named ``q_l_m_r``; the returned dict sends it
     to its index ``(l, m, r)``, from which its weight is ``z_m + z_r - z_l``.
+
+    ``order`` overrides the variable sequence.  That matters enormously: the
+    Groebner basis at ``d = 7`` costs 0.2 s with the defect-zero variables last
+    and tens of seconds with the natural order, for the same ideal.
     """
     indices = weight_indices(d)
-    names = [f"q_{l}_{m}_{r}" for (m, r, l) in indices]
+    names = order or [variable_name(m, r, l) for (m, r, l) in indices]
     ring = PolynomialRing(base_field, names, order="degrevlex")
-    index_of = {ring(f"q_{l}_{m}_{r}"): (l, m, r) for (m, r, l) in indices}
+    index_of = {ring(variable_name(m, r, l)): (l, m, r) for (m, r, l) in indices}
     return ring, index_of
 
 
@@ -160,7 +172,15 @@ def random_orbit_point(d, base_field):
 
 
 def chamber_names(d):
-    return CHAMBER_NAMES.get(d, [f"x{i}" for i in range(1, d)])
+    """
+    The chamber variables ``x_1, ..., x_{d-1}``, where ``x_j = z_j / z_{j+1}``.
+
+    Generated rather than tabulated, so every order is named on the same
+    footing.  The papers write ``a, b, c, e`` for ``d = 5`` and ``a, b, c, d, e``
+    for ``d = 6``; those are the same variables in the same sequence, so
+    ``x_1 = a``, ``x_2 = b``, and so on.
+    """
+    return [f"x{i}" for i in range(1, d)]
 
 
 def chamber_monomial(m, l, xs):
@@ -169,6 +189,29 @@ def chamber_monomial(m, l, xs):
     for k in range(m, l):
         result *= xs[k - 1]
     return result
+
+
+def chamber_image(polynomial, ring, d):
+    """
+    Substitute ``z_i = x_i x_{i+1} ... x_{d-1}``, working on exponents directly.
+
+    Since ``x_k`` occurs in ``z_i`` exactly when ``i <= k``, the image of
+    ``z^alpha`` is ``x^mu`` with ``mu_k = alpha_1 + ... + alpha_k``: the
+    substitution is a partial-sum map on exponent vectors.
+
+    Doing it this way rather than through ``ring(str(poly.subs(...)))`` is not
+    an optimisation but a necessity -- at ``d = 7`` the substituted polynomial
+    has 14586 terms and Sage's string parser exceeds its recursion limit.
+    """
+    terms = {}
+    for exponents, coefficient in polynomial.dict().items():
+        partial, running = [], 0
+        for k in range(d - 1):
+            running += int(exponents[k])
+            partial.append(running)
+        key = tuple(partial)
+        terms[key] = terms.get(key, 0) + coefficient
+    return ring({k: v for k, v in terms.items() if v != 0})
 
 
 def to_python(polynomial, characteristic):
@@ -198,8 +241,7 @@ def chamber_algebra(d, multidegree_poly, weight_ring, base_field, characteristic
     names = chamber_names(d)
     ring = PolynomialRing(base_field, names)
     xs = ring.gens()
-    substitution = {weight_ring.gen(i): chamber_monomial(i + 1, d, xs) for i in range(d)}
-    multidegree_chamber = ring(str(multidegree_poly.subs(substitution)))
+    multidegree_chamber = chamber_image(multidegree_poly, ring, d)
 
     indices = weight_indices(d)
     vandermonde_factors = [

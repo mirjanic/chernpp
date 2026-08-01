@@ -1,0 +1,2312 @@
+{
+  "source": "https://tpp.web.unc.edu/",
+  "pages": [
+    "thom-polynomials-relative-dimension-l0",
+    "thom-polynomials-relative-dimension-1"
+  ],
+  "method": "Rimanyi restriction equations",
+  "note": "Reference Thom polynomials, computed independently of the Berczi-Szenes residue formula implemented in this repository. Used to constrain our own computation, never to replace it. Agreement at A_7 is what makes the failures of the paired and unpaired inequalities at d=7 a statement about mathematics rather than a bug.",
+  "basis": "Relative Chern classes. A term is the multiset of indices i of the c_i appearing, as a sorted list, so [1,1,1,5] means c_1^3 c_5.",
+  "tables": [
+    {
+      "singularity": "A_4",
+      "order": 4,
+      "relative_dimension": 0,
+      "codimension": 4,
+      "terms": [
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "coefficient": 1
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            2
+          ],
+          "coefficient": 6
+        },
+        {
+          "chern_indices": [
+            1,
+            3
+          ],
+          "coefficient": 9
+        },
+        {
+          "chern_indices": [
+            2,
+            2
+          ],
+          "coefficient": 2
+        },
+        {
+          "chern_indices": [
+            4
+          ],
+          "coefficient": 6
+        }
+      ]
+    },
+    {
+      "singularity": "A_5",
+      "order": 5,
+      "relative_dimension": 0,
+      "codimension": 5,
+      "terms": [
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "coefficient": 1
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            2
+          ],
+          "coefficient": 10
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            3
+          ],
+          "coefficient": 25
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            2
+          ],
+          "coefficient": 10
+        },
+        {
+          "chern_indices": [
+            1,
+            4
+          ],
+          "coefficient": 38
+        },
+        {
+          "chern_indices": [
+            2,
+            3
+          ],
+          "coefficient": 12
+        },
+        {
+          "chern_indices": [
+            5
+          ],
+          "coefficient": 24
+        }
+      ]
+    },
+    {
+      "singularity": "A_6",
+      "order": 6,
+      "relative_dimension": 0,
+      "codimension": 6,
+      "terms": [
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "coefficient": 1
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            1,
+            2
+          ],
+          "coefficient": 15
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            3
+          ],
+          "coefficient": 55
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            2,
+            2
+          ],
+          "coefficient": 30
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            4
+          ],
+          "coefficient": 141
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            3
+          ],
+          "coefficient": 79
+        },
+        {
+          "chern_indices": [
+            1,
+            5
+          ],
+          "coefficient": 202
+        },
+        {
+          "chern_indices": [
+            2,
+            2,
+            2
+          ],
+          "coefficient": 5
+        },
+        {
+          "chern_indices": [
+            2,
+            4
+          ],
+          "coefficient": 55
+        },
+        {
+          "chern_indices": [
+            3,
+            3
+          ],
+          "coefficient": 17
+        },
+        {
+          "chern_indices": [
+            6
+          ],
+          "coefficient": 120
+        }
+      ]
+    },
+    {
+      "singularity": "A_7",
+      "order": 7,
+      "relative_dimension": 0,
+      "codimension": 7,
+      "terms": [
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "coefficient": 1
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            2
+          ],
+          "coefficient": 21
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            1,
+            3
+          ],
+          "coefficient": 105
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            2,
+            2
+          ],
+          "coefficient": 70
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            4
+          ],
+          "coefficient": 399
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            2,
+            3
+          ],
+          "coefficient": 301
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            5
+          ],
+          "coefficient": 960
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            2,
+            2
+          ],
+          "coefficient": 35
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            4
+          ],
+          "coefficient": 467
+        },
+        {
+          "chern_indices": [
+            1,
+            3,
+            3
+          ],
+          "coefficient": 139
+        },
+        {
+          "chern_indices": [
+            1,
+            6
+          ],
+          "coefficient": 1284
+        },
+        {
+          "chern_indices": [
+            2,
+            2,
+            3
+          ],
+          "coefficient": 58
+        },
+        {
+          "chern_indices": [
+            2,
+            5
+          ],
+          "coefficient": 326
+        },
+        {
+          "chern_indices": [
+            3,
+            4
+          ],
+          "coefficient": 154
+        },
+        {
+          "chern_indices": [
+            7
+          ],
+          "coefficient": 720
+        }
+      ]
+    },
+    {
+      "singularity": "A_4",
+      "order": 4,
+      "relative_dimension": 1,
+      "codimension": 8,
+      "terms": [
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            5
+          ],
+          "coefficient": 6
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            2,
+            4
+          ],
+          "coefficient": 9
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            3,
+            3
+          ],
+          "coefficient": 2
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            6
+          ],
+          "coefficient": 54
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            2,
+            3
+          ],
+          "coefficient": 6
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            5
+          ],
+          "coefficient": 53
+        },
+        {
+          "chern_indices": [
+            1,
+            3,
+            4
+          ],
+          "coefficient": 17
+        },
+        {
+          "chern_indices": [
+            1,
+            7
+          ],
+          "coefficient": 156
+        },
+        {
+          "chern_indices": [
+            2,
+            2,
+            2,
+            2
+          ],
+          "coefficient": 1
+        },
+        {
+          "chern_indices": [
+            2,
+            2,
+            4
+          ],
+          "coefficient": 16
+        },
+        {
+          "chern_indices": [
+            2,
+            3,
+            3
+          ],
+          "coefficient": 4
+        },
+        {
+          "chern_indices": [
+            2,
+            6
+          ],
+          "coefficient": 76
+        },
+        {
+          "chern_indices": [
+            3,
+            5
+          ],
+          "coefficient": 21
+        },
+        {
+          "chern_indices": [
+            4,
+            4
+          ],
+          "coefficient": 11
+        },
+        {
+          "chern_indices": [
+            8
+          ],
+          "coefficient": 144
+        }
+      ]
+    },
+    {
+      "singularity": "A_5",
+      "order": 5,
+      "relative_dimension": 1,
+      "codimension": 10,
+      "terms": [
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            1,
+            6
+          ],
+          "coefficient": 24
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            2,
+            5
+          ],
+          "coefficient": 38
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            3,
+            4
+          ],
+          "coefficient": 12
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            7
+          ],
+          "coefficient": 336
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            2,
+            2,
+            4
+          ],
+          "coefficient": 25
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            2,
+            3,
+            3
+          ],
+          "coefficient": 10
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            2,
+            6
+          ],
+          "coefficient": 400
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            3,
+            5
+          ],
+          "coefficient": 115
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            4,
+            4
+          ],
+          "coefficient": 39
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            8
+          ],
+          "coefficient": 1704
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            2,
+            2,
+            3
+          ],
+          "coefficient": 10
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            2,
+            5
+          ],
+          "coefficient": 170
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "coefficient": 95
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            7
+          ],
+          "coefficient": 1366
+        },
+        {
+          "chern_indices": [
+            1,
+            3,
+            3,
+            3
+          ],
+          "coefficient": 5
+        },
+        {
+          "chern_indices": [
+            1,
+            3,
+            6
+          ],
+          "coefficient": 389
+        },
+        {
+          "chern_indices": [
+            1,
+            4,
+            5
+          ],
+          "coefficient": 233
+        },
+        {
+          "chern_indices": [
+            1,
+            9
+          ],
+          "coefficient": 3696
+        },
+        {
+          "chern_indices": [
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "coefficient": 1
+        },
+        {
+          "chern_indices": [
+            2,
+            2,
+            2,
+            4
+          ],
+          "coefficient": 30
+        },
+        {
+          "chern_indices": [
+            2,
+            2,
+            3,
+            3
+          ],
+          "coefficient": 10
+        },
+        {
+          "chern_indices": [
+            2,
+            2,
+            6
+          ],
+          "coefficient": 285
+        },
+        {
+          "chern_indices": [
+            2,
+            3,
+            5
+          ],
+          "coefficient": 136
+        },
+        {
+          "chern_indices": [
+            2,
+            4,
+            4
+          ],
+          "coefficient": 68
+        },
+        {
+          "chern_indices": [
+            2,
+            8
+          ],
+          "coefficient": 1508
+        },
+        {
+          "chern_indices": [
+            3,
+            3,
+            4
+          ],
+          "coefficient": 19
+        },
+        {
+          "chern_indices": [
+            3,
+            7
+          ],
+          "coefficient": 450
+        },
+        {
+          "chern_indices": [
+            4,
+            6
+          ],
+          "coefficient": 268
+        },
+        {
+          "chern_indices": [
+            5,
+            5
+          ],
+          "coefficient": 78
+        },
+        {
+          "chern_indices": [
+            10
+          ],
+          "coefficient": 2880
+        }
+      ]
+    },
+    {
+      "singularity": "A_6",
+      "order": 6,
+      "relative_dimension": 1,
+      "codimension": 12,
+      "terms": [
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            7
+          ],
+          "coefficient": 120
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            1,
+            2,
+            6
+          ],
+          "coefficient": 202
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            1,
+            3,
+            5
+          ],
+          "coefficient": 55
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            1,
+            4,
+            4
+          ],
+          "coefficient": 17
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            1,
+            8
+          ],
+          "coefficient": 2400
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            2,
+            2,
+            5
+          ],
+          "coefficient": 141
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            2,
+            3,
+            4
+          ],
+          "coefficient": 79
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            2,
+            7
+          ],
+          "coefficient": 3272
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            3,
+            3,
+            3
+          ],
+          "coefficient": 5
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            3,
+            6
+          ],
+          "coefficient": 884
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            4,
+            5
+          ],
+          "coefficient": 450
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            9
+          ],
+          "coefficient": 18600
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            2,
+            2,
+            2,
+            4
+          ],
+          "coefficient": 55
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            2,
+            2,
+            3,
+            3
+          ],
+          "coefficient": 30
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            2,
+            2,
+            6
+          ],
+          "coefficient": 1704
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            2,
+            3,
+            5
+          ],
+          "coefficient": 861
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            2,
+            4,
+            4
+          ],
+          "coefficient": 280
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            2,
+            8
+          ],
+          "coefficient": 19358
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            3,
+            3,
+            4
+          ],
+          "coefficient": 109
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            3,
+            7
+          ],
+          "coefficient": 5393
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            4,
+            6
+          ],
+          "coefficient": 2594
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            5,
+            5
+          ],
+          "coefficient": 919
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            10
+          ],
+          "coefficient": 69600
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            2,
+            2,
+            2,
+            3
+          ],
+          "coefficient": 15
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            2,
+            2,
+            5
+          ],
+          "coefficient": 425
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            2,
+            3,
+            4
+          ],
+          "coefficient": 315
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            2,
+            7
+          ],
+          "coefficient": 6737
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            3,
+            3,
+            3
+          ],
+          "coefficient": 30
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            3,
+            6
+          ],
+          "coefficient": 3354
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            4,
+            5
+          ],
+          "coefficient": 1890
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            9
+          ],
+          "coefficient": 49432
+        },
+        {
+          "chern_indices": [
+            1,
+            3,
+            3,
+            5
+          ],
+          "coefficient": 378
+        },
+        {
+          "chern_indices": [
+            1,
+            3,
+            4,
+            4
+          ],
+          "coefficient": 269
+        },
+        {
+          "chern_indices": [
+            1,
+            3,
+            8
+          ],
+          "coefficient": 14544
+        },
+        {
+          "chern_indices": [
+            1,
+            4,
+            7
+          ],
+          "coefficient": 7012
+        },
+        {
+          "chern_indices": [
+            1,
+            5,
+            6
+          ],
+          "coefficient": 3868
+        },
+        {
+          "chern_indices": [
+            1,
+            11
+          ],
+          "coefficient": 125280
+        },
+        {
+          "chern_indices": [
+            2,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "coefficient": 1
+        },
+        {
+          "chern_indices": [
+            2,
+            2,
+            2,
+            2,
+            4
+          ],
+          "coefficient": 50
+        },
+        {
+          "chern_indices": [
+            2,
+            2,
+            2,
+            3,
+            3
+          ],
+          "coefficient": 20
+        },
+        {
+          "chern_indices": [
+            2,
+            2,
+            2,
+            6
+          ],
+          "coefficient": 818
+        },
+        {
+          "chern_indices": [
+            2,
+            2,
+            3,
+            5
+          ],
+          "coefficient": 514
+        },
+        {
+          "chern_indices": [
+            2,
+            2,
+            4,
+            4
+          ],
+          "coefficient": 247
+        },
+        {
+          "chern_indices": [
+            2,
+            2,
+            8
+          ],
+          "coefficient": 8686
+        },
+        {
+          "chern_indices": [
+            2,
+            3,
+            3,
+            4
+          ],
+          "coefficient": 126
+        },
+        {
+          "chern_indices": [
+            2,
+            3,
+            7
+          ],
+          "coefficient": 4506
+        },
+        {
+          "chern_indices": [
+            2,
+            4,
+            6
+          ],
+          "coefficient": 2496
+        },
+        {
+          "chern_indices": [
+            2,
+            5,
+            5
+          ],
+          "coefficient": 706
+        },
+        {
+          "chern_indices": [
+            2,
+            10
+          ],
+          "coefficient": 45816
+        },
+        {
+          "chern_indices": [
+            3,
+            3,
+            3,
+            3
+          ],
+          "coefficient": 3
+        },
+        {
+          "chern_indices": [
+            3,
+            3,
+            6
+          ],
+          "coefficient": 520
+        },
+        {
+          "chern_indices": [
+            3,
+            4,
+            5
+          ],
+          "coefficient": 544
+        },
+        {
+          "chern_indices": [
+            3,
+            9
+          ],
+          "coefficient": 14428
+        },
+        {
+          "chern_indices": [
+            4,
+            4,
+            4
+          ],
+          "coefficient": 86
+        },
+        {
+          "chern_indices": [
+            4,
+            8
+          ],
+          "coefficient": 7064
+        },
+        {
+          "chern_indices": [
+            5,
+            7
+          ],
+          "coefficient": 3284
+        },
+        {
+          "chern_indices": [
+            6,
+            6
+          ],
+          "coefficient": 1408
+        },
+        {
+          "chern_indices": [
+            12
+          ],
+          "coefficient": 86400
+        }
+      ]
+    },
+    {
+      "singularity": "A_7",
+      "order": 7,
+      "relative_dimension": 1,
+      "codimension": 14,
+      "terms": [
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            8
+          ],
+          "coefficient": 720
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            2,
+            7
+          ],
+          "coefficient": 1284
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            3,
+            6
+          ],
+          "coefficient": 326
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            4,
+            5
+          ],
+          "coefficient": 154
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            9
+          ],
+          "coefficient": 19440
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            1,
+            2,
+            2,
+            6
+          ],
+          "coefficient": 960
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            1,
+            2,
+            3,
+            5
+          ],
+          "coefficient": 467
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            1,
+            2,
+            4,
+            4
+          ],
+          "coefficient": 139
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            1,
+            2,
+            8
+          ],
+          "coefficient": 29388
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            1,
+            3,
+            3,
+            4
+          ],
+          "coefficient": 58
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            1,
+            3,
+            7
+          ],
+          "coefficient": 7646
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            1,
+            4,
+            6
+          ],
+          "coefficient": 3336
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            1,
+            5,
+            5
+          ],
+          "coefficient": 1174
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            1,
+            10
+          ],
+          "coefficient": 212400
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            2,
+            2,
+            2,
+            5
+          ],
+          "coefficient": 399
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            2,
+            2,
+            3,
+            4
+          ],
+          "coefficient": 301
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            2,
+            2,
+            7
+          ],
+          "coefficient": 17692
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            2,
+            3,
+            3,
+            3
+          ],
+          "coefficient": 35
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            2,
+            3,
+            6
+          ],
+          "coefficient": 8499
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            2,
+            4,
+            5
+          ],
+          "coefficient": 4105
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            2,
+            9
+          ],
+          "coefficient": 262380
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            3,
+            3,
+            5
+          ],
+          "coefficient": 931
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            3,
+            4,
+            4
+          ],
+          "coefficient": 553
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            3,
+            8
+          ],
+          "coefficient": 71238
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            4,
+            7
+          ],
+          "coefficient": 30716
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            5,
+            6
+          ],
+          "coefficient": 17302
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            1,
+            11
+          ],
+          "coefficient": 1198800
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            2,
+            2,
+            2,
+            2,
+            4
+          ],
+          "coefficient": 105
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            2,
+            2,
+            2,
+            3,
+            3
+          ],
+          "coefficient": 70
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            2,
+            2,
+            2,
+            6
+          ],
+          "coefficient": 5453
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            2,
+            2,
+            3,
+            5
+          ],
+          "coefficient": 3682
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            2,
+            2,
+            4,
+            4
+          ],
+          "coefficient": 1155
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            2,
+            2,
+            8
+          ],
+          "coefficient": 119840
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            2,
+            3,
+            3,
+            4
+          ],
+          "coefficient": 833
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            2,
+            3,
+            7
+          ],
+          "coefficient": 59081
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            2,
+            4,
+            6
+          ],
+          "coefficient": 26791
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            2,
+            5,
+            5
+          ],
+          "coefficient": 9266
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            2,
+            10
+          ],
+          "coefficient": 1139460
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            3,
+            3,
+            3,
+            3
+          ],
+          "coefficient": 21
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            3,
+            3,
+            6
+          ],
+          "coefficient": 6399
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            3,
+            4,
+            5
+          ],
+          "coefficient": 6062
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            3,
+            9
+          ],
+          "coefficient": 326506
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            4,
+            4,
+            4
+          ],
+          "coefficient": 661
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            4,
+            8
+          ],
+          "coefficient": 142860
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            5,
+            7
+          ],
+          "coefficient": 70574
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            6,
+            6
+          ],
+          "coefficient": 26424
+        },
+        {
+          "chern_indices": [
+            1,
+            1,
+            12
+          ],
+          "coefficient": 3674880
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            2,
+            2,
+            2,
+            2,
+            3
+          ],
+          "coefficient": 21
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            2,
+            2,
+            2,
+            5
+          ],
+          "coefficient": 910
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            2,
+            2,
+            3,
+            4
+          ],
+          "coefficient": 805
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            2,
+            2,
+            7
+          ],
+          "coefficient": 24541
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            2,
+            3,
+            3,
+            3
+          ],
+          "coefficient": 105
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            2,
+            3,
+            6
+          ],
+          "coefficient": 16257
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            2,
+            4,
+            5
+          ],
+          "coefficient": 8706
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            2,
+            9
+          ],
+          "coefficient": 352748
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            3,
+            3,
+            5
+          ],
+          "coefficient": 3249
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            3,
+            4,
+            4
+          ],
+          "coefficient": 2226
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            3,
+            8
+          ],
+          "coefficient": 182609
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            4,
+            7
+          ],
+          "coefficient": 82637
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            5,
+            6
+          ],
+          "coefficient": 43894
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            11
+          ],
+          "coefficient": 2400336
+        },
+        {
+          "chern_indices": [
+            1,
+            3,
+            3,
+            3,
+            4
+          ],
+          "coefficient": 237
+        },
+        {
+          "chern_indices": [
+            1,
+            3,
+            3,
+            7
+          ],
+          "coefficient": 20597
+        },
+        {
+          "chern_indices": [
+            1,
+            3,
+            4,
+            6
+          ],
+          "coefficient": 17908
+        },
+        {
+          "chern_indices": [
+            1,
+            3,
+            5,
+            5
+          ],
+          "coefficient": 5611
+        },
+        {
+          "chern_indices": [
+            1,
+            3,
+            10
+          ],
+          "coefficient": 730732
+        },
+        {
+          "chern_indices": [
+            1,
+            4,
+            4,
+            5
+          ],
+          "coefficient": 4492
+        },
+        {
+          "chern_indices": [
+            1,
+            4,
+            9
+          ],
+          "coefficient": 326482
+        },
+        {
+          "chern_indices": [
+            1,
+            5,
+            8
+          ],
+          "coefficient": 149930
+        },
+        {
+          "chern_indices": [
+            1,
+            6,
+            7
+          ],
+          "coefficient": 93752
+        },
+        {
+          "chern_indices": [
+            1,
+            13
+          ],
+          "coefficient": 5780160
+        },
+        {
+          "chern_indices": [
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "coefficient": 1
+        },
+        {
+          "chern_indices": [
+            2,
+            2,
+            2,
+            2,
+            2,
+            4
+          ],
+          "coefficient": 77
+        },
+        {
+          "chern_indices": [
+            2,
+            2,
+            2,
+            2,
+            3,
+            3
+          ],
+          "coefficient": 35
+        },
+        {
+          "chern_indices": [
+            2,
+            2,
+            2,
+            2,
+            6
+          ],
+          "coefficient": 1981
+        },
+        {
+          "chern_indices": [
+            2,
+            2,
+            2,
+            3,
+            5
+          ],
+          "coefficient": 1477
+        },
+        {
+          "chern_indices": [
+            2,
+            2,
+            2,
+            4,
+            4
+          ],
+          "coefficient": 686
+        },
+        {
+          "chern_indices": [
+            2,
+            2,
+            2,
+            8
+          ],
+          "coefficient": 36255
+        },
+        {
+          "chern_indices": [
+            2,
+            2,
+            3,
+            3,
+            4
+          ],
+          "coefficient": 483
+        },
+        {
+          "chern_indices": [
+            2,
+            2,
+            3,
+            7
+          ],
+          "coefficient": 24908
+        },
+        {
+          "chern_indices": [
+            2,
+            2,
+            4,
+            6
+          ],
+          "coefficient": 13009
+        },
+        {
+          "chern_indices": [
+            2,
+            2,
+            5,
+            5
+          ],
+          "coefficient": 3598
+        },
+        {
+          "chern_indices": [
+            2,
+            2,
+            10
+          ],
+          "coefficient": 379672
+        },
+        {
+          "chern_indices": [
+            2,
+            3,
+            3,
+            3,
+            3
+          ],
+          "coefficient": 21
+        },
+        {
+          "chern_indices": [
+            2,
+            3,
+            3,
+            6
+          ],
+          "coefficient": 5073
+        },
+        {
+          "chern_indices": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "coefficient": 5037
+        },
+        {
+          "chern_indices": [
+            2,
+            3,
+            9
+          ],
+          "coefficient": 208920
+        },
+        {
+          "chern_indices": [
+            2,
+            4,
+            4,
+            4
+          ],
+          "coefficient": 767
+        },
+        {
+          "chern_indices": [
+            2,
+            4,
+            8
+          ],
+          "coefficient": 95613
+        },
+        {
+          "chern_indices": [
+            2,
+            5,
+            7
+          ],
+          "coefficient": 42504
+        },
+        {
+          "chern_indices": [
+            2,
+            6,
+            6
+          ],
+          "coefficient": 17827
+        },
+        {
+          "chern_indices": [
+            2,
+            12
+          ],
+          "coefficient": 1955952
+        },
+        {
+          "chern_indices": [
+            3,
+            3,
+            3,
+            5
+          ],
+          "coefficient": 315
+        },
+        {
+          "chern_indices": [
+            3,
+            3,
+            4,
+            4
+          ],
+          "coefficient": 318
+        },
+        {
+          "chern_indices": [
+            3,
+            3,
+            8
+          ],
+          "coefficient": 25031
+        },
+        {
+          "chern_indices": [
+            3,
+            4,
+            7
+          ],
+          "coefficient": 21152
+        },
+        {
+          "chern_indices": [
+            3,
+            5,
+            6
+          ],
+          "coefficient": 10382
+        },
+        {
+          "chern_indices": [
+            3,
+            11
+          ],
+          "coefficient": 635040
+        },
+        {
+          "chern_indices": [
+            4,
+            4,
+            6
+          ],
+          "coefficient": 5056
+        },
+        {
+          "chern_indices": [
+            4,
+            5,
+            5
+          ],
+          "coefficient": 2691
+        },
+        {
+          "chern_indices": [
+            4,
+            10
+          ],
+          "coefficient": 289604
+        },
+        {
+          "chern_indices": [
+            5,
+            9
+          ],
+          "coefficient": 128740
+        },
+        {
+          "chern_indices": [
+            6,
+            8
+          ],
+          "coefficient": 74284
+        },
+        {
+          "chern_indices": [
+            7,
+            7
+          ],
+          "coefficient": 26780
+        },
+        {
+          "chern_indices": [
+            14
+          ],
+          "coefficient": 3628800
+        }
+      ]
+    }
+  ]
+}

@@ -19,7 +19,7 @@ from chernpp.chamber import (
     tau,
     unpaired_tail_defects,
 )
-from chernpp.chern import chern_coefficients
+from chernpp.chern import chern_coefficients, laurent_grid
 from chernpp.lorentzian import check_strong_log_concavity, extract_log_concavity_sequence
 from chernpp.polynomial import is_nonneg, poly_mul, poly_sub
 
@@ -147,6 +147,84 @@ class TestReductions(unittest.TestCase):
         self.assertEqual(
             [b for b, _ in sorted_negatives(chamber_series(5, 14)) if b[0] == 0], []
         )
+
+
+class TestReductionsFailAtA7(unittest.TestCase):
+    """
+    Both reductions of the A_5 handoff note break at d = 7.
+
+    This matters because it is the frame the whole A_5 programme is built on:
+    the unpaired tail is Proposition 3 there, proved for d = 5, and the paired
+    inequality is what would settle the weak conjecture. Both survive at d = 6,
+    which is why they looked structural.
+
+    The claim rests on three independent supports, and each is checked here or
+    in tier 3:
+
+    1. Q_7 reproduces Rimányi's published tables exactly -- all 15 coefficients
+       at relative dimension 0 and all 105 at relative dimension 1, computed by
+       the restriction-equation method (tier 3). So the input is not wrong.
+    2. Every offending coefficient agrees between the truncated series in exact
+       Python integers and the XLA fixed-point grid -- two unrelated code paths.
+    3. The violations sit at total degree 7 and 9, well inside the truncation
+       degree 10, so they are exact and not an artefact of the cut-off.
+    """
+
+    CAP = 10
+
+    def setUp(self):
+        self.series = chamber_series(7, self.CAP)
+
+    def test_unpaired_tail_fails(self):
+        # Proposition 3 says i > j implies A_beta >= 0.  At d = 7 it does not.
+        defects = unpaired_tail_defects(self.series, self.CAP)
+        self.assertTrue(defects, "expected the unpaired tail to fail at d = 7")
+        self.assertIn(((2, 1, 1, 2, 2, 1), -1), defects)
+        for beta, value in defects:
+            with self.subTest(beta=beta):
+                self.assertGreater(beta[0], beta[1])  # genuinely in the tail
+                self.assertLess(value, 0)
+                self.assertLessEqual(sum(beta), self.CAP)  # exact, not truncated
+
+    def test_paired_inequality_fails(self):
+        defects = paired_defects(self.series, self.CAP)
+        self.assertTrue(defects, "expected the paired inequality to fail at d = 7")
+        # Smallest violation: A_beta + A_tau(beta) = -1 + 0, at total degree 7.
+        beta = (0, 1, 1, 2, 2, 1)
+        partner = tau(beta)
+        self.assertEqual(partner, (1, 1, 1, 2, 2, 1))
+        self.assertEqual(self.series.get(beta), -1)
+        self.assertEqual(self.series.get(partner, 0), 0)
+        self.assertIn((beta, -1), defects)
+
+    def test_a_tau_fixed_point_is_negative(self):
+        # At a fixed point 2i = j the paired inequality reads 2 A_beta >= 0, so a
+        # negative coefficient there violates it on its own, with no partner to
+        # appeal to.
+        beta = (1, 2, 1, 2, 2, 1)
+        self.assertEqual(tau(beta), beta)  # fixed: j - i = i
+        self.assertEqual(self.series.get(beta), -1)
+
+    def test_violations_agree_with_the_independent_grid(self):
+        grid = laurent_grid(7, l_max=2)
+        for beta in (
+            (0, 1, 1, 2, 2, 1),
+            (1, 1, 1, 2, 2, 1),
+            (1, 2, 1, 2, 2, 1),
+            (2, 1, 1, 2, 2, 1),
+            (3, 1, 1, 2, 2, 1),
+        ):
+            with self.subTest(beta=beta):
+                self.assertTrue(all(b < n for b, n in zip(beta, grid.shape)))
+                self.assertEqual(self.series.get(beta, 0), int(grid[beta]))
+
+    def test_both_reductions_still_hold_at_d5_and_d6(self):
+        # The contrast is the point: d = 7 is where they break, not earlier.
+        for order, cap in ((5, 12), (6, 11)):
+            series = chamber_series(order, cap)
+            with self.subTest(order=order):
+                self.assertEqual(unpaired_tail_defects(series, cap), [])
+                self.assertEqual(paired_defects(series, cap), [])
 
 
 class TestLorentzian(unittest.TestCase):

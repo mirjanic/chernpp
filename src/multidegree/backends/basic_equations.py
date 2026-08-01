@@ -69,6 +69,55 @@ def basic_equations(ring, d):
     return relations
 
 
+#: Singular's `std` beats `slimgb` by one to two orders of magnitude on these
+#: ideals, and produces a smaller basis.
+ALGORITHM = "libsingular:std"
+
+
+def _strip_last_variable(polynomial, index, ring):
+    """Divide out the top power of variable ``index``, by exponent surgery."""
+    terms = polynomial.dict()
+    if not terms:
+        return polynomial
+    power = min(exponents[index] for exponents in terms)
+    if power == 0:
+        return polynomial
+    return ring(
+        {
+            tuple(e - (power if i == index else 0) for i, e in enumerate(exponents)): c
+            for exponents, c in terms.items()
+        }
+    )
+
+
+def saturate_by_variables(generators, names, variables, base_field):
+    """
+    ``I : (prod variables)^infinity`` for a homogeneous ideal, one variable at a time.
+
+    Degrevlex trick: with ``v`` the *last* variable, a Groebner basis of ``I``
+    saturates by ``v`` on dividing each element by the largest power of ``v``
+    that divides it.  That replaces an elimination -- which is what Sage's
+    generic ``saturation`` does, and which does not terminate at ``d = 7`` --
+    with a single basis computation.
+
+    The order matters twice over.  The basis is cheap when the defect-zero
+    variables sit last, and the trick then demands moving one of them to the
+    very end.  Doing that **back-to-front** keeps each move a small perturbation
+    of the cheap order; front-to-back does not, and at ``d = 7`` the first step
+    alone fails to finish.  Same trick, same mathematics, 23 s against hours.
+    """
+    for name in reversed(list(variables)):
+        order = [n for n in names if n != name] + [name]
+        ring = PolynomialRing(base_field, order, order="degrevlex")
+        basis = ring.ideal([ring(str(g)) for g in generators]).groebner_basis(
+            algorithm=ALGORITHM
+        )
+        last = len(ring.gens()) - 1
+        generators = [_strip_last_variable(g, last, ring) for g in basis]
+        names = [str(v) for v in ring.gens()]
+    return generators, names
+
+
 def orbit_ideal(base_field, d):
     """
     The ideal of the orbit closure, with three self-checks.
@@ -78,36 +127,37 @@ def orbit_ideal(base_field, d):
     weights, and both the raw and the saturated ideal must vanish on random
     points of the orbit.
     """
-    ring, index_of = morin.coordinate_ring(base_field, d)
+    defect_zero = morin.defect_zero_names(d)
+    natural = [morin.variable_name(m, r, l) for (m, r, l) in morin.weight_indices(d)]
+    cheap = [n for n in natural if n not in defect_zero] + defect_zero
+
+    ring, index_of = morin.coordinate_ring(base_field, d, order=cheap)
     relations = basic_equations(ring, d)
     for relation in relations:
         morin.multiweight(relation, index_of, d)
     logger.info("A_%d: %d basic equations, all multihomogeneous", d, len(relations))
 
-    ideal = ring.ideal(relations)
-
     sample = morin.random_orbit_point(d, base_field)
-    point = {ring(name): base_field(value) for name, value in sample.items()}
 
-    def vanishes(generators, label):
+    def vanishes(generators, names, label):
+        point_ring = PolynomialRing(base_field, names, order="degrevlex")
+        point = {point_ring(k): base_field(v) for k, v in sample.items()}
         for generator in generators:
-            if generator.subs(point) != 0:
+            if point_ring(str(generator)).subs(point) != 0:
                 raise RuntimeError(
                     f"A_{d}: {label} does not vanish on the orbit: {generator}"
                 )
 
-    vanishes(ideal.gens(), "a basic equation")
+    vanishes(relations, cheap, "a basic equation")
 
-    defect_zero = [
-        ring(f"q_{l}_{m}_{r}") for (m, r, l) in morin.weight_indices(d) if m + r == l
-    ]
     logger.info("A_%d: saturating by %d defect-zero coordinates", d, len(defect_zero))
-    for coordinate in defect_zero:
-        ideal = ideal.saturation(coordinate)[0]
-
-    vanishes(ideal.gens(), "a saturated generator")
+    generators, names = saturate_by_variables(relations, cheap, defect_zero, base_field)
+    vanishes(generators, names, "a saturated generator")
     logger.info("A_%d: orbit ideal verified on random B_d-translates of eps_ref", d)
-    return ideal, ring, index_of
+
+    final_ring, final_index = morin.coordinate_ring(base_field, d, order=names)
+    ideal = final_ring.ideal([final_ring(str(g)) for g in generators])
+    return ideal, final_ring, final_index
 
 
 class BasicEquationsBackend(MultidegreeBackend):
@@ -127,7 +177,7 @@ class BasicEquationsBackend(MultidegreeBackend):
         z = weight_ring.gens()
 
         logger.info("A_%d: Groebner basis and initial ideal", order)
-        basis = ideal.groebner_basis(algorithm="libsingular:slimgb")
+        basis = ideal.groebner_basis(algorithm=ALGORITHM)
         initial = ring.ideal([g.lt() for g in basis])
 
         def support(prime):

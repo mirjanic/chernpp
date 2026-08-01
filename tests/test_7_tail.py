@@ -183,23 +183,62 @@ class TestAbsorption(unittest.TestCase):
         p = {(0,): 2, (1,): -5, (2,): 7}
         self.assertEqual(sub(lemma1.positive_part(p), lemma1.negative_part(p)), p)
 
-    def test_scaling_a_denominator_enlarges_the_search(self):
-        # 1/(1-v) >= (1/lambda) 1/(1-lambda v) for lambda >= 1, so strengthening
-        # a denominator is legitimate and can absorb where the plain one cannot.
-        numerator = {(0,): 1, (1,): -3}
-        self.assertFalse(lemma1.absorbs(numerator, [{(1,): 1}], 1))
-        self.assertTrue(lemma1.absorbs_scaled(numerator, [{(1,): 1}], 1, [3]))
+    def test_generalised_pairing_is_strictly_weaker_than_lemma_1(self):
+        # (1-u)/(1-v) = 1 + (v-u)/(1-v), so the ratio is nonnegative as soon as
+        # (v-u)/(1-v) is -- which absorption can decide, without needing
+        # v - u >= 0 outright.
+        u, v = {(1,): 1, (2,): 2}, {(1,): 2}
+        self.assertFalse(lemma1.dominates(v, u))  # Lemma 1 does not apply
+        self.assertTrue(lemma1.pairs_generalised(u, v, 1))
+        series = expand_rational(poly_sub({(0,): 1}, u), [v], 12)
+        self.assertTrue(is_nonneg(series))  # and the ratio really is nonnegative
 
-    def test_weights_below_one_are_refused(self):
+    def test_generalised_pairing_still_rejects_the_unsound_case(self):
+        self.assertFalse(lemma1.pairs_generalised({(1,): 3}, {(1,): 1}, 1))
+
+    def test_generalised_pairing_adds_nothing_on_the_a6_tail(self):
+        # Strictly stronger in general, yet on this problem it admits exactly
+        # the same 44 pairs: the positive part of v - u sits in higher degree
+        # than the negative part, so it cannot cover it.
+        factors, _, denominators, varnames = tail_target_factored(6)
+        nvars = len(varnames)
+        by_lemma = {
+            (i, j)
+            for i, u in enumerate(factors)
+            for j, v in enumerate(denominators)
+            if lemma1.dominates(v, u)
+        }
+        generalised = {
+            (i, j)
+            for i, u in enumerate(factors)
+            for j, v in enumerate(denominators)
+            if lemma1.pairs_generalised(u, v, nvars)
+        }
+        self.assertTrue(by_lemma <= generalised)
+        self.assertEqual(by_lemma, generalised)
+
+    def test_unrolling_preserves_the_series(self):
+        # N/(1-v) = N(1 + v + ... + v^{m-1})/(1 - v^m), an identity.
+        numerator, v = {(0,): 1, (1,): -1, (3,): 2}, {(1,): 1, (2,): 1}
+        base = expand_rational(numerator, [v], 10)
+        for times in (1, 2, 3):
+            with self.subTest(times=times):
+                rolled, power = lemma1.unroll(numerator, v, times, 1)
+                self.assertEqual(expand_rational(rolled, [power], 10), base)
+
+    def test_unrolling_rejects_a_nonpositive_count(self):
         with self.assertRaises(ValueError):
-            lemma1.absorbs_scaled({(0,): 1}, [{(1,): 1}], 1, [Fraction(1, 2)])
+            lemma1.unroll({(0,): 1}, {(1,): 1}, 0, 1)
 
-    def test_scaled_with_unit_weights_is_plain_absorption(self):
-        numerator = {(0,): 1, (1,): 1, (2,): -2}
-        self.assertEqual(
-            lemma1.absorbs_scaled(numerator, [{(1,): 2}], 1, [1]),
-            lemma1.absorbs(numerator, [{(1,): 2}], 1),
-        )
+    def test_scaling_a_denominator_would_be_unsound(self):
+        # Guards the note in lemma1.py.  Absorbing against 3v rather than v
+        # would "prove" (1 - 3x)/(1 - x) >= 0, which is false: the series is
+        # 1 - 2x - 2x^2 - ...  Any future scaled variant must fail this case.
+        numerator, v = {(0,): 1, (1,): -3}, {(1,): 1}
+        self.assertFalse(lemma1.absorbs(numerator, [v], 1))
+        series = expand_rational(numerator, [v], 5)
+        self.assertFalse(is_nonneg(series))
+        self.assertEqual(series[(1,)], -2)
 
     def test_a6_tail_is_not_closed_by_absorption(self):
         # The multiplicative technique that proves d = 5 does not extend: no

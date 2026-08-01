@@ -46,17 +46,18 @@
 
 \begin{abstract}
 We report on a machine-checked study of the two positivity conjectures for Morin
-singularities. The infrastructure computes $\Qd_d$ for $d \le 6$ from the explicit orbit
-equations of B\'erczi--Szenes \S7.3, self-checked against every invariant fixed in advance.
+singularities. The infrastructure computes $\Qd_d$ for $d \le 7$ from the explicit orbit
+equations of B\'erczi--Szenes \S7.3, self-checked against every invariant fixed in advance and
+agreeing with Rim\'anyi's published tables wherever those reach.
 On top of it: Rim\'anyi's conjecture is verified for $A_6$ (first time), the two reductions of
-the $A_5$ handoff note are shown to survive at $d = 6$ while the proposed prefix-positivity
-route is shown to \emph{fail} at $d = 6$, and a notion of \emph{denominator certificate} is
+the $A_5$ handoff note are shown to survive at $d = 6$ but to \emph{fail} at $d = 7$ -- while
+Rim\'anyi's conjecture itself survives there, so the reduction machinery, not the conjecture, is
+what is specific to small $d$ --- the proposed prefix-positivity route is shown to fail already at
+$d = 6$, and a notion of \emph{denominator certificate} is
 introduced whose successes are proofs and whose failures are theorems. The certificate
 machinery reproduces the $d = 4$ strong positivity theorem and Proposition~3 of the handoff
-note mechanically.  All coefficients agree with Rim\'anyi's independently computed tables at
-relative dimension one. It does not close the $A_6$ tail, and we show this is a limitation of the
-technique rather than of the search: after generalising Lemma~1 to an absorption criterion,
-$13\,090$ candidate certificates fail. Notation follows \texttt{rimanyi\_positivity.pdf},
+note mechanically.  All coefficients agree with Rim\'anyi's independently computed tables
+wherever those reach, including $A_7$. Notation follows \texttt{rimanyi\_positivity.pdf},
 \texttt{report.pdf} and \texttt{a5\_weak\_positivity\_handoff.pdf}, cited as [N], [R], [H].
 \end{abstract}
 
@@ -85,14 +86,52 @@ $\ell$-free Chern coefficient of [R, Thm.~5].
 We take the route of [N, \S7.3]: rather than parametrise the orbit and eliminate the group
 variables, we write down the quadratic relations of Proposition~7.3 directly, saturate by the
 defect-zero coordinates to remove the spurious components that appear from $d = 6$ on
-([N, \S7.4]), and read the multidegree off an initial ideal. Runtime for $d \le 6$ is seconds.
+([N, \S7.4]), and read the multidegree off an initial ideal.
 
 The design point worth stating is that every quantity the computation can be checked against is
 known in advance, and all of them are checked: multihomogeneity of each relation under the torus
 weights; the codimension $\dim \Nhat_d - \binom{d}{2}$ forced by homogeneity of the residue
 formula; vanishing on random $B_d$-translates of $\eref$; $\deg \Qd_d$; exactness of the chamber
 division; and the normalisation fixing the $c_1^d$ coefficient. The stage refuses to emit an
-artifact otherwise. Externally, all eleven classical $A_6$ coefficients are reproduced.
+artifact otherwise.  Externally, the resulting Thom polynomials agree with Rim\'anyi's published
+tables at every order and relative dimension those cover (\S\ref{sec:a7}).
+
+\subsection{Reaching \texorpdfstring{$d = 7$}{d = 7}}
+\label{sec:scaling}
+
+$d = 7$ is $34$ variables against $22$, and on the obvious configuration it does not finish at all.
+The cost is concentrated in one place --- the Gr\"obner basis, which the saturation invokes once
+per defect-zero coordinate --- and two choices govern it.
+
+First, \texttt{std} rather than \texttt{slimgb}, and the defect-zero variables placed last in
+degrevlex.  On the $21$ quadrics of $A_7$ over $\mathrm{GF}(32003)$ the four combinations differ by
+more than two orders of magnitude:
+
+\begin{table}[ht]
+\centering
+\caption{Groebner basis of the unsaturated $A_7$ ideal.  Same ideal, four configurations.}
+\label{tab:gb}
+\begin{tabularx}{\textwidth}{@{}LLrr@{}}
+\toprule
+variable order & algorithm & time & basis size \\
+\midrule
+as generated   & \texttt{slimgb} & $31.2$\,s & $467$ \\
+as generated   & \texttt{std}    & $1.4$\,s  & $467$ \\
+defect-zero last & \texttt{slimgb} & $2.2$\,s & $224$ \\
+defect-zero last & \texttt{std}    & $\mathbf{0.2}$\,\textbf{s} & $\mathbf{224}$ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Second, and less obviously, the \emph{sequence} of saturations.  Saturating by a variable is cheap
+if that variable is last in degrevlex --- a basis then saturates on dividing each element by the
+largest power of the variable dividing it, replacing an elimination with one basis computation.
+But moving a coordinate to the very end perturbs the order that made the basis cheap.  Saturating
+the defect-zero coordinates \emph{back-to-front} keeps each move small; front-to-back does not, and
+at $d = 7$ its first step alone fails to finish.  Back-to-front, all twelve complete in $23$\,s.
+
+The whole of $\Qd_7$ then takes about a minute over $\mathbb{Q}$: saturation $31$\,s, final basis
+$0.6$\,s, minimal primes $17$\,s, multidegree $13$\,s.  Nothing about the mathematics changed.
 
 \subsection{Scale of the objects}
 
@@ -112,6 +151,7 @@ codimension of the orbit closure.}
 $A_4$ & 3 & 7  & 1 & 3   & 54    & 13 & 27 \ (50\%) \\
 $A_5$ & 4 & 13 & 3 & 19  & 814   & 31 & 414 \ (51\%) \\
 $A_6$ & 5 & 22 & 7 & 418 & 26618 & 66 & 13309 \ (50\%) \\
+$A_7$ & 6 & 34 & 13 & 14586 & 1210404 & 122 & 605234 \ (50\%) \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -200,6 +240,101 @@ code paths, truncated series products in exact integers and the XLA fixed-point 
 
 The route of [H, \S11.4] is therefore specific to $d = 5$. Note that the obstruction is at the
 very first level of the prefix sum, so no refinement of the argument recovers it.
+
+\section{\texorpdfstring{$A_7$}{A\_7}: the reductions break, the conjecture does not}
+\label{sec:a7}
+
+$\Qd_7$ is computable --- see \S\ref{sec:scaling} --- and it changes the picture.  It is worth
+being precise about what fails, because the two are easy to conflate.  Strong Laurent positivity
+has been false since $d = 5$ and is no more false at $d = 7$.  Rim\'anyi's conjecture, the actual
+target, \emph{survives}: every Chern coefficient of $\Tp_{A_7}$ is positive at every relative
+dimension we reach.  What breaks is the \emph{reduction machinery} of [H] --- the two inequalities
+through which the $A_5$ programme runs.
+
+\subsection{Validation first}
+
+Because the claim is a negative one, the input has to be beyond question.  Our $\Tp_{A_7}$
+reproduces Rim\'anyi's published tables exactly: all $15$ coefficients at $\ell = 0$ and all $105$
+at $\ell = 1$, and likewise for $A_4$, $A_5$, $A_6$.  Those tables are maintained by Rim\'anyi
+himself at \texttt{tpp.web.unc.edu} and are computed by the restriction-equation method --- an
+approach independent of the residue formula implemented here --- so the agreement constrains
+$\Qd_7$ externally rather than self-consistently.
+
+We note the limit of that check.  The companion page \texttt{tpp.web.unc.edu/tp-linfinity/}
+tabulates the rational functions $F_Q$, whose numerators are the closest published analogue of our
+$\Qd_d$; for $A_4$ it gives numerator $2z_1 + z_2 - z_4$, exactly our $\Qd_4$.  But that page stops
+at $\mu = 6$: \textbf{no $A_7$ data appears there}, so $\Qd_7$ itself has no published counterpart
+to compare against.  The Thom polynomial tables are therefore the strongest external constraint
+available, and they are what we use.
+
+Internally, every offending coefficient below agrees between two unrelated code paths --- the
+truncated series in exact Python integers and the XLA fixed-point grid --- and all of them sit at
+total degree $7$ to $10$, inside the truncation degree, so they are exact rather than artefacts of
+a cut-off.
+
+\subsection{How the reductions fail}
+
+\begin{observation}
+The unpaired tail fails at $d = 7$: $A_{(2,1,1,2,2,1)} = -1$ with $i = 2 > j = 1$.  Proposition~3
+of [H] proves this cannot happen at $d = 5$, and it does not happen at $d = 6$.
+\end{observation}
+
+\begin{observation}
+The paired inequality fails at $d = 7$, and does so in the sharpest possible way.  Take
+$\beta = (1,2,1,2,2,1)$.  Then $j = 2i$, so $\tau(\beta) = \beta$: this is a \emph{fixed point} of
+the transposition, where the paired inequality reads $2A_\beta \ge 0$.  But $A_\beta = -1$.  There
+is no partner to appeal to.
+\end{observation}
+
+\subsection{Why Rim\'anyi's conjecture survives it}
+
+The mechanism is the one that saved $d = 5$, and it is worth seeing at $d = 7$ concretely.  In the
+$\alpha$ coordinates $\beta = (1,2,1,2,2,1)$ is $\alpha = (1,1,-1,1,0,-1,-1)$, so it contributes to
+the Chern monomial indexed by the multiset $M = \{1,1,1,0,-1,-1,-1\}$ --- at $\ell = 0$, the
+monomial $c_1 c_2^3$.  That multiset has $35$ ballot orderings, of which eight carry a nonzero
+coefficient:
+
+\begin{table}[ht]
+\centering
+\caption{The Chern coefficient $C(M)$ for $M = \{1,1,1,0,-1,-1,-1\}$ at $d = 7$.  The offending
+$\beta$ of the second observation is the third row.}
+\label{tab:a7cancel}
+\begin{tabularx}{\textwidth}{@{}LLr@{}}
+\toprule
+$\alpha$ & $\beta$ & $A_\beta$ \\
+\midrule
+$(1,-1,1,1,0,-1,-1)$ & $(1,0,1,2,2,1)$ & $1$ \\
+$(1,0,1,1,-1,-1,-1)$ & $(1,1,2,3,2,1)$ & $4$ \\
+$(1,1,-1,1,0,-1,-1)$ & $(1,2,1,2,2,1)$ & $-1$ \\
+$(1,1,0,1,-1,-1,-1)$ & $(1,2,2,3,2,1)$ & $-4$ \\
+$(1,1,1,-1,-1,-1,0)$ & $(1,2,3,2,1,0)$ & $5$ \\
+$(1,1,1,-1,-1,0,-1)$ & $(1,2,3,2,1,1)$ & $6$ \\
+$(1,1,1,-1,0,-1,-1)$ & $(1,2,3,2,2,1)$ & $6$ \\
+$(1,1,1,0,-1,-1,-1)$ & $(1,2,3,3,2,1)$ & $18$ \\
+\midrule
+& $C(M)$ & $\mathbf{35}$ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Five negative units against forty positive: $C(M) = 35 > 0$.  And $35$ is precisely the
+coefficient of $c_1 c_2^3$ in Rim\'anyi's published $\Tp_{A_7}$ at $\ell = 0$, so the cancellation
+is confirmed against his table and not only against our own arithmetic.  The unpaired-tail
+violation behaves the same way: $A_{(2,1,1,2,2,1)} = -1$ sits inside
+$M = \{2,1,0,0,-1,-1,-1\}$, the monomial $c_1^2 c_2 c_3$, whose coefficient is $301$.
+
+So $d = 7$ separates two things that $d \le 6$ kept together.  The conjecture is about $C(M)$, and
+$C(M)$ is fine.  The reductions are about the individual $A_\beta$ and their $\tau$-orbits, and
+those are not.  The $\tau$-pairing is a way of certifying the sum by controlling its summands two
+at a time; at $d = 7$ the summands are no longer controllable that way, while the sum is unharmed.
+
+\subsection{Consequences}
+
+The $\tau$-pairing frame is therefore $d \le 6$, not structural.  Anything built on it --- the
+unpaired-tail reduction, the paired series $\mathcal{P}$ of [H, eq.~(12)], the $J_d(1/2,\cdot)$
+analysis of \S6 --- is an argument about small $d$ and cannot be the shape of a general proof.
+That is a strong constraint on where to look next, and it is the main reason we report the failure
+rather than the verification.
 
 \section{Denominator certificates}
 
@@ -301,9 +436,8 @@ The two successful proofs in the literature, [N, Thm.~1] and [H, Prop.~3], are
 $v - u \ge 0$. That shape is not a finite sum $\sum_S P_S \prod_{r \in S}(1 - f_r)$ with
 $P_S \ge 0$, so the additive certificates of \S4 structurally cannot find them.
 
-The diagnostic is decisive: the additive search is obstructed on $J_5(1/2,\cdot)$, a series
-whose nonnegativity \emph{is} Proposition~3. When a method fails on a known theorem, the method
-is wrong.
+The additive search is obstructed on $J_5(1/2,\cdot)$, whose nonnegativity is Proposition~3, so
+the additive class is not the one to use here.
 
 Presenting the numerator in factored form, the Vandermonde part being already a factorisation,
 one can search for a matching of numerator factors to denominators satisfying the Lemma~1
@@ -314,67 +448,32 @@ For $d = 5$ this closes: all nine numerator factors pair off, three denominators
 and the leftover numerator is exactly $1$. Proposition~3 is reconstructed mechanically.
 \end{proposition}
 
-For $d = 6$ it does not. A maximum matching leaves
-\[
-  \frac{1 - cde - \tfrac32 bcde}{1 - 2cde},
-\]
-whose expansion has the negative family $b\,(cde)^{k}$, and no available denominator $v$
-dominates $u = cde + \tfrac32 bcde$. Maximum matching is in fact greedy in the wrong way: it
-consumes denominators the remainder needs. Returning two ratios to the remainder leaves twelve
-Lemma-1 ratios times a remainder ($207$-term numerator over nine denominators) that is
-nonnegative as far as we check.
-
-\subsection{Generalising Lemma~1, and a negative result}
-
-Lemma~1 requires the numerator in the shape $1 - u$. The following drops that and lets several
-denominators cooperate.
-
-\begin{lemma}[absorption]
-Write $N = N_+ - N_-$ with both parts coefficientwise nonnegative, and let $S$ be a set of
-denominators with $1 - W = \prod_{v \in S}(1 - v)$. If $N_- \le N_+ \cdot W$ coefficientwise,
-then $N / \prod_{\mathrm{all}}(1 - v)$ is coefficientwise nonnegative.
-\end{lemma}
-
-\begin{proof}
-$N - N_+ \prod_S (1-v) = N_+ W - N_- \ge 0$, so $N = N_+ \prod_S (1-v) + P$ with $P \ge 0$ and
-\[
-  \frac{N}{\prod_{\mathrm{all}}(1-v)}
-  \;=\; \frac{N_+}{\prod_{v \notin S}(1-v)} \;+\; \frac{P}{\prod_{\mathrm{all}}(1-v)},
-\]
-both nonnegative.
-\end{proof}
-
-Lemma~1 is the case $N = 1 - u$, $S = \{v\}$, where the condition reads $u \le v$; the criterion
-is strictly stronger, since it applies to numerators not of that shape.
-
-\begin{observation}
-Searching jointly over back-off subsets and absorbing subsets, $13\,090$ candidate criteria,
-closes nothing for $A_6$.
-\end{observation}
-
-Since $J_6(1/2,\cdot)$ is nonnegative as far as we compute, a proof exists. The content of the
-observation is that it is not of this form: the technique that proves $d = 5$ does not extend,
-and the obstruction is structural rather than a matter of searching harder. Concretely, the
-negativity of the residual factor is compensated by the \emph{other} ratios, so no local pairing
-argument can succeed.
+For $d = 6$ the same search does not close, and \S\ref{sec:a7} says why that is not worth
+pursuing: the unpaired tail is a statement about individual $A_\beta$, and at $d = 7$ it is false.
+The mechanisation is therefore a way of reproducing and checking the small-$d$ arguments of [H],
+not a route to a general one.
 
 \section{Assessment}
 
 What the computations suggest about proof strategy:
 
 \begin{enumerate}[itemsep=3pt,topsep=3pt]
-\item The $\tau$-pairing reduction is the right frame, both its inequalities surviving at
-  $d = 6$, but the prefix-positivity stepping stone is not, and is unavailable from $d = 6$ on.
+\item The $\tau$-pairing reduction is \emph{not} the right frame in general.  Both its
+  inequalities survive at $d = 6$ and both fail at $d = 7$ (\S\ref{sec:a7}), while Rim\'anyi's
+  conjecture survives, so the machinery is specific to small $d$ even though the statement is not.
+  The prefix-positivity stepping stone fails one order earlier still.
 \item Additive, Positivstellensatz-shaped certificates are obstructed on \emph{every} target
   tried, including provable ones. On present evidence they are not the tool for this problem,
   and we would not recommend further effort extending [H, \S10.3] in that direction.
-\item Multiplicative certificates are the tool that works, and they are now mechanised: they
-  reproduce both published proofs from scratch. Their reach stops before $A_6$.
-\item The natural remaining targets are the paired series $\mathcal{P}$ of [H, eq.~(12)], for
-  which the construction is now cheap since $S = J_5(1/2,\cdot)$ is exactly the object above,
-  the reflection is an index reflection, and [H, \S7] supplies the denominator; and closed-form
-  domination along the negative families of [R, \S7.2], where each family settled is infinitely
-  many cases.
+\item Multiplicative certificates are the ones that succeed where anything does: they reproduce
+  both published proofs from scratch.  But what they certify --- the individual $A_\beta$ --- is
+  exactly what stops being controllable at $d = 7$, so they mechanise the small-$d$ arguments
+  rather than generalise them.
+\item Since the $\tau$-orbit is not the right unit of cancellation, the open question is what is.
+  Table~\ref{tab:a7cancel} is suggestive: the negative mass is small, bounded and spread over few
+  orderings, while the positive mass is large and concentrated in one.  A bound on the negative
+  part of $C(M)$ in terms of its largest term would settle the conjecture without needing any
+  pairing at all, and nothing we have computed argues against one existing.
 \end{enumerate}
 
 \section*{Reproducibility}

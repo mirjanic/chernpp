@@ -28,6 +28,7 @@ from typing import Dict, List, Optional, Sequence, Tuple
 
 from .logger import get_logger
 from .polynomial import (
+    poly_one,
     poly_add,
     Poly,
     is_nonneg,
@@ -86,37 +87,65 @@ def absorbs(numerator: Poly, denominators: Sequence[Poly], nvars: int) -> bool:
     )
 
 
-def scaled(v: Poly, factor) -> Poly:
-    """``factor * v``, used to weaken or strengthen a denominator."""
-    return {e: c * factor for e, c in v.items()}
-
-
-def absorbs_scaled(
-    numerator: Poly,
-    denominators: Sequence[Poly],
-    nvars: int,
-    weights: Sequence,
-) -> bool:
+def pairs_generalised(u: Poly, v: Poly, nvars: int) -> bool:
     """
-    Absorption against *scaled* denominators ``lambda_i v_i`` with ``lambda_i >= 1``.
+    ``(1 - u)/(1 - v) >= 0``, by a criterion strictly weaker than Lemma 1.
 
-    Lemma 1 in the form used by the papers only ever pairs a numerator factor
-    against a denominator exactly as it stands.  But the denominators are only
-    ever used through ``1/(1 - v) = sum_k v^k``, and for ``lambda >= 1``
+    Since ``1 - u = (1 - v) + (v - u)``,
 
-        1/(1 - v)  >=  (1/lambda) * 1/(1 - lambda v)      coefficientwise,
+        (1 - u)/(1 - v)  =  1 + (v - u)/(1 - v),
 
-    since ``v^k >= lambda^{k-1} v^k / lambda^k``.  So it is legitimate to
-    *strengthen* a denominator when looking for an absorbing set, provided the
-    resulting series is still a power series -- which it is, ``lambda v`` again
-    having nonnegative coefficients and zero constant term.
+    so the ratio is nonnegative as soon as ``(v - u)/(1 - v)`` is -- and that is
+    a question :func:`absorbs` can answer, rather than requiring ``v - u >= 0``
+    outright.  Lemma 1 is the case where ``v - u`` has no negative part at all.
 
-    Concretely this enlarges the search from the finitely many subsets of the
-    denominators to a continuum, at the cost of having to choose the weights.
+    Note that scalar ratios ``(1 - a v)/(1 - b v)`` give nothing beyond Lemma 1:
+    expanding,
+
+        (1 - a v)/(1 - b v)  =  1 + sum_{k >= 1} b^{k-1} (b - a) v^k,
+
+    which is coefficientwise nonnegative exactly when ``a <= b``, i.e. exactly
+    when ``bv - av >= 0``.  The freedom is in the *shape* of ``u`` and ``v``,
+    not in rescaling them.
     """
-    if any(w < 1 for w in weights):
-        raise ValueError("weights must be >= 1 to strengthen a denominator")
-    return absorbs(numerator, [scaled(v, w) for v, w in zip(denominators, weights)], nvars)
+    return absorbs(poly_sub(v, u), [v], nvars)
+
+
+def unroll(numerator: Poly, v: Poly, times: int, nvars: int):
+    """
+    Rewrite ``N/(1 - v)`` as ``N (1 + v + ... + v^{m-1}) / (1 - v^m)``.
+
+    Both sides are equal because ``1 - v^m = (1 - v)(1 + ... + v^{m-1})``, and
+    ``v^m`` is again nonnegative with zero constant term, so it is a legitimate
+    denominator.  Unrolling spreads the numerator's positive mass over higher
+    degrees, which is what lets absorption reach negative coefficients that sit
+    too deep for the un-unrolled form.
+
+    Returns ``(new_numerator, new_denominator)``.
+    """
+    if times < 1:
+        raise ValueError("times must be at least 1")
+    spread = poly_one(nvars)
+    power = poly_one(nvars)
+    for _ in range(times - 1):
+        power = poly_mul(power, v)
+        spread = poly_add(spread, power)
+    return poly_mul(numerator, spread), poly_mul(power, v)
+
+
+# A note on scaling the denominators, since the idea is tempting and wrong.
+#
+# One would like to enlarge the search by absorbing against `lambda * v` rather
+# than `v`, turning a finite set of subsets into a continuum.  It does not work.
+# To replace the factor `1 - v` by `1 - lambda v` one needs
+# `(1 - lambda v)/(1 - v)` to be coefficientwise nonnegative, which by Lemma 1
+# requires `v - lambda v = (1 - lambda) v >= 0`, that is `lambda <= 1`.  And for
+# `lambda <= 1` the absorption condition `N_- <= N_+ * lambda v` is strictly
+# harder than at `lambda = 1`, so scaling can only ever weaken the criterion.
+#
+# Taking `lambda > 1` is unsound, not merely useless: with `N = 1 - 3x` and
+# `v = x` the condition `N_- <= N_+ * 3x` holds, yet
+# `N/(1 - x) = 1 - 2x - 2x^2 - ...` is visibly negative.
 
 
 def absorbing_subset(

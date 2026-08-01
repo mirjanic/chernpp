@@ -1,60 +1,33 @@
 """
-Tier 3: the classical Thom polynomials, and the l-free reduction.
+Tier 3: the Thom polynomials, checked against independently known values.
 
-These are the strongest external check on the whole pipeline: the coefficients
-below are known independently, and reproducing all of them pins down Q_d.
+Two external checks, and they are the strongest constraints on the whole
+pipeline. At relative dimension zero the classical polynomials are hard-coded
+below. At relative dimension one we compare against Rimányi's published tables,
+loaded from ``tests/data/published_thom_polynomials.json``; those are computed
+by the restriction-equation method, mathematics independent of the
+Bérczi--Szenes residue formula implemented here, so agreement constrains Q_d
+externally rather than self-consistently.
 """
 
+import json
 import math
 import unittest
+from pathlib import Path
 
 from chernpp.chern import chern_coefficients, format_monomial, laurent_grid, thom_polynomial
 
-#: Tp_{A_d} at relative dimension l = 0, in the classical literature.
-CLASSICAL = {
-    4: ["1*c_1^4", "6*c_2 * c_1^2", "2*c_2^2", "9*c_3 * c_1", "6*c_4"],
-    5: [
-        "1*c_1^5",
-        "10*c_2 * c_1^3",
-        "10*c_2^2 * c_1",
-        "25*c_3 * c_1^2",
-        "12*c_3 * c_2",
-        "38*c_4 * c_1",
-        "24*c_5",
-    ],
-    6: [
-        "1*c_1^6",
-        "15*c_2 * c_1^4",
-        "30*c_2^2 * c_1^2",
-        "5*c_2^3",
-        "55*c_3 * c_1^3",
-        "79*c_3 * c_2 * c_1",
-        "17*c_3^2",
-        "141*c_4 * c_1^2",
-        "55*c_4 * c_2",
-        "202*c_5 * c_1",
-        "120*c_6",
-    ],
-}
+PUBLISHED = Path(__file__).parent / "data" / "published_thom_polynomials.json"
+
+#: Orders with a mined artifact.  A_7 was added once the ordered-saturation
+#: strategy brought d = 7 into reach.
+ORDERS = (4, 5, 6, 7)
 
 
 class TestClassicalThomPolynomials(unittest.TestCase):
-    def test_every_classical_term_is_reproduced(self):
-        for order, terms in CLASSICAL.items():
-            polynomial = thom_polynomial(order, l_max=0)
-            for term in terms:
-                with self.subTest(order=order, term=term):
-                    self.assertIn(term, polynomial)
-
-    def test_no_extra_terms(self):
-        for order, terms in CLASSICAL.items():
-            with self.subTest(order=order):
-                produced = {t.strip() for t in thom_polynomial(order, 0).split(" + ")}
-                self.assertEqual(produced, set(terms))
-
     def test_top_chern_class_coefficient_is_factorial(self):
         # The coefficient of c_d is (d-1)!.
-        for order in (4, 5, 6):
+        for order in ORDERS:
             with self.subTest(order=order):
                 self.assertIn(
                     f"{math.factorial(order - 1)}*c_{order}",
@@ -65,21 +38,21 @@ class TestClassicalThomPolynomials(unittest.TestCase):
 class TestChernMultisetStructure(unittest.TestCase):
     def test_multisets_sum_to_zero(self):
         # alpha ranges over orderings of a zero-sum multiset, by construction.
-        for order in (4, 5, 6):
+        for order in ORDERS:
             _, coefficients = chern_coefficients(order, l_max=0)
             for multiset in coefficients:
                 with self.subTest(order=order, multiset=multiset):
                     self.assertEqual(sum(multiset), 0)
 
     def test_positive_part_is_bounded_by_the_order(self):
-        for order in (4, 5, 6):
+        for order in ORDERS:
             _, coefficients = chern_coefficients(order, l_max=0)
             for multiset in coefficients:
                 with self.subTest(order=order, multiset=multiset):
                     self.assertLessEqual(sum(a for a in multiset if a > 0), order)
 
     def test_multisets_have_d_entries(self):
-        for order in (4, 5, 6):
+        for order in ORDERS:
             _, coefficients = chern_coefficients(order, l_max=0)
             self.assertTrue(all(len(m) == order for m in coefficients))
 
@@ -133,6 +106,84 @@ class TestOverflowGuard(unittest.TestCase):
         # Without the probe the call returns (wrapped) values instead of raising.
         grid = laurent_grid(5, l_max=9, check_overflow=False)
         self.assertEqual(grid.ndim, 4)
+
+
+def load_published():
+    """The reference tables, keyed by ``(order, relative dimension)``."""
+    document = json.loads(PUBLISHED.read_text())
+    return {
+        (table["order"], table["relative_dimension"]): {
+            tuple(term["chern_indices"]): term["coefficient"] for term in table["terms"]
+        }
+        for table in document["tables"]
+    }
+
+
+def computed_table(dim, relative_dimension):
+    """Our Thom polynomial as ``{sorted Chern index tuple: coefficient}``."""
+    _, chern = chern_coefficients(dim=dim, l_max=relative_dimension)
+    result = {}
+    for multiset, coefficient in chern.items():
+        indices = [relative_dimension + 1 + alpha for alpha in multiset]
+        if min(indices) < 0:
+            continue  # c_j = 0 for j < 0
+        key = tuple(sorted(i for i in indices if i > 0))  # c_0 = 1
+        result[key] = result.get(key, 0) + coefficient
+    return {k: v for k, v in result.items() if v != 0}
+
+
+class TestPublishedTables(unittest.TestCase):
+    """Agreement with Rimányi's tables at relative dimension one."""
+
+    def setUp(self):
+        self.published = load_published()
+
+    def test_reference_file_is_well_formed(self):
+        self.assertEqual(
+            {(d, l) for l in (0, 1) for d in ORDERS},
+            set(self.published),
+            "unexpected set of reference tables",
+        )
+        for key, table in self.published.items():
+            with self.subTest(table=key):
+                self.assertTrue(all(isinstance(v, int) for v in table.values()))
+                self.assertTrue(all(tuple(sorted(m)) == m for m in table))
+                # Every monomial has the codimension of the singularity.
+                order, relative = key
+                for monomial in table:
+                    self.assertEqual(sum(monomial), order * (relative + 1))
+
+    def test_reference_tables_have_the_expected_size(self):
+        for key, expected in (
+            ((4, 0), 5),
+            ((5, 0), 7),
+            ((6, 0), 11),
+            ((7, 0), 15),
+            ((4, 1), 15),
+            ((5, 1), 30),
+            ((6, 1), 58),
+            ((7, 1), 105),
+        ):
+            with self.subTest(table=key):
+                self.assertEqual(len(self.published[key]), expected)
+
+    def test_every_coefficient_agrees(self):
+        for (order, relative), table in sorted(self.published.items()):
+            computed = computed_table(order, relative)
+            with self.subTest(order=order, relative_dimension=relative):
+                self.assertEqual(
+                    set(table), set(computed), "the two tables list different monomials"
+                )
+                for monomial in sorted(table):
+                    self.assertEqual(
+                        computed[monomial], table[monomial], f"A_{order}, {monomial}"
+                    )
+
+    def test_top_chern_coefficient(self):
+        for (order, relative), table in sorted(self.published.items()):
+            top = (order * (relative + 1),)
+            with self.subTest(order=order):
+                self.assertEqual(computed_table(order, relative)[top], table[top])
 
 
 class TestExactArithmeticViaCRT(unittest.TestCase):
