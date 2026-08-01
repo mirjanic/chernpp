@@ -21,7 +21,7 @@ PUBLISHED = Path(__file__).parent / "data" / "published_thom_polynomials.json"
 
 #: Orders with a mined artifact.  A_7 was added once the ordered-saturation
 #: strategy brought d = 7 into reach.
-ORDERS = (4, 5, 6, 7)
+ORDERS = (1, 2, 3, 4, 5, 6, 7)
 
 
 class TestClassicalThomPolynomials(unittest.TestCase):
@@ -155,10 +155,16 @@ class TestPublishedTables(unittest.TestCase):
 
     def test_reference_tables_have_the_expected_size(self):
         for key, expected in (
+            ((1, 0), 1),
+            ((2, 0), 2),
+            ((3, 0), 3),
             ((4, 0), 5),
             ((5, 0), 7),
             ((6, 0), 11),
             ((7, 0), 15),
+            ((1, 1), 1),
+            ((2, 1), 3),
+            ((3, 1), 7),
             ((4, 1), 15),
             ((5, 1), 30),
             ((6, 1), 58),

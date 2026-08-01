@@ -63,6 +63,20 @@ def defect_zero_names(d):
     return [variable_name(m, r, l) for (m, r, l) in weight_indices(d) if m + r == l]
 
 
+def multivariate_ring(base_field, names, order=None):
+    """
+    A polynomial ring that stays multivariate however few variables it has.
+
+    Handed a single name, ``PolynomialRing`` returns a *univariate* ring, whose
+    ``dict()`` is keyed by integers rather than exponent tuples; handed none, it
+    refuses outright.  Passing the count explicitly forces the multivariate
+    constructor, so ``d = 1`` and ``d = 2`` go through the same code as ``d = 7``.
+    """
+    names = list(names)
+    kwargs = {"order": order} if order else {}
+    return PolynomialRing(base_field, len(names), names or "x", **kwargs)
+
+
 def coordinate_ring(base_field, d, order=None):
     """
     The polynomial ring on N_d, together with the weight of each variable.
@@ -76,7 +90,7 @@ def coordinate_ring(base_field, d, order=None):
     """
     indices = weight_indices(d)
     names = order or [variable_name(m, r, l) for (m, r, l) in indices]
-    ring = PolynomialRing(base_field, names, order="degrevlex")
+    ring = multivariate_ring(base_field, names, order="degrevlex")
     index_of = {ring(variable_name(m, r, l)): (l, m, r) for (m, r, l) in indices}
     return ring, index_of
 
@@ -183,9 +197,9 @@ def chamber_names(d):
     return [f"x{i}" for i in range(1, d)]
 
 
-def chamber_monomial(m, l, xs):
+def chamber_monomial(m, l, xs, ring):
     """z_m / z_l in the chamber variables, i.e. x_m x_{m+1} ... x_{l-1}."""
-    result = xs[0].parent()(1)
+    result = ring(1)
     for k in range(m, l):
         result *= xs[k - 1]
     return result
@@ -239,18 +253,19 @@ def chamber_algebra(d, multidegree_poly, weight_ring, base_field, characteristic
     The chamber series is ``numerator / prod_r (1 - denominator_factors[r])``.
     """
     names = chamber_names(d)
-    ring = PolynomialRing(base_field, names)
+    ring = multivariate_ring(base_field, names)
     xs = ring.gens()
     multidegree_chamber = chamber_image(multidegree_poly, ring, d)
 
     indices = weight_indices(d)
     vandermonde_factors = [
-        1 - chamber_monomial(m, l, xs) for l in range(1, d + 1) for m in range(1, l)
+        1 - chamber_monomial(m, l, xs, ring) for l in range(1, d + 1) for m in range(1, l)
     ]
     denominator_factors = [
-        chamber_monomial(m, l, xs) + chamber_monomial(r, l, xs) for (m, r, l) in indices
+        chamber_monomial(m, l, xs, ring) + chamber_monomial(r, l, xs, ring)
+        for (m, r, l) in indices
     ]
-    vandermonde = prod(vandermonde_factors)
+    vandermonde = prod(vandermonde_factors, ring(1))
 
     per_level = {}
     for _, _, l in indices:
@@ -260,7 +275,7 @@ def chamber_algebra(d, multidegree_poly, weight_ring, base_field, characteristic
         exponent = (l - 1) - per_level.get(l, 0)
         if exponent == 0:
             continue
-        monomial = chamber_monomial(l, d, xs)
+        monomial = chamber_monomial(l, d, xs, ring)
         if exponent > 0:
             numerator_correction *= monomial**exponent
         else:

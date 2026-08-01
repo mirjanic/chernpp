@@ -5,9 +5,73 @@
     "thom-polynomials-relative-dimension-1"
   ],
   "method": "Rimanyi restriction equations",
-  "note": "Reference Thom polynomials, computed independently of the Berczi-Szenes residue formula implemented in this repository. Used to constrain our own computation, never to replace it. Agreement at A_7 is what makes the failures of the paired and unpaired inequalities at d=7 a statement about mathematics rather than a bug.",
+  "note": "Reference Thom polynomials, computed independently of the Berczi-Szenes residue formula implemented in this repository. Used to constrain our own computation, never to replace it. Agreement at A_7 is what makes the failures of the paired and unpaired inequalities at d=7 a statement about mathematics rather than a bug. A_1 to A_3 are degenerate cases: deg Q_d = 0 there, so Q_d = 1 and the orbit fills the ambient space; they pin down the small end of the pipeline.",
   "basis": "Relative Chern classes. A term is the multiset of indices i of the c_i appearing, as a sorted list, so [1,1,1,5] means c_1^3 c_5.",
   "tables": [
+    {
+      "singularity": "A_1",
+      "order": 1,
+      "relative_dimension": 0,
+      "codimension": 1,
+      "terms": [
+        {
+          "chern_indices": [
+            1
+          ],
+          "coefficient": 1
+        }
+      ]
+    },
+    {
+      "singularity": "A_2",
+      "order": 2,
+      "relative_dimension": 0,
+      "codimension": 2,
+      "terms": [
+        {
+          "chern_indices": [
+            1,
+            1
+          ],
+          "coefficient": 1
+        },
+        {
+          "chern_indices": [
+            2
+          ],
+          "coefficient": 1
+        }
+      ]
+    },
+    {
+      "singularity": "A_3",
+      "order": 3,
+      "relative_dimension": 0,
+      "codimension": 3,
+      "terms": [
+        {
+          "chern_indices": [
+            1,
+            1,
+            1
+          ],
+          "coefficient": 1
+        },
+        {
+          "chern_indices": [
+            1,
+            2
+          ],
+          "coefficient": 3
+        },
+        {
+          "chern_indices": [
+            3
+          ],
+          "coefficient": 2
+        }
+      ]
+    },
     {
       "singularity": "A_4",
       "order": 4,
@@ -348,6 +412,107 @@
             7
           ],
           "coefficient": 720
+        }
+      ]
+    },
+    {
+      "singularity": "A_1",
+      "order": 1,
+      "relative_dimension": 1,
+      "codimension": 2,
+      "terms": [
+        {
+          "chern_indices": [
+            2
+          ],
+          "coefficient": 1
+        }
+      ]
+    },
+    {
+      "singularity": "A_2",
+      "order": 2,
+      "relative_dimension": 1,
+      "codimension": 4,
+      "terms": [
+        {
+          "chern_indices": [
+            1,
+            3
+          ],
+          "coefficient": 1
+        },
+        {
+          "chern_indices": [
+            2,
+            2
+          ],
+          "coefficient": 1
+        },
+        {
+          "chern_indices": [
+            4
+          ],
+          "coefficient": 2
+        }
+      ]
+    },
+    {
+      "singularity": "A_3",
+      "order": 3,
+      "relative_dimension": 1,
+      "codimension": 6,
+      "terms": [
+        {
+          "chern_indices": [
+            1,
+            1,
+            4
+          ],
+          "coefficient": 2
+        },
+        {
+          "chern_indices": [
+            1,
+            2,
+            3
+          ],
+          "coefficient": 3
+        },
+        {
+          "chern_indices": [
+            1,
+            5
+          ],
+          "coefficient": 10
+        },
+        {
+          "chern_indices": [
+            2,
+            2,
+            2
+          ],
+          "coefficient": 1
+        },
+        {
+          "chern_indices": [
+            2,
+            4
+          ],
+          "coefficient": 7
+        },
+        {
+          "chern_indices": [
+            3,
+            3
+          ],
+          "coefficient": 1
+        },
+        {
+          "chern_indices": [
+            6
+          ],
+          "coefficient": 12
         }
       ]
     },

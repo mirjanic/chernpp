@@ -8,18 +8,18 @@ from chernpp.polynomial import is_nonneg, poly_mul, total_degree
 
 #: dim N_d = #{(m, r, l) : 1 <= m <= r, m + r <= l <= d}; also the number of
 #: denominator factors in the residue formula.
-AMBIENT_DIMENSION = {4: 7, 5: 13, 6: 22, 7: 34}
+AMBIENT_DIMENSION = {1: 0, 2: 1, 3: 3, 4: 7, 5: 13, 6: 22, 7: 34}
 
 #: deg Q_d = dim N_d - binomial(d, 2), forced by homogeneity of the residue formula.
-MULTIDEGREE_DEGREE = {4: 1, 5: 3, 6: 7, 7: 13}
+MULTIDEGREE_DEGREE = {1: 0, 2: 0, 3: 0, 4: 1, 5: 3, 6: 7, 7: 13}
 
-#: Orders with a mined artifact.
-ORDERS = (4, 5, 6, 7)
+#: Orders with a mined artifact.  At d <= 3 the degree is 0, so Q_d = 1.
+ORDERS = (1, 2, 3, 4, 5, 6, 7)
 
 
 class TestArtifactsPresent(unittest.TestCase):
     def test_every_expected_order_is_available(self):
-        self.assertEqual(available_orders(), [4, 5, 6, 7])
+        self.assertEqual(available_orders(), [1, 2, 3, 4, 5, 6, 7])
 
     def test_missing_order_names_the_rebuild_command(self):
         with self.assertRaises(FileNotFoundError) as caught:

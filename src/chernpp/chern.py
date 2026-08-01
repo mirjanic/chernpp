@@ -112,6 +112,10 @@ def chern_coefficients(
     """
     grid = laurent_grid(dim, l_max, check_overflow)
     nvars = grid.ndim
+    if nvars == 0:
+        # d = 1 has no chamber variables, so F_1 = 1 and the only zero-sum
+        # multiset is (0): Porteous's Tp(A_1) = c_{l+1}, with coefficient 1.
+        return grid, {(0,): int(grid)}
 
     coords = np.stack(np.nonzero(grid), axis=1)
     if coords.size == 0:

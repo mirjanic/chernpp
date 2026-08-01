@@ -32,15 +32,16 @@ from .base import Multidegree, MultidegreeBackend
 #: Import paths of the backends shipped with Chern++, as (module, class-name).
 #: Imported lazily so that listing does not pay for every backend's dependencies.
 #:
-#: Two further routes are designed but unimplemented, each with its rationale and
-#: the work required written up in its module:
-#:
-#:   * :mod:`multidegree.backends.bott_samelson` -- resolve the orbit closure and
-#:     push forward by localisation.  Would slot in here directly, and is the most
-#:     plausible route to d = 7.
-#:   * :mod:`multidegree.backends.restriction` -- Rimányi's restriction equations.
-#:     Produces a Thom polynomial rather than a multidegree, so it belongs in the
-#:     pipeline as an independent cross-check rather than as a backend.
+#: There is one, and one is enough: the basic equations reach ``d = 7`` in about a
+#: minute, and the two alternatives once sketched here no longer pay for
+#: themselves.  A Bott--Samelson resolution with localisation was attractive only
+#: while ``d = 7`` looked out of reach, and constructing the resolution of *this*
+#: orbit closure is open research (Bérczi--Szenes, Remark 7.2: no algorithm is
+#: known for the equivariant dual of a Borel orbit).  Rimányi's restriction
+#: equations would have given an independent check on ``Q_d``, but the published
+#: tables already do that, at every order through ``d = 7`` and at two relative
+#: dimensions.  The registry stays because it is where a *family* beyond Morin
+#: A_d would attach; see :mod:`multidegree.corank2` for what that needs first.
 _BUILTIN = [("multidegree.backends.basic_equations", "BasicEquationsBackend")]
 
 _REGISTRY: Dict[str, MultidegreeBackend] = {}

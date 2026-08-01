@@ -2,7 +2,7 @@
 
 **Positive Chern Classes in Thom Polynomials**
 
-Tools for the Thom polynomials of the Morin singularities $A_d$ ($d \le 6$), in the form given by
+Tools for the Thom polynomials of the Morin singularities $A_d$ ($d \le 7$), in the form given by
 the Bérczi–Szenes residue formula, and for the positivity conjectures attached to them.
 
 ## The setting
@@ -33,18 +33,23 @@ $C(M) \ge 0$ over zero-sum multisets $M$ of $d$ integers.
 
 Reproducible from a clean checkout:
 
-- The classical Thom polynomials for $d = 4, 5, 6$, including all eleven $A_6$ coefficients.
+- The classical Thom polynomials for $d \le 7$, including all fifteen $A_7$ coefficients. At
+  $d \le 3$ the construction degenerates — $\deg\mathcal{Q}_d = 0$, so $\mathcal{Q}_d = 1$ and the
+  orbit fills the ambient space — and the pipeline still returns Porteous's $c_{\ell+1}$ for $A_1$.
 - **Rimányi's conjecture for $A_6$**, verified at every relative dimension $\ell \le 7$, and for
   $A_5$ at $\ell \le 11$. Past $\ell = 5$ the coefficients outgrow `int64` (they reach
   $1.75\times10^{22}$ at $A_6$, $\ell = 7$), so these use CRT reconstruction over word-sized
   primes, verified against a prime held back from the reconstruction.
-- **Agreement with Rimányi's published tables** at relative dimension 1 — all 15, 30 and 58
-  coefficients for $A_4$, $A_5$, $A_6$. Those are computed by the restriction-equation method,
-  mathematics independent of the residue formula implemented here, so this constrains
-  $\mathcal{Q}_d$ externally rather than self-consistently.
-- The **unpaired tail** ($i>j \Rightarrow A_{i,j,\dots}\ge 0$) and the **paired inequality**
-  ($A_{i,j,\dots} + A_{j-i,j,\dots} \ge 0$) — the reduction that would settle $A_5$ — both hold
-  for $A_6$ in the tested range.
+- **Agreement with Rimányi's published tables** at relative dimensions 0 and 1, for every
+  $A_1$ through $A_7$ — fourteen tables, including all 105 coefficients of $A_7$ at $\ell = 1$.
+  Those are computed by the restriction-equation method, mathematics independent of the residue
+  formula implemented here, so this constrains $\mathcal{Q}_d$ externally rather than
+  self-consistently.
+- **The $A_5$ reduction machinery breaks at $d = 7$.** The **unpaired tail**
+  ($i>j \Rightarrow A_{i,j,\dots}\ge 0$) and the **paired inequality**
+  ($A_{i,j,\dots} + A_{j-i,j,\dots} \ge 0$) both hold at $d = 5$ and $d = 6$, which is why they
+  looked structural — and both fail at $d = 7$. Rimányi's conjecture itself survives: the negative
+  $A_\beta$ cancel inside the Chern coefficients, which still match the published tables.
 - **Prefix positivity fails at $d=6$.** $F_5/(1-a)$ is coefficientwise nonnegative, but
   $F_6/(1-a)$ is not: $A_6$ has negative coefficients with $i = 0$, which the prefix sum over
   $r \le i$ cannot touch. The stepping stone proposed in §11.4 of the handoff note is unavailable
@@ -78,6 +83,7 @@ set: if the truncated LP is infeasible, no certificate of that order exists at *
 ```
 src/multidegree/     SageMath only.  Computes Q_d, writes chernpp/data/a{d}_algebra.npz
   morin.py             the A_d model: ambient weights, reference point, chamber assembly
+  corank2.py           corank-two I_{a,b} jets and their Borel orbit closures (exploratory)
   backends/            selectable multidegree algorithms (see below)
   build.py             command-line entry point and artifact export
 src/chernpp/         Pure Python/JAX.  Reads the artifacts; never re-derives them
@@ -94,7 +100,7 @@ src/chernpp/         Pure Python/JAX.  Reads the artifacts; never re-derives the
   experiments.py       command-line runner
   data/                the mined algebras, tracked
 src/examples.ipynb   annotated tour, from the published results to the new ones
-tests/               seven tiers, in dependency order
+tests/               eight tiers, in dependency order
 papers/              project reports plus Bérczi–Szenes, Annals 175 (2012)
 ```
 
@@ -134,10 +140,10 @@ cd src && "$(dirname "$(command -v sage)")/python" -m multidegree.build -d 6
 
 ### Multidegree backends
 
-The algorithm that computes $\mathcal{Q}_d$ is selectable, so a different route
-— restriction equations, a resolution and pushforward, a parametrisation and elimination — or a
-singularity family beyond Morin $A_d$ can be dropped in without touching the chamber assembly, the
-artifact schema, or anything in `chernpp`.
+The algorithm that computes $\mathcal{Q}_d$ is selectable, so a different route — or a singularity
+family beyond Morin $A_d$ — can be dropped in without touching the chamber assembly, the artifact
+schema, or anything in `chernpp`. One backend ships, and it suffices: the basic equations reach
+$d = 7$ in about a minute.
 
 ```bash
 cd src && "$(dirname "$(command -v sage)")/python" -m multidegree.build --list-backends
@@ -177,6 +183,8 @@ chamber correction divides exactly, and that the resulting numerator has constan
 6. `test_6_backends.py` — the backend registry: registration, lookup, family filtering, and the
    contract a backend's result must satisfy. Runs without SageMath.
 7. `test_7_tail.py` — the unpaired-tail series, multiplicative certificates, and absorption.
+8. `test_8_corank2.py` — corank-two orbit geometry for $I_{a,b}$. The only tier that needs
+   SageMath, so it skips in the plain virtualenv; run it with Sage's interpreter.
 
 ## Caveats
 
@@ -186,7 +194,13 @@ chamber correction divides exactly, and that the resulting numerator has constan
 - Everything reported as "holds" over a truncation range is a finite exact computation, never a
   proof of the infinite statement. `chernpp/certificates.py` and `chernpp/families.py` are the
   only components that produce proofs.
-- $d = 7$ is out of reach by this method: $\deg\mathcal{Q}_7 = 13$ in a 34-variable ambient space.
+- $\mathcal{Q}_7$ is the practical ceiling of the Gröbner route, and only just: $\deg\mathcal{Q}_7 = 13$
+  in a 34 variable ambient space, reached in about a minute by ordering the variables so the
+  defect-zero ones come last and saturating back to front. $d = 8$ has not been attempted.
+- `multidegree/corank2.py` is exploratory groundwork, not a result. It computes Borel orbit
+  closures of corank-two jets, but that closure is an invariant of the *jet* rather than of the
+  singularity — four germs of the single class $I_{2,2}$ give three different closures — and no
+  corank-two residue formula is implemented, so it emits no artifact.
 
 ## References
 

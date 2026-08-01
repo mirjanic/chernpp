@@ -176,6 +176,26 @@ class BasicEquationsBackend(MultidegreeBackend):
         weight_ring = PolynomialRing(base_field, "z", order)
         z = weight_ring.gens()
 
+        expected = morin.expected_multidegree_degree(order)
+        if expected == 0:
+            # d <= 3: the basic equations are vacuous, the orbit closure is the
+            # whole of N_d, and the multidegree of the ambient space is 1.  This
+            # is [N, Section 7.2]: "In these cases deg Q_d = 0, and thus Q_d = 1;
+            # geometrically, this means that O_d = eps_ref, and thus O_d = N_d."
+            if ideal.gens() and not ideal.is_zero():
+                raise RuntimeError(
+                    f"A_{order}: expected the orbit to fill N_d, but the ideal is "
+                    f"nontrivial: {ideal.gens()}"
+                )
+            logger.info("A_%d: orbit fills the ambient space, Q_%d = 1", order, order)
+            return Multidegree(
+                polynomial=weight_ring(1),
+                ring=weight_ring,
+                family=family,
+                order=order,
+                codim=0,
+            )
+
         logger.info("A_%d: Groebner basis and initial ideal", order)
         basis = ideal.groebner_basis(algorithm=ALGORITHM)
         initial = ring.ideal([g.lt() for g in basis])
