@@ -40,10 +40,29 @@ from .chamber import (
     tau,
     unpaired_tail_defects,
 )
-from .chern import chern_coefficients, thom_polynomial
 from .polynomial import expand_rational, is_nonneg, negative_terms
 
 __version__ = "1.0.0"
+
+#: Names served from :mod:`chernpp.chern`, imported on first use rather than at
+#: package import.  That module pulls in JAX, which the SageMath stage does not
+#: have -- and the SageMath stage needs :mod:`chernpp.artifacts` to write the
+#: artifacts in the first place.  Deferring keeps one definition of the storage
+#: format instead of a reader here and a writer there.
+_LAZY = {"chern_coefficients": "chern", "thom_polynomial": "chern"}
+
+
+def __getattr__(name):
+    if name in _LAZY:
+        from importlib import import_module
+
+        return getattr(import_module(f".{_LAZY[name]}", __name__), name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def __dir__():
+    return sorted(list(globals()) + list(_LAZY))
+
 
 __all__ = [
     "ChamberAlgebra",

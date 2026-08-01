@@ -135,5 +135,34 @@ class TestOverflowGuard(unittest.TestCase):
         self.assertEqual(grid.ndim, 4)
 
 
+class TestExactArithmeticViaCRT(unittest.TestCase):
+    """Residue arithmetic gets past the int64 ceiling the guard enforces."""
+
+    def test_agrees_with_the_int64_path_where_that_is_valid(self):
+        from chernpp.crt import chern_coefficients_exact
+
+        for dim, l_max in ((4, 2), (5, 2)):
+            _, fast = chern_coefficients(dim=dim, l_max=l_max)
+            with self.subTest(dim=dim, l_max=l_max):
+                self.assertEqual(chern_coefficients_exact(dim, l_max), fast)
+
+    def test_grouping_is_independent_of_values(self):
+        # The residues of one coefficient must line up across primes, so the
+        # grouping has to come from the grid geometry rather than from which
+        # cells happen to be nonzero.
+        from chernpp.crt import grouping
+
+        multisets, inverse, keep = grouping(3, 1)
+        self.assertEqual(int(keep.sum()), inverse.size)
+        self.assertTrue(all(sum(int(a) for a in m) == 0 for m in multisets))
+
+    def test_reconstruction_is_verified_against_a_spare_prime(self):
+        # Too small a prime pool must be reported, never silently wrapped.
+        from chernpp.crt import chern_coefficients_exact
+
+        with self.assertRaises(OverflowError):
+            chern_coefficients_exact(5, 3, primes=(101, 103))
+
+
 if __name__ == "__main__":
     unittest.main()

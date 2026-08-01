@@ -16,7 +16,6 @@ See :mod:`multidegree.backends` for how to add one.
 """
 
 import argparse
-import pickle
 from pathlib import Path
 
 from sage.all import GF, QQ
@@ -65,9 +64,12 @@ def build(
         artifact["family"] = family
         artifact["backend"] = backend.name
 
-        path = out_dir / f"a{order}_algebra.pkl"
-        with open(path, "wb") as handle:
-            pickle.dump(artifact, handle)
+        # The writer lives with the reader, in chernpp.artifacts, so the two
+        # cannot drift.  That module imports only NumPy.
+        from chernpp.artifacts import save_algebra
+
+        path = out_dir / f"a{order}_algebra.npz"
+        save_algebra(artifact, path)
         logger.info("A_%d: wrote %s", order, path)
 
 

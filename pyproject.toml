@@ -47,7 +47,7 @@ where = ["src"]
 include = ["chernpp*", "multidegree*"]
 
 [tool.setuptools.package-data]
-chernpp = ["data/*.pkl"]
+chernpp = ["data/*.npz"]
 
 [tool.black]
 line-length = 92

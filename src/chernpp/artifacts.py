@@ -8,16 +8,76 @@ One artifact per Morin order, holding the Bérczi--Szenes chamber series
 as exponent dictionaries.  Storing exponents rather than expressions is what
 keeps the rest of the package free of symbolic algebra: no parsing, no
 re-expansion, and exact integer arithmetic throughout.
+
+Storage format
+--------------
+Compressed ``.npz``.  Each polynomial is two arrays -- an ``(n, nvars)`` block
+of exponents and an ``(n,)`` vector of coefficients -- and the list of
+denominator factors adds an offsets vector delimiting the blocks.
+
+The choice matters for a repository meant to be shared: ``.npz`` is data, while
+a pickle is a program, and unpickling a file executes whatever it contains.  It
+is also readable from any language with a zip and NumPy-format reader, and it
+compresses, where a pickle of the same dictionaries does not.  Parquet would do
+the second and third of those but not the first-class fit: the payload is
+ragged integer arrays, not a table, and it would add a dependency where NumPy
+is already required.
 """
 
-import pickle
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Sequence, Tuple
+
+import numpy as np
 
 from .polynomial import Poly, is_nonneg, total_degree
 
 DATA_DIR = Path(__file__).resolve().parent / "data"
+
+#: Bumped when the layout changes, so a stale artifact is reported rather than
+#: silently misread.
+FORMAT_VERSION = 1
+
+
+def pack_polynomial(poly: Poly, nvars: int):
+    """``{exponent tuple: coefficient}`` -> ``(exponents, coefficients)`` arrays."""
+    if not poly:
+        return (
+            np.zeros((0, nvars), dtype=np.int32),
+            np.zeros((0,), dtype=object),
+        )
+    items = sorted(poly.items())
+    exponents = np.array([e for e, _ in items], dtype=np.int32)
+    coefficients = np.array([c for _, c in items], dtype=object)
+    return exponents, coefficients
+
+
+def unpack_polynomial(exponents, coefficients) -> Poly:
+    """Inverse of :func:`pack_polynomial`."""
+    return {
+        tuple(int(x) for x in exponent): int(coefficient)
+        for exponent, coefficient in zip(exponents, coefficients)
+    }
+
+
+def pack_polynomial_list(polynomials: Sequence[Poly], nvars: int):
+    """Concatenate several polynomials, with offsets delimiting them."""
+    blocks = [pack_polynomial(p, nvars) for p in polynomials]
+    offsets = np.cumsum([0] + [len(c) for _, c in blocks]).astype(np.int32)
+    if blocks:
+        exponents = np.concatenate([e for e, _ in blocks]) if blocks else None
+        coefficients = np.concatenate([c for _, c in blocks])
+    else:
+        exponents = np.zeros((0, nvars), dtype=np.int32)
+        coefficients = np.zeros((0,), dtype=object)
+    return exponents, coefficients, offsets
+
+
+def unpack_polynomial_list(exponents, coefficients, offsets) -> List[Poly]:
+    return [
+        unpack_polynomial(exponents[a:b], coefficients[a:b])
+        for a, b in zip(offsets[:-1], offsets[1:])
+    ]
 
 
 @dataclass(frozen=True)
@@ -85,14 +145,46 @@ class ChamberAlgebra:
 
 
 def artifact_path(order: int) -> Path:
-    return DATA_DIR / f"a{order}_algebra.pkl"
+    return DATA_DIR / f"a{order}_algebra.npz"
 
 
 def available_orders() -> List[int]:
     """Morin orders for which an artifact is present."""
     return sorted(
-        int(path.name[1 : path.name.index("_")]) for path in DATA_DIR.glob("a*_algebra.pkl")
+        int(path.name[1 : path.name.index("_")]) for path in DATA_DIR.glob("a*_algebra.npz")
     )
+
+
+def save_algebra(fields: Dict[str, object], path: Path) -> None:
+    """
+    Write one artifact.  ``fields`` uses the same keys as :class:`ChamberAlgebra`.
+
+    Kept here rather than in the SageMath stage so that the reader and the
+    writer of the format cannot drift apart.
+    """
+    nvars = len(fields["chamber_vars"])
+    payload = {
+        "format_version": np.array(FORMAT_VERSION),
+        "order": np.array(int(fields["order"])),
+        "characteristic": np.array(int(fields.get("characteristic", 0))),
+        "chamber_vars": np.array(list(fields["chamber_vars"]), dtype=np.str_),
+        "field": np.array(str(fields.get("field", "Rational Field"))),
+        "family": np.array(str(fields.get("family", "morin-a"))),
+        "backend": np.array(str(fields.get("backend", "basic-equations"))),
+    }
+    for name in ("numerator", "multidegree", "normalized_numerator", "vandermonde"):
+        exponents, coefficients = pack_polynomial(fields[name], nvars)
+        payload[f"{name}__exponents"] = exponents
+        payload[f"{name}__coefficients"] = coefficients
+    exponents, coefficients, offsets = pack_polynomial_list(
+        fields["denominator_factors"], nvars
+    )
+    payload["denominator__exponents"] = exponents
+    payload["denominator__coefficients"] = coefficients
+    payload["denominator__offsets"] = offsets
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez_compressed(path, **payload)
 
 
 def load_algebra(order: int, validate: bool = True) -> ChamberAlgebra:
@@ -103,22 +195,39 @@ def load_algebra(order: int, validate: bool = True) -> ChamberAlgebra:
             f"{path} is missing. Regenerate it with "
             f"'python -m multidegree.build -d {order}' under SageMath."
         )
-    with open(path, "rb") as handle:
-        raw: Dict[str, object] = pickle.load(handle)
-
-    algebra = ChamberAlgebra(
-        order=raw["order"],
-        chamber_vars=tuple(raw["chamber_vars"]),
-        numerator=raw["numerator"],
-        denominator_factors=list(raw["denominator_factors"]),
-        multidegree=raw["multidegree"],
-        normalized_numerator=raw["normalized_numerator"],
-        vandermonde=raw["vandermonde"],
-        field=raw.get("field", "Rational Field"),
-        characteristic=raw.get("characteristic", 0),
-        family=raw.get("family", "morin-a"),
-        backend=raw.get("backend", "basic-equations"),
-    )
+    with np.load(path, allow_pickle=True) as raw:
+        version = int(raw["format_version"])
+        if version != FORMAT_VERSION:
+            raise ValueError(
+                f"{path} is format version {version}, this build expects "
+                f"{FORMAT_VERSION}; regenerate it"
+            )
+        algebra = ChamberAlgebra(
+            order=int(raw["order"]),
+            chamber_vars=tuple(str(v) for v in raw["chamber_vars"]),
+            numerator=unpack_polynomial(
+                raw["numerator__exponents"], raw["numerator__coefficients"]
+            ),
+            denominator_factors=unpack_polynomial_list(
+                raw["denominator__exponents"],
+                raw["denominator__coefficients"],
+                raw["denominator__offsets"],
+            ),
+            multidegree=unpack_polynomial(
+                raw["multidegree__exponents"], raw["multidegree__coefficients"]
+            ),
+            normalized_numerator=unpack_polynomial(
+                raw["normalized_numerator__exponents"],
+                raw["normalized_numerator__coefficients"],
+            ),
+            vandermonde=unpack_polynomial(
+                raw["vandermonde__exponents"], raw["vandermonde__coefficients"]
+            ),
+            field=str(raw["field"]),
+            characteristic=int(raw["characteristic"]),
+            family=str(raw["family"]),
+            backend=str(raw["backend"]),
+        )
     if validate:
         algebra.validate()
     return algebra

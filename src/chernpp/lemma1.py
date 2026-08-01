@@ -86,6 +86,39 @@ def absorbs(numerator: Poly, denominators: Sequence[Poly], nvars: int) -> bool:
     )
 
 
+def scaled(v: Poly, factor) -> Poly:
+    """``factor * v``, used to weaken or strengthen a denominator."""
+    return {e: c * factor for e, c in v.items()}
+
+
+def absorbs_scaled(
+    numerator: Poly,
+    denominators: Sequence[Poly],
+    nvars: int,
+    weights: Sequence,
+) -> bool:
+    """
+    Absorption against *scaled* denominators ``lambda_i v_i`` with ``lambda_i >= 1``.
+
+    Lemma 1 in the form used by the papers only ever pairs a numerator factor
+    against a denominator exactly as it stands.  But the denominators are only
+    ever used through ``1/(1 - v) = sum_k v^k``, and for ``lambda >= 1``
+
+        1/(1 - v)  >=  (1/lambda) * 1/(1 - lambda v)      coefficientwise,
+
+    since ``v^k >= lambda^{k-1} v^k / lambda^k``.  So it is legitimate to
+    *strengthen* a denominator when looking for an absorbing set, provided the
+    resulting series is still a power series -- which it is, ``lambda v`` again
+    having nonnegative coefficients and zero constant term.
+
+    Concretely this enlarges the search from the finitely many subsets of the
+    denominators to a continuum, at the cost of having to choose the weights.
+    """
+    if any(w < 1 for w in weights):
+        raise ValueError("weights must be >= 1 to strengthen a denominator")
+    return absorbs(numerator, [scaled(v, w) for v, w in zip(denominators, weights)], nvars)
+
+
 def absorbing_subset(
     numerator: Poly,
     denominators: Sequence[Poly],

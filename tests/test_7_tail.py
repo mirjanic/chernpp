@@ -183,6 +183,24 @@ class TestAbsorption(unittest.TestCase):
         p = {(0,): 2, (1,): -5, (2,): 7}
         self.assertEqual(sub(lemma1.positive_part(p), lemma1.negative_part(p)), p)
 
+    def test_scaling_a_denominator_enlarges_the_search(self):
+        # 1/(1-v) >= (1/lambda) 1/(1-lambda v) for lambda >= 1, so strengthening
+        # a denominator is legitimate and can absorb where the plain one cannot.
+        numerator = {(0,): 1, (1,): -3}
+        self.assertFalse(lemma1.absorbs(numerator, [{(1,): 1}], 1))
+        self.assertTrue(lemma1.absorbs_scaled(numerator, [{(1,): 1}], 1, [3]))
+
+    def test_weights_below_one_are_refused(self):
+        with self.assertRaises(ValueError):
+            lemma1.absorbs_scaled({(0,): 1}, [{(1,): 1}], 1, [Fraction(1, 2)])
+
+    def test_scaled_with_unit_weights_is_plain_absorption(self):
+        numerator = {(0,): 1, (1,): 1, (2,): -2}
+        self.assertEqual(
+            lemma1.absorbs_scaled(numerator, [{(1,): 2}], 1, [1]),
+            lemma1.absorbs(numerator, [{(1,): 2}], 1),
+        )
+
     def test_a6_tail_is_not_closed_by_absorption(self):
         # The multiplicative technique that proves d = 5 does not extend: no
         # subset of the remaining denominators absorbs the A_6 remainder.

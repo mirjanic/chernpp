@@ -37,8 +37,14 @@ ChernMultiset = Tuple[int, ...]
 _INT64_SAFE_BOUND = 2.0**62
 
 
-def _compile_expansion(shape, factor_terms, steps):
-    """Compile the fixed-point expansion of ``1 / prod_r (1 - f_r)`` on a grid."""
+def _compile_expansion(shape, factor_terms, steps, modulus=None):
+    """
+    Compile the fixed-point expansion of ``1 / prod_r (1 - f_r)`` on a grid.
+
+    With ``modulus`` set, every accumulation is reduced, so nothing can
+    overflow however large the true coefficients are.  That is what
+    :mod:`chernpp.crt` uses to get past the int64 ceiling.
+    """
 
     @jax.jit
     def expand(initial):
@@ -50,7 +56,7 @@ def _compile_expansion(shape, factor_terms, steps):
                 for coefficient, shift in terms:
                     padded = jnp.pad(current, tuple((s, 0) for s in shift))
                     nxt = nxt + coefficient * padded[tuple(slice(0, n) for n in shape)]
-                return nxt, None
+                return (nxt if modulus is None else nxt % modulus), None
 
             grid, _ = jax.lax.scan(step, grid, None, length=steps)
         return grid

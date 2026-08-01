@@ -53,7 +53,8 @@ the $A_5$ handoff note are shown to survive at $d = 6$ while the proposed prefix
 route is shown to \emph{fail} at $d = 6$, and a notion of \emph{denominator certificate} is
 introduced whose successes are proofs and whose failures are theorems. The certificate
 machinery reproduces the $d = 4$ strong positivity theorem and Proposition~3 of the handoff
-note mechanically. It does not close the $A_6$ tail, and we show this is a limitation of the
+note mechanically.  All coefficients agree with Rim\'anyi's independently computed tables at
+relative dimension one. It does not close the $A_6$ tail, and we show this is a limitation of the
 technique rather than of the search: after generalising Lemma~1 to an absorption criterion,
 $13\,090$ candidate certificates fail. Notation follows \texttt{rimanyi\_positivity.pdf},
 \texttt{report.pdf} and \texttt{a5\_weak\_positivity\_handoff.pdf}, cited as [N], [R], [H].
@@ -121,22 +122,32 @@ No result below depends on floating point. One point deserves emphasis because i
 Laurent coefficients are accumulated in \texttt{int64}, and they outgrow it. A wrapped
 accumulator reads as a large \emph{negative} number, that is, as a spurious counterexample to
 the very conjecture under test. The evaluator therefore replays the fixed point in floating
-point as a magnitude probe and raises rather than returning wrapped values; this is what caps
-the $A_6$ sweep at $\ell = 5$ below.
+point as a magnitude probe and raises rather than returning wrapped values.  Beyond that point
+the expansion is run in residue arithmetic instead; see \S3.
 
 \section{Results for \texorpdfstring{$A_6$}{A\_6}}
 
 \begin{proposition}[verified]
-Rim\'anyi's conjecture holds for $A_6$ at every relative dimension $\ell \le 5$, and for $A_5$
-at $\ell \le 8$.
+Rim\'anyi's conjecture holds for $A_6$ at every relative dimension $\ell \le 7$, and for $A_5$ at
+$\ell \le 11$.
 \end{proposition}
 
-These are finite exact computations, not proofs of the infinite statement. For $A_5$,
-[R, Thm.~8] reaches $\ell \le 11$ using unbounded-precision arithmetic; our contribution at
-$d = 5$ is speed rather than range, and the $\ell$-free reduction makes the two nested anyway.
-The $A_6$ verification is new. Passing $\ell = 5$ requires exact arithmetic beyond
-\texttt{int64}; residue arithmetic modulo several primes with CRT reconstruction is the natural
-route.
+These are finite exact computations, not proofs of the infinite statement. For $A_5$ this matches
+the range of [R, Thm.~8]; the $A_6$ verification is new. Past $\ell = 5$ the coefficients outgrow
+\texttt{int64} --- they reach $1.75 \times 10^{22}$ at $A_6$, $\ell = 7$ --- so the expansion is
+run modulo several word-sized primes and reconstructed by CRT, with one prime held back and spent
+on verifying the reconstruction. The grouping into Chern monomials is computed from the grid
+geometry rather than from which cells are nonzero, so that the residues of a given coefficient
+correspond across primes; grouping by value would misalign them, since a nonzero coefficient can
+vanish modulo one prime and not another.
+
+\subsection{External agreement}
+
+Rim\'anyi's tables at \texttt{tpp.web.unc.edu} give the Thom polynomials at relative dimension
+one, computed by the restriction-equation method. All $15$, $30$ and $58$ coefficients for $A_4$,
+$A_5$, $A_6$ agree with ours. Since that method is independent of the residue formula implemented
+here, this constrains $\Qd_d$ externally rather than self-consistently, and is a considerably
+sharper check than the eleven classical values at $\ell = 0$.
 
 The negative Laurent coefficients of $F_6$ behave much as at $d = 5$; see
 Table~\ref{tab:series}. The first counterexample to strong Laurent positivity occurs at $d = 6$

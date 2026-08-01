@@ -34,8 +34,14 @@ $C(M) \ge 0$ over zero-sum multisets $M$ of $d$ integers.
 Reproducible from a clean checkout:
 
 - The classical Thom polynomials for $d = 4, 5, 6$, including all eleven $A_6$ coefficients.
-- **Rimányi's conjecture for $A_6$**, verified at every relative dimension $\ell \le 5$ that
-  64-bit integer arithmetic reaches, and for $A_5$ at $\ell \le 8$.
+- **Rimányi's conjecture for $A_6$**, verified at every relative dimension $\ell \le 7$, and for
+  $A_5$ at $\ell \le 11$. Past $\ell = 5$ the coefficients outgrow `int64` (they reach
+  $1.75\times10^{22}$ at $A_6$, $\ell = 7$), so these use CRT reconstruction over word-sized
+  primes, verified against a prime held back from the reconstruction.
+- **Agreement with Rimányi's published tables** at relative dimension 1 — all 15, 30 and 58
+  coefficients for $A_4$, $A_5$, $A_6$. Those are computed by the restriction-equation method,
+  mathematics independent of the residue formula implemented here, so this constrains
+  $\mathcal{Q}_d$ externally rather than self-consistently.
 - The **unpaired tail** ($i>j \Rightarrow A_{i,j,\dots}\ge 0$) and the **paired inequality**
   ($A_{i,j,\dots} + A_{j-i,j,\dots} \ge 0$) — the reduction that would settle $A_5$ — both hold
   for $A_6$ in the tested range.
@@ -47,6 +53,11 @@ Reproducible from a clean checkout:
   exactly 4 — an independent computational proof of strong Laurent positivity at $d=4$.
 - **Rigorous lower bounds on certificate order.** Nothing of order $\le 7$ certifies $A_5$, even
   for the prefix series.
+- The **unpaired tail collapses onto one series** $J_d(1/2,\dots)$ in $d-2$ variables. Ours
+  reproduces the published closed form at $d=5$ coefficient for coefficient, and the multiplicative
+  search reconstructs that proof with leftover exactly $1$. At $d=6$ it reduces the tail to twelve
+  Lemma-1 ratios times an explicit remainder — and generalising Lemma 1 to an absorption criterion
+  still closes nothing, so the $d=5$ technique provably does not extend.
 
 ## Denominator certificates
 
@@ -67,7 +78,7 @@ set: if the truncated LP is infeasible, no certificate of that order exists at *
 ## Layout
 
 ```
-src/multidegree/     SageMath only.  Computes Q_d, writes chernpp/data/a{d}_algebra.pkl
+src/multidegree/     SageMath only.  Computes Q_d, writes chernpp/data/a{d}_algebra.npz
   morin.py             the A_d model: ambient weights, reference point, chamber assembly
   backends/            selectable multidegree algorithms (see below)
   build.py             command-line entry point and artifact export
@@ -76,20 +87,23 @@ src/chernpp/         Pure Python/JAX.  Reads the artifacts; never re-derives the
   artifacts.py         the chamber algebra and its invariants
   chamber.py           chamber series, negatives, tails, tau-pairing, C(M)
   chern.py             XLA fixed-point expansion + Chern-coefficient extraction
-  certificates.py      denominator certificates and order obstructions
+  certificates.py      additive denominator certificates and order obstructions
+  lemma1.py            multiplicative certificates: Lemma 1, matching, absorption
+  crt.py               exact Chern coefficients past the int64 ceiling
+  tables.py            text tables and statistics for the mined objects
   families.py          closed-form domination along infinite families
   lorentzian.py        log-concavity / M-convexity tests
   experiments.py       command-line runner
   data/                the mined algebras, tracked
 src/examples.ipynb   annotated tour, from the published results to the new ones
-tests/               five tiers, in dependency order
+tests/               eight tiers, in dependency order
 papers/              project reports plus Bérczi–Szenes, Annals 175 (2012)
 ```
 
 ## Running it
 
 Two environments, deliberately separate. The Sage stage is needed only to regenerate
-`src/chernpp/data/*.pkl`, which are tracked — collaborators without SageMath can skip it.
+`src/chernpp/data/*.npz`, which are tracked — collaborators without SageMath can skip it.
 
 ```bash
 pip install -e .
@@ -166,10 +180,9 @@ chamber correction divides exactly, and that the resulting numerator has constan
 
 ## Caveats
 
-- Coefficients grow fast in $\ell$. The evaluator accumulates in `int64` and **raises** once the
-  values would wrap, rather than returning negative-looking garbage; this is what caps the $A_6$
-  sweep at $\ell = 5$. Going further needs exact arithmetic — CRT over several primes is the
-  natural route.
+- Coefficients grow fast in $\ell$. The fast evaluator accumulates in `int64` and **raises** once
+  the values would wrap, rather than returning negative-looking garbage. `chernpp/crt.py` goes
+  past that by residue arithmetic; it is slower, so the `int64` path stays the default.
 - Everything reported as "holds" over a truncation range is a finite exact computation, never a
   proof of the infinite statement. `chernpp/certificates.py` and `chernpp/families.py` are the
   only components that produce proofs.
