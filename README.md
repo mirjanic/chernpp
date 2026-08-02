@@ -212,3 +212,7 @@ In `papers/`:
 - `report.pdf` — the $\ell$-free reduction, verification for $\ell \le 11$ at $d=5$, three dead ends.
 - `a5_weak_positivity_handoff.pdf` — the paired reduction and the proved unpaired tail.
 - `summary_draft.md` — a self-contained summary of this work for a non-specialist reader.
+- `open_questions.md` — the points where these computations run past what the
+  literature settles: what $\mathcal{Q}_d$ is an invariant of, the acting group beyond
+  2-jets, which positivity holds in which basis, what the $d=7$ failures leave of the
+  reduction programme, and the cost of $\mathcal{Q}_8$. Written for discussion.
