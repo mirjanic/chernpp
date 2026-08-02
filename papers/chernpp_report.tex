@@ -57,8 +57,16 @@ $d = 6$, and a notion of \emph{denominator certificate} is
 introduced whose successes are proofs and whose failures are theorems. The certificate
 machinery reproduces the $d = 4$ strong positivity theorem and Proposition~3 of the handoff
 note mechanically.  All coefficients agree with Rim\'anyi's independently computed tables
-wherever those reach, including $A_7$. Notation follows \texttt{rimanyi\_positivity.pdf},
+wherever those reach, including $A_7$. A final section takes up the observation of [S] that
+the numerator is determined only up to a residue-null kernel, which scopes the certificate
+obstructions above and supplies the one route not already known to be specific to small $d$.
+
+Notation follows \texttt{rimanyi\_positivity.pdf},
 \texttt{report.pdf} and \texttt{a5\_weak\_positivity\_handoff.pdf}, cited as [N], [R], [H].
+Two further unrefereed reports are cited: \texttt{rimanyi\_positivity\_findings\_summary.pdf}
+(29 July 2026) as [S], the primary source for the universal kernel and the $d = 5$ theorem,
+and \texttt{a6\_status.pdf} (31 July 2026) as [A6], which imports the latter and extends the
+construction to $d = 6$. Where the two overlap we cite [S], which carries the proofs.
 \end{abstract}
 
 \section{Setting and notation}
@@ -349,6 +357,7 @@ That is a strong constraint on where to look next, and it is the main reason we 
 rather than the verification.
 
 \section{Denominator certificates}
+\label{sec:certificates}
 
 \begin{definition}
 Let $N / \prod_{r=1}^{R}(1 - f_r)$ with each $f_r$ nonnegative and of zero constant term. An
@@ -465,6 +474,130 @@ pursuing: the unpaired tail is a statement about individual $A_\beta$, and at $d
 The mechanisation is therefore a way of reproducing and checking the small-$d$ arguments of [H],
 not a route to a general one.
 
+\section{Gauge freedom in the numerator}
+\label{sec:gauge}
+
+Everything above holds $\Qd_d$ fixed. It need not be. This section records what changes when
+it is not, following [S] --- whose results we use but have not refereed.
+
+\subsection{The universal kernel}
+
+$\Qd_d$ is not the only numerator computing $\Tp_{A_d}$. Writing $\epsilon_+$ for the map
+sending a coefficient array to its distinct-permutation orbit sums, [S, Prop.~3.3] shows that
+replacing $\Qd_d$ by $\Qd_d + P$ changes no Thom polynomial at any level exactly when
+$\epsilon_+ E_C(\Delta_d P / D_d) = 0$, and that at the array level
+$\ker \epsilon_+ = \sum_{i} (1 - s_i)\mathcal{L}_0$. So the two positivity statements sit on
+opposite sides of a genuine freedom:
+\[
+  A_\beta \ \text{depends on the numerator}, \qquad C(M) \ \text{does not}.
+\]
+A negative $A_\beta$ may therefore be an artefact of the representative. This reframes
+\S\ref{sec:certificates}: every obstruction proved there is a statement about the canonical
+$\Qd_d$, not about $\Tp_{A_d}$.
+
+\subsection{What this buys at \texorpdfstring{$d = 5$}{d = 5}}
+
+[S, \S4.4--4.5] exploits it. With the linear forms of \S4.3 there,
+$\Qd_5 = G(DJ + BC) = GDJ + GBC$; the summand $GBC$ is proved residue-null by two
+chamber-safe contour swaps, and the fixed-chamber series of the remaining representative
+$GDJ$ has an explicit coefficientwise-positive Stanley decomposition. Strong positivity is
+false for $\Qd_5$ but true for $GDJ$, and the weak conjecture follows for $d = 5$ at every
+$\ell$ --- with no cancellation argument at all.
+
+We can confirm the consequences against our own $\Qd_5$: the factorisation is exact, our
+independently computed quadratic factor is $DJ + BC$ on the nose, the $GDJ$ series has no
+negative coefficient to degree $18$ where the canonical one has sixteen, and $GBC$ contributes
+zero to every Chern packet in range. The two all-degree lemmas themselves we have not audited.
+
+\subsection{Constructing null kernels from a symmetry}
+
+The mechanism behind the first of those two swaps generalises, and this is our contribution
+here. The Chern insertion is symmetric in $z_1, \dots, z_d$ while $\Delta_d$ is antisymmetric,
+so if $P/D_d$ is invariant under a transposition $s$ the whole integrand is antisymmetric and
+the residue is its own negative. Writing $A_s$ for the product of the factors of $D_d$ that $s$
+moves off the factor set:
+
+\begin{proposition}
+$P/D_d$ is $s$-invariant if and only if $P = A_s R$ with $R$ an $s$-invariant polynomial.
+Subject to the contour being exchangeable, every such $P$ is residue-null at every level.
+\end{proposition}
+
+This is degree-free: unlike a search that imposes nullity on the Chern packets fitting under a
+truncation, nothing here weakens as $d$ grows. The difference is decisive. At $d = 5$ the
+packet route is overdetermined ($48$ packets against $34$ free monomials) and its answer
+survives out-of-sample; at $d = 6$ there are $29$ packets against $766$ monomials, the returned
+kernel is fitted to the packets it can see, and it breaks five of twenty-one one truncation
+higher. The packet supply grows by about four per degree, so no reachable truncation repairs it.
+
+The construction recovers the known case: at $d = 5$ the transposition $s_{45}$ moves exactly
+$z_2 + z_3 - z_5$ and $z_1 + z_4 - z_5$, so $A_{s_{45}} = MC$, and $A_{s_{45}}B$ is the summand
+$MBC$ of [S, \S4.4]. Of the kernels it produces, \emph{none} fails the packet test at any order
+we can check --- $3$ at $d = 5$, $65$ at $d = 6$, $4167$ at $d = 7$ --- and contour-exchangeable
+transpositions exist at every order, including $s_{47}$, $s_{57}$, $s_{67}$ at $d = 7$.
+
+The construction is tight in the direction one would hope: $A_sR$ passes the packet test
+\emph{exactly} when $R$ is $s$-invariant, so nothing is being left on the table by insisting
+on the symmetry.
+
+\subsection{Searching for a positive representative}
+\label{sec:gaugesearch}
+
+Since the chamber series is linear in the numerator, looking for a positive gauge is a
+mixed-integer programme: one inequality per chamber monomial, with the kernel coefficients as
+unknowns. Two families of columns are pooled. Symmetry kernels are null whatever the
+truncation. Free monomials are null only where the Chern packets in range \emph{outnumber}
+them and so determine nullity --- at $d = 5$, $48$ packets against $34$ monomials; at $d = 6$,
+$29$ against $766$, which is why they are admitted at one order and not the other.
+
+Two implementation points are forced rather than chosen. The programme must be posed in
+monomial coordinates: a row-reduced basis of the fitted null space has entries near $8\times
+10^{9}$ and its solutions cannot be recovered exactly. And the variables must be integers ---
+the continuous relaxation returns a fractional vertex, $21$ nonzero coordinates near $1/2$ at
+$d = 5$, that no rounding makes feasible.
+
+Everything the solver proposes is recomputed in exact integer arithmetic, and then re-tested
+at a truncation the fit never saw. That last step is not a formality. Nullity and
+nonnegativity fail differently: a symmetry kernel stays null out of sample by construction,
+whereas its positivity is easily an artefact of where the fit stopped, and only the deeper
+check tells them apart.
+
+\begin{proposition}
+At $d = 5$ the search returns a numerator whose chamber series has no negative coefficient.
+Fitted at degree $16$ and verified at $18$ and $20$, it is exactly $\Qd_5 - GBC = GDJ$: the
+representative of [S, \S4.5], recovered from scratch by a search told nothing about it.
+\end{proposition}
+
+\subsection{Why one transposition is not enough}
+
+At $d = 6$ this does not close, and the obstruction is the same one that is already visible at
+$d = 5$. Restricted to symmetry kernels alone, the $d = 5$ programme is infeasible --- at an
+order where a positive gauge is known to exist. The reason is exact: $GBC = MBC + FBC$, only
+$MBC$ has $P/D_5$ outright $s_{45}$-invariant, and $FBC$ is not divisible by $A_{s_{45}} = MC$.
+[S] reaches it by a second swap --- antisymmetrise, then observe that the completed source
+multiset of $T(t) = P(t)M(t)$ is $s_{12}$-invariant. At $d = 5$ the free monomials cover the
+gap. At $d = 6$ neither family does, and they fail in exactly complementary ways.
+
+\begin{observation}
+Fitted at degree $14$, the symmetry kernels alone give a numerator that is genuinely null out
+of sample --- no packet sum moves at degree $16$ or $18$ --- but which still carries $9$ of
+$42$, then $26$ of $66$, negative coefficients. The gauge is real and is not positive.
+Admitting the $766$ free monomials as well and fitting at degree $16$ inverts the failure:
+the result is nearly positive, $1$ of $66$ and then $5$ of $99$ negatives surviving, but $12$
+and then $27$ packet sums move, so it is not a gauge at all.
+\end{observation}
+
+Positivity and nullity are therefore both within reach at $d = 6$, but not simultaneously,
+and the two are traded against one another by the choice of column family. That is a sharp
+statement of what is missing: a family large enough to be positive whose nullity does not have
+to be fitted.
+
+Mechanising the second swap is therefore the concrete next piece of work, and the blocker is
+the construction rather than the computation. [A6, \S13] lifts the $d = 5$ kernel into a
+four-parameter family at $d = 6$ by a related source-multiset completion, though [A6, \S13.1]
+shows the lifted representative is not itself positive, and [A6, \S14.1] shows the freedom
+cuts both ways --- an individual $A_\beta$ is not determined by the Thom class, so no marked
+coefficient can be an intrinsic invariant.
+
 \section{Assessment}
 \label{sec:assessment}
 
@@ -478,6 +611,11 @@ What the computations suggest about proof strategy:
 \item Additive, Positivstellensatz-shaped certificates are obstructed on \emph{every} target
   tried, including provable ones. On present evidence they are not the tool for this problem,
   and we would not recommend further effort extending [H, \S10.3] in that direction.
+  This verdict is now scoped, not withdrawn: those obstructions concern the canonical
+  $\Qd_d$, and \S\ref{sec:gauge} shows the numerator is only determined up to a residue-null
+  kernel. At $d = 5$ a different representative needs no certificate at all, its series being
+  outright nonnegative. The right question is not which certificate fits the canonical series
+  but which representative needs the least.
 \item Multiplicative certificates are the ones that succeed where anything does: they reproduce
   both published proofs from scratch.  But what they certify --- the individual $A_\beta$ --- is
   exactly what stops being controllable at $d = 7$, so they mechanise the small-$d$ arguments
