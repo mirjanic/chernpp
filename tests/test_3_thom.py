@@ -315,6 +315,21 @@ class TestExactArithmeticViaCRT(unittest.TestCase):
             with self.subTest(dim=dim, l_max=l_max):
                 self.assertEqual(chern_coefficients_exact(dim, l_max), fast)
 
+    def test_the_multi_prime_path_is_actually_exercised(self):
+        # Every other CRT test lands in the regime where one prime suffices, so
+        # the reconstruction itself -- the reason this module exists -- was never
+        # run. A_6 at l = 6 needs three primes and reaches 2.4e19, past the int64
+        # ceiling the fast path refuses at, and every value is nonnegative:
+        # Rimanyi's conjecture at a relative dimension the grid cannot reach.
+        from chernpp.crt import chern_coefficients_exact
+
+        exact = chern_coefficients_exact(6, 6)
+        largest = max(abs(v) for v in exact.values())
+        self.assertGreater(largest, 2**63, "this should be past what int64 holds")
+        self.assertTrue(all(v >= 0 for v in exact.values()))
+        with self.assertRaises(OverflowError):
+            chern_coefficients(dim=6, l_max=6)
+
     def test_grouping_is_independent_of_values(self):
         # The residues of one coefficient must line up across primes, so the
         # grouping has to come from the grid geometry rather than from which

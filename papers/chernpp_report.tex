@@ -594,17 +594,51 @@ positivity --- Pragacz--Weber --- and refutes any naive extension of the Chern-m
 statement about a basis interpolating between Chern monomials and Schur polynomials? The $A_d$ Thom
 polynomials are positive in both; the $I_{a,b}$ only in one.
 
-\subsection{The cost of \texorpdfstring{$\Qd_8$}{Q\_8}}
+\subsection{Why \texorpdfstring{$\Qd_8$}{Q\_8} is not a matter of waiting}
 
 Between $d = 7$ and $d = 8$ the ambient dimension goes $34 \to 50$, $\deg\Qd_d$ goes $13 \to 22$,
-the basic equations $21 \to 39$ and the defect-zero variables $12 \to 16$. The first saturation
-step, $0.5$\,s at $d = 7$, does not finish in an hour.
+the basic equations $21 \to 39$ and the defect-zero coordinates $12 \to 16$. The whole of $d = 7$
+now costs $9$\,s, and its first saturating basis $0.2$\,s. At $d = 8$ that same first basis did not
+finish in two hours, at $4$\,GB.
 
-\textbf{Question.} Is the obstruction the equations or the method? [BS, Remark 7.2] note that
-standard algorithms exist for the equivariant dual of a \emph{toric} orbit but that none is known
-for Borel orbits. The toric route was tried here and closed off: $\mathrm{eP}[T_d]$ computes in
-$0.13$\,s even at $d = 7$ and matches the published codimension table, but does not divide $\Qd_6$,
-so it is not a factor of the Borel class.
+It is not a constant-factor problem, and the shape of it can be measured. The ideal is homogeneous,
+so a degree-bounded basis is exact up to its bound, and walking the bound upwards prices each
+degree (Table~\ref{tab:d8}).
+
+\begin{table}[ht]
+\centering
+\caption{Degree-bounded Gr\"obner basis of the $39$ quadrics of $A_8$ over $\mathrm{GF}(32003)$.}
+\label{tab:d8}
+\begin{tabularx}{\textwidth}{@{}Lrrr@{}}
+\toprule
+degree bound & elements & time & ratio \\
+\midrule
+$5$  & $752$    & $0.9$\,s    & --- \\
+$6$  & $1901$   & $7.1$\,s    & $8.3\times$ \\
+$7$  & $4734$   & $61.3$\,s   & $8.7\times$ \\
+$8$  & $10521$  & $424.5$\,s  & $6.9\times$ \\
+$9$  & $19243$  & $1737.6$\,s & $4.1\times$ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The bound that would be needed is the other half. The saturated basis reaches degree $3$ at
+$d = 5$, $6$ at $d = 6$ and $14$ at $d = 7$, so $d = 8$ should need somewhere around $25$. At a
+per-degree factor of $5$, degree $25$ is roughly $10^{11}$ times the cost of degree $9$ --- and
+memory, already $4$\,GB at degree $9$, gives out long before. No amount of hardware closes that,
+and none of the levers we tried moves it: ten variable orders and two algorithms all fail to
+finish the first basis in $15$ minutes; the base field is irrelevant; seeding the computation with
+the already-saturated $\Qd_7$ ideal, which is legitimate since truncating jets maps
+$\mathcal{O}_8$ into $\mathcal{O}_7$, does not help either.
+
+\textbf{So the question is not how to speed this up.} It is whether $\Qd_8$ is needed. For
+Rim\'anyi's conjecture at $d = 8$ it is not: his registry publishes $\Tp_{A_8}$ and $\Tp_{A_9}$ at
+relative dimension $0$, computed by restriction equations rather than by a residue formula, and all
+$22$ and $30$ coefficients are positive. The conjecture is already supported two orders beyond
+where we can compute. What $\Qd_8$ would buy is what the Chern coefficients cannot give: the
+individual $A_\beta$, and so the ability to ask at $d = 8$ the questions \S\ref{sec:a7} answers at
+$d = 7$. That is a reason to want a different route to $\Qd_d$ --- localisation on a resolution, or
+the fibration of [N, Lemma 7.1] --- not a faster Gr\"obner basis.
 
 \section*{Reproducibility}
 

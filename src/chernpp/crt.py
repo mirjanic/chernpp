@@ -48,8 +48,7 @@ DEFAULT_PRIMES: Tuple[int, ...] = (
 )
 
 
-def _grid_shape(nvars: int, l_max: int) -> Tuple[int, ...]:
-    return tuple((nvars - i) * (l_max + 1) + 1 for i in range(nvars))
+from .chern import grid_shape as _grid_shape
 
 
 def grouping(nvars: int, l_max: int):

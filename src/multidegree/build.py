@@ -47,8 +47,8 @@ def build(orders, characteristic=0, out_dir=DEFAULT_OUTPUT):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("-d", "--order", type=int, default=6, help="highest order to build")
-    parser.add_argument("--from-order", type=int, default=4, help="lowest order to build (default 4)")
+    parser.add_argument("-d", "--order", type=int, default=7, help="highest order to build")
+    parser.add_argument("--from-order", type=int, default=1, help="lowest order to build (default 1)")
     parser.add_argument("-p", "--prime", type=int, default=0, help="work over GF(p); 0 means QQ")
     parser.add_argument("-o", "--out", type=Path, default=DEFAULT_OUTPUT)
     args = parser.parse_args()

@@ -36,6 +36,19 @@ import numpy as np
 from .artifacts import load_algebra
 from .logger import get_logger
 
+
+def grid_shape(nvars: int, l_max: int) -> Tuple[int, ...]:
+    """
+    The box of exponents that can contribute at relative dimension ``l_max``.
+
+    Only ``beta_j <= (d - j)(l + 1)`` can matter, so this captures every relevant
+    coefficient exactly.  Shared with :mod:`chernpp.crt`, which expands the same
+    series modulo primes: two copies of this expression that drifted apart would
+    put the exact and the fast paths on different grids without either noticing.
+    """
+    return tuple((nvars - i) * (l_max + 1) + 1 for i in range(nvars))
+
+
 jax.config.update("jax_enable_x64", True)
 logger = get_logger(__name__)
 
@@ -85,7 +98,7 @@ def laurent_grid(dim: int, l_max: int = 2, check_overflow: bool = True) -> np.nd
     algebra = load_algebra(dim)
     nvars = algebra.nvars
 
-    shape = tuple((nvars - i) * (l_max + 1) + 1 for i in range(nvars))
+    shape = grid_shape(nvars, l_max)
     seed = np.zeros(shape, dtype=np.int64)
     for exponents, coefficient in algebra.numerator.items():
         if all(e < cap for e, cap in zip(exponents, shape)):

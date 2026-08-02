@@ -167,7 +167,7 @@ SECTIONS = {
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("-d", "--dim", type=int, default=6, help="Morin order d (4, 5 or 6)")
+    p.add_argument("-d", "--dim", type=int, default=6, help="Morin order d (artifacts ship for 1 through 7)")
     p.add_argument("--degree", type=int, default=12, help="chamber-series truncation degree")
     p.add_argument("--max-l", type=int, default=5, help="highest relative dimension to sweep")
     p.add_argument("--cert-order", type=int, default=4, help="highest certificate order to try")

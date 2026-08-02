@@ -163,7 +163,7 @@ that imports `sage.all`, so run it with the interpreter of your Sage installatio
 `sage -python` was removed in Sage 10.9:
 
 ```bash
-cd src && "$(dirname "$(command -v sage)")/python" -m multidegree.build -d 6
+cd src && "$(dirname "$(command -v sage)")/python" -m multidegree.build -d 7
 ```
 
 ### The Sage stage

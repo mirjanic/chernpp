@@ -180,8 +180,8 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[1])
-    parser.add_argument("-d", "--order", type=int, default=6, help="highest order")
-    parser.add_argument("--from-order", type=int, default=4, help="lowest order")
+    parser.add_argument("-d", "--order", type=int, default=7, help="highest order")
+    parser.add_argument("--from-order", type=int, default=1, help="lowest order")
     arguments = parser.parse_args()
 
     from chernpp.artifacts import DATA_DIR, save_geometry

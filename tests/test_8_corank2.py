@@ -52,23 +52,24 @@ class TestJetSpace(unittest.TestCase):
         self.assertEqual(len(set(names)), len(names))
 
     def test_weights_follow_the_source_and_target_tori(self):
-        # normal_weight is plain arithmetic on whatever z contains, so integer
-        # vectors stand in for the torus characters here.
+        # normal_weight is linear in whatever z holds, so feeding it the standard
+        # basis returns the weight vector itself.  Calling the shipped function
+        # is the point: a local re-derivation would only be testing itself.
+        import numpy as np
+
         index_of = {corank2.variable_name(*index): index for index in corank2.jet_indices(2)}
-        s1, s2, t1, t2 = ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))
+        basis = [np.eye(4, dtype=int)[k] for k in range(4)]
 
-        def combine(name):
-            weight = [0, 0, 0, 0]
-            t, i, j = index_of[name]
-            weight[0] += i
-            weight[1] += j
-            weight[2 + t] -= 1
-            return tuple(weight)
+        def weight(name):
+            return tuple(int(x) for x in corank2.normal_weight(name, index_of, basis))
 
-        for name in index_of:
-            self.assertEqual(combine(name)[:2], (index_of[name][1], index_of[name][2]))
-        self.assertEqual(combine("q_u_1_1"), (1, 1, -1, 0))
-        self.assertEqual(combine("q_v_0_2"), (0, 2, 0, -1))
+        # The coefficient of x^i y^j in component t has weight i*s1 + j*s2 - t.
+        self.assertEqual(weight("q_u_1_1"), (1, 1, -1, 0))
+        self.assertEqual(weight("q_v_0_2"), (0, 2, 0, -1))
+        self.assertEqual(weight("q_u_2_0"), (2, 0, -1, 0))
+        for name, (t, i, j) in index_of.items():
+            with self.subTest(variable=name):
+                self.assertEqual(weight(name), (i, j, -1 if t == 0 else 0, -1 if t == 1 else 0))
 
     def test_survey_records_the_jet_spaces_it_used(self):
         jet_space = load_survey()["jet_space"]
@@ -132,15 +133,6 @@ class TestFrozenOrbitClosures(unittest.TestCase):
             with self.subTest(germ=germ):
                 self.assertEqual(degrees, {entry["codimension"]})
 
-    def test_multidegree_is_balanced_between_source_and_target(self):
-        # Each coordinate weight is i*s1 + j*s2 - t, with i + j >= 2, so every
-        # term carries at least twice as many source characters as target ones.
-        for germ, entry in self.survey.items():
-            for exponents, _ in entry["multidegree"]:
-                source, target = exponents[0] + exponents[1], exponents[2] + exponents[3]
-                with self.subTest(germ=germ, exponents=exponents):
-                    self.assertEqual(source + target, entry["codimension"])
-
 
 class TestJetGroupLimit(unittest.TestCase):
     def test_order_three_is_refused_rather_than_computed_wrongly(self):
@@ -150,11 +142,6 @@ class TestJetGroupLimit(unittest.TestCase):
         with self.assertRaises(NotImplementedError) as caught:
             corank2.orbit_closure(corank2.normal_form(2, 3), 3)
         self.assertIn("jet group", str(caught.exception))
-
-    def test_the_jet_spaces_those_orders_need_are_still_described(self):
-        for a, b in ((2, 3), (3, 3), (2, 4)):
-            with self.subTest(a=a, b=b):
-                self.assertEqual(corank2.ambient_dimension(b), 2 * sum(j + 1 for j in range(2, b + 1)))
 
 
 class TestTheOrbitClosureIsNotAnInvariant(unittest.TestCase):

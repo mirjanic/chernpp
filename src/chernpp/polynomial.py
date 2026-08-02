@@ -3,7 +3,7 @@ Exact sparse polynomial arithmetic on exponent-tuple dictionaries.
 
 A polynomial in the ``n`` chamber variables is a ``dict`` mapping an exponent
 tuple of length ``n`` to a coefficient (``int`` or ``Fraction``).  This is the
-representation the Sage miner exports, so nothing has to be parsed or
+representation the Sage stage exports, so nothing has to be parsed or
 re-expanded downstream.  Every routine here is exact; no floating point is
 used anywhere in this module.
 
@@ -136,7 +136,7 @@ def expand_rational(num: Poly, factors: List[Poly], max_deg: int) -> Poly:
     """
     Taylor expansion of ``num / prod_r (1 - f_r)``, truncated at ``max_deg``.
 
-    This is the chamber series ``F_d`` when ``num`` is the miner's
+    This is the chamber series ``F_d`` when ``num`` is the artifact's
     ``numerator`` and ``factors`` its ``denominator_factors``.
     """
     series = {e: c for e, c in num.items() if sum(e) <= max_deg}

@@ -139,7 +139,7 @@ class ChamberAlgebra:
         return len(self.chamber_vars)
 
     def validate(self) -> None:
-        """Re-check the invariants the miner promises.  Raises on violation."""
+        """Re-check the invariants the Sage stage promises.  Raises on violation."""
         if len(self.chamber_vars) != self.order - 1:
             raise ValueError(
                 f"A_{self.order}: expected {self.order - 1} chamber variables, "

@@ -207,11 +207,24 @@ def tail_target_factored(
     half = Fraction(1, 2)
 
     bare_a = {tuple(1 if i == 0 else 0 for i in range(nvars)): 1}
-    factors = [evaluate_variable(u, 0, half) for u in vandermonde_factors(dim) if u != bare_a]
+    vandermonde = vandermonde_factors(dim)
+    kept = [u for u in vandermonde if u != bare_a]
+    if len(kept) != len(vandermonde) - 1:
+        raise RuntimeError(
+            f"A_{dim}: expected exactly one Vandermonde factor equal to a, found "
+            f"{len(vandermonde) - len(kept)}; J_d would come out scaled by the wrong factor"
+        )
+    factors = [evaluate_variable(u, 0, half) for u in kept]
     residual = evaluate_variable(alg.normalized_numerator, 0, half)
 
     doubled_a = {tuple(1 if i == 0 else 0 for i in range(nvars)): 2}
-    denominators = [evaluate_variable(f, 0, half) for f in alg.denominator_factors if f != doubled_a]
+    remaining = [f for f in alg.denominator_factors if f != doubled_a]
+    if len(remaining) != len(alg.denominator_factors) - 1:
+        raise RuntimeError(
+            f"A_{dim}: expected exactly one denominator factor equal to 2a, found "
+            f"{len(alg.denominator_factors) - len(remaining)}"
+        )
+    denominators = [evaluate_variable(f, 0, half) for f in remaining]
     return factors, residual, denominators, alg.chamber_vars[1:]
 
 
