@@ -104,3 +104,96 @@ class TestAssemblyConsistency(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestOrbitGeometry(unittest.TestCase):
+    """
+    The second artifact: geometry of O_d that the residue formula does not use.
+
+    Nothing in the pipeline reads it, so what is checked here is that it is
+    internally consistent and consistent with the algebra artifact beside it.
+    """
+
+    def setUp(self):
+        from chernpp.artifacts import available_geometry_orders
+
+        self.orders = available_geometry_orders()
+
+    def test_every_order_with_an_algebra_has_geometry(self):
+        self.assertEqual(self.orders, available_orders())
+
+    def test_validate_passes_for_every_order(self):
+        from chernpp.artifacts import load_geometry
+
+        for order in self.orders:
+            with self.subTest(order=order):
+                load_geometry(order).validate()
+
+    def test_codimension_matches_the_multidegree_degree(self):
+        # Same integer as MULTIDEGREE_DEGREE above, arrived at from the ideal
+        # rather than from homogeneity of the residue formula.
+        from chernpp.artifacts import load_geometry
+
+        for order, expected in MULTIDEGREE_DEGREE.items():
+            with self.subTest(order=order):
+                self.assertEqual(load_geometry(order).codimension, expected)
+
+    def test_ambient_dimension_matches_the_denominator_count(self):
+        from chernpp.artifacts import load_geometry
+
+        for order, expected in AMBIENT_DIMENSION.items():
+            with self.subTest(order=order):
+                self.assertEqual(load_geometry(order).ambient_dimension, expected)
+
+    def test_degree_is_the_sum_of_component_multiplicities(self):
+        # Each component contributes multiplicity times a product of weights,
+        # and at z = 1 every weight is 1.  Independent of how the file was made.
+        from chernpp.artifacts import load_geometry
+
+        for order in self.orders:
+            geometry = load_geometry(order)
+            if geometry.codimension == 0:
+                continue  # d <= 3: the orbit fills N_d, and there is no degeneration
+            with self.subTest(order=order):
+                self.assertEqual(sum(m for _, m in geometry.components), geometry.degree)
+
+    def test_known_degrees(self):
+        # 2, 6, 55, 957 -- each confirmed three ways when the artifact was written.
+        from chernpp.artifacts import load_geometry
+
+        for order, expected in ((4, 2), (5, 6), (6, 55), (7, 957)):
+            with self.subTest(order=order):
+                self.assertEqual(load_geometry(order).degree, expected)
+
+    def test_only_a5_has_a_reducible_multidegree(self):
+        # Q_5 = (2z_1 + z_2 - z_5) P_5 is the exception, not the pattern: Q_4 is
+        # a single linear form and Q_6, Q_7 are irreducible.  Worth pinning,
+        # because the d = 5 factorisation has been read as a hint about geometry.
+        from chernpp.artifacts import load_geometry
+
+        for order in (4, 6, 7):
+            with self.subTest(order=order):
+                self.assertTrue(load_geometry(order).factors_are_trivial)
+        self.assertEqual(sorted(m for _, m in load_geometry(5).factors), [1, 1])
+        self.assertEqual(sorted(total_degree(f) for f, _ in load_geometry(5).factors), [1, 2])
+
+    def test_hilbert_numerator_starts_at_one(self):
+        # The orbit closure passes through the origin with multiplicity one in
+        # degree zero, so the series starts 1 + ...
+        from chernpp.artifacts import load_geometry
+
+        for order in self.orders:
+            with self.subTest(order=order):
+                self.assertEqual(load_geometry(order).hilbert_numerator[0], 1)
+
+    def test_weights_are_the_residue_formula_weights(self):
+        # Coordinate q^{mr}_l has weight z_m + z_r - z_l, so each row sums to 1
+        # and has entries in {-1, 0, 1, 2}.
+        from chernpp.artifacts import load_geometry
+
+        for order in self.orders:
+            geometry = load_geometry(order)
+            for name, weight in zip(geometry.variables, geometry.weights):
+                with self.subTest(order=order, variable=name):
+                    self.assertEqual(sum(weight), 1)
+                    self.assertTrue(all(-1 <= w <= 2 for w in weight))

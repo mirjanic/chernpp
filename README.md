@@ -66,6 +66,12 @@ Reproducible from a clean checkout:
   $F_6/(1-a)$ is not: $A_6$ has negative coefficients with $i = 0$, which the prefix sum over
   $r \le i$ cannot touch. The stepping stone proposed in §11.4 of the handoff note is unavailable
   at $d=6$.
+- **Geometry of the orbit closure**, recorded but unused downstream: $\mathcal{O}_d$ has degree
+  2, 6, 55 and 957 for $d = 4,\dots,7$ — each computed three independent ways, as
+  $\mathcal{Q}_d(1,\dots,1)$, from the Hilbert series, and as the sum of the component
+  multiplicities. $\mathcal{Q}_5 = (2z_1 + z_2 - z_5)P_5$ is the **only** order at which the
+  class factors: $\mathcal{Q}_4$ is a single linear form and $\mathcal{Q}_6$, $\mathcal{Q}_7$
+  are irreducible, so the $d=5$ factorisation is an accident rather than a pattern.
 - An explicit, machine-found and **exactly verified denominator certificate for $A_4$**, of order
   exactly 4 — an independent computational proof of strong Laurent positivity at $d=4$.
 - **Rigorous lower bounds on certificate order.** Nothing of order $\le 7$ certifies $A_5$, even
@@ -96,6 +102,7 @@ set: if the truncated LP is infeasible, no certificate of that order exists at *
 src/multidegree/     SageMath only.  Computes Q_d, writes chernpp/data/a{d}_algebra.npz
   morin.py             the A_d model: ambient weights, reference point, chamber assembly
   basic_equations.py   the algorithm: orbit relations, saturation, initial ideal
+  geometry.py          invariants of O_d the residue formula does not need
   monomial.py          minimal primes and localisation of monomial ideals (no Sage)
   corank2.py           corank-two I_{a,b} jets and their Borel orbit closures (exploratory)
   build.py             command-line entry point and artifact export
@@ -111,7 +118,7 @@ src/chernpp/         Pure Python/JAX.  Reads the artifacts; never re-derives the
   families.py          closed-form domination along infinite families
   lorentzian.py        log-concavity / M-convexity tests
   experiments.py       command-line runner
-  data/                the mined algebras, tracked
+  data/                the mined algebras and geometry records, tracked (git LFS)
 src/examples.ipynb   annotated tour, from the published results to the new ones
 tools/               scrapers and helpers, not part of the package
 tests/               eight tiers, in dependency order

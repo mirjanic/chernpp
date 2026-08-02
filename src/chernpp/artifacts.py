@@ -239,3 +239,127 @@ def load_algebra(order: int, validate: bool = True) -> ChamberAlgebra:
     if validate:
         algebra.validate()
     return algebra
+
+
+@dataclass(frozen=True)
+class OrbitGeometry:
+    """
+    Geometry of the orbit closure that the residue formula does not need.
+
+    Written by :mod:`multidegree.geometry`; nothing in the pipeline reads it.
+    ``degree`` is computed there two independent ways -- as ``Q_d(1, ..., 1)`` and
+    from the Hilbert series -- and the artifact is only written when they agree.
+    """
+
+    order: int
+    dimension: int
+    codimension: int
+    degree: int
+    ambient_dimension: int
+    variables: Tuple[str, ...]
+    #: T_d weight of each coordinate, as a row per variable.
+    weights: Tuple[Tuple[int, ...], ...]
+    #: Coefficients of the Hilbert numerator, indexed by degree.
+    hilbert_numerator: Tuple[int, ...]
+    #: Irreducible factors of Q_d in z, with multiplicities.
+    factors: Tuple[Tuple[Poly, int], ...]
+    #: Components of the initial ideal: coordinate indices, and multiplicity.
+    components: Tuple[Tuple[Tuple[int, ...], int], ...]
+
+    @property
+    def factors_are_trivial(self) -> bool:
+        """True when Q_d is irreducible, i.e. has a single factor of multiplicity 1."""
+        return len(self.factors) == 1 and self.factors[0][1] == 1
+
+    def validate(self) -> None:
+        if self.codimension != self.ambient_dimension - self.dimension:
+            raise ValueError(f"A_{self.order}: dimension and codimension disagree")
+        if len(self.weights) != self.ambient_dimension:
+            raise ValueError(f"A_{self.order}: one weight per coordinate expected")
+        if any(len(indices) != self.codimension for indices, _ in self.components):
+            raise ValueError(f"A_{self.order}: a component has the wrong codimension")
+        total = sum(total_degree(f) * m for f, m in self.factors)
+        if self.factors and total != self.codimension:
+            raise ValueError(
+                f"A_{self.order}: factor degrees sum to {total}, not deg Q_d = {self.codimension}"
+            )
+
+
+def save_geometry(record: Dict[str, object], path: Path) -> None:
+    """Write a :class:`OrbitGeometry` record, in the same pickle-free format."""
+    order = int(record["order"])
+    payload = {
+        "format_version": np.int64(FORMAT_VERSION),
+        "order": np.int64(order),
+        "field": np.array(str(record["field"]), dtype=np.str_),
+        "dimension": np.int64(record["dimension"]),
+        "codimension": np.int64(record["codimension"]),
+        "degree": np.int64(record["degree"]),
+        "ambient_dimension": np.int64(record["ambient_dimension"]),
+        "variables": np.array(list(record["variables"]), dtype=np.str_),
+        "weights": np.array(record["weights"], dtype=np.int32).reshape(-1, order),
+        "hilbert_numerator": _as_int64(record["hilbert_numerator"]),
+    }
+
+    polynomials = [factor for factor, _ in record["factors"]]
+    exponents, coefficients, offsets = pack_polynomial_list(polynomials, order)
+    payload["factor__exponents"] = exponents
+    payload["factor__coefficients"] = coefficients
+    payload["factor__offsets"] = offsets
+    payload["factor__multiplicities"] = _as_int64(m for _, m in record["factors"])
+
+    components = list(record["components"])
+    payload["component__indices"] = np.array(
+        [i for indices, _ in components for i in indices], dtype=np.int32
+    )
+    payload["component__offsets"] = np.cumsum([0] + [len(indices) for indices, _ in components]).astype(
+        np.int32
+    )
+    payload["component__multiplicities"] = _as_int64(m for _, m in components)
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez_compressed(path, **payload)
+
+
+def load_geometry(order: int, validate: bool = True) -> OrbitGeometry:
+    """Load the geometry record for A_order, checking its invariants by default."""
+    path = DATA_DIR / f"a{order}_geometry.npz"
+    if not path.exists():
+        raise FileNotFoundError(
+            f"{path} is missing. Regenerate it with "
+            f"'python -m multidegree.geometry -d {order}' under SageMath."
+        )
+    with np.load(path, allow_pickle=False) as raw:
+        version = int(raw["format_version"])
+        if version != FORMAT_VERSION:
+            raise ValueError(
+                f"{path} is format version {version}, this build expects {FORMAT_VERSION}; " "regenerate it"
+            )
+        factors = unpack_polynomial_list(
+            raw["factor__exponents"], raw["factor__coefficients"], raw["factor__offsets"]
+        )
+        offsets = raw["component__offsets"]
+        indices = raw["component__indices"]
+        geometry = OrbitGeometry(
+            order=int(raw["order"]),
+            dimension=int(raw["dimension"]),
+            codimension=int(raw["codimension"]),
+            degree=int(raw["degree"]),
+            ambient_dimension=int(raw["ambient_dimension"]),
+            variables=tuple(str(v) for v in raw["variables"]),
+            weights=tuple(tuple(int(x) for x in row) for row in raw["weights"]),
+            hilbert_numerator=tuple(int(c) for c in raw["hilbert_numerator"]),
+            factors=tuple((factor, int(m)) for factor, m in zip(factors, raw["factor__multiplicities"])),
+            components=tuple(
+                (tuple(int(i) for i in indices[a:b]), int(m))
+                for (a, b), m in zip(zip(offsets[:-1], offsets[1:]), raw["component__multiplicities"])
+            ),
+        )
+    if validate:
+        geometry.validate()
+    return geometry
+
+
+def available_geometry_orders() -> List[int]:
+    """Orders with a geometry artifact present."""
+    return sorted(int(p.stem.split("_")[0][1:]) for p in DATA_DIR.glob("a*_geometry.npz"))
