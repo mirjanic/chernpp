@@ -90,8 +90,7 @@ def _sums_mod(
             seed[exponents] = coefficient % prime
 
     factor_terms = [
-        [(int(c) % prime, tuple(e)) for e, c in factor.items()]
-        for factor in algebra.denominator_factors
+        [(int(c) % prime, tuple(e)) for e, c in factor.items()] for factor in algebra.denominator_factors
     ]
     expand = _compile_expansion(shape, factor_terms, sum(shape), modulus=prime)
     grid = np.asarray(expand(jnp.array(seed, dtype=jnp.int64))).reshape(-1)[keep] % prime
@@ -145,10 +144,7 @@ def chern_coefficients_exact(
             modulus = prime
         else:
             combined = np.array(
-                [
-                    _crt_pair(int(a), modulus, int(b), prime)[0]
-                    for a, b in zip(combined, residues)
-                ],
+                [_crt_pair(int(a), modulus, int(b), prime)[0] for a, b in zip(combined, residues)],
                 dtype=object,
             )
             modulus *= prime
@@ -179,9 +175,7 @@ def chern_coefficients_exact(
             "coefficients being reconstructed; pass more primes"
         )
 
-    result = {
-        tuple(int(a) for a in key): int(value) for key, value in zip(multisets, signed)
-    }
+    result = {tuple(int(a) for a in key): int(value) for key, value in zip(multisets, signed)}
 
     if verify:
         spare = pool[-1]

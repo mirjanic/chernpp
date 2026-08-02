@@ -83,10 +83,7 @@ def jet_indices(order):
     graded piece.
     """
     return [
-        (t, i, degree - i)
-        for degree in range(2, order + 1)
-        for t in (0, 1)
-        for i in range(degree, -1, -1)
+        (t, i, degree - i) for degree in range(2, order + 1) for t in (0, 1) for i in range(degree, -1, -1)
     ]
 
 
@@ -207,7 +204,7 @@ def multidegree(jet, order, base_field=None):
     The ``T_2 x T_2``-equivariant multidegree of the orbit closure of ``jet``.
 
     Returned as ``(polynomial, codimension)`` in the weight ring
-    ``QQ[s1, s2, t1, t2]``.  As in :mod:`multidegree.backends.basic_equations`,
+    ``QQ[s1, s2, t1, t2]``.  As in :mod:`multidegree.basic_equations`,
     the class is read off an initial ideal: passing to the initial ideal of a
     Groebner basis is a flat degeneration, so it preserves the equivariant dual,
     and for a monomial ideal that dual is the sum over top-dimensional components
@@ -240,11 +237,7 @@ def multidegree(jet, order, base_field=None):
         collapse = {v: ring(1) for v in ring.gens() if v not in variables}
         local_ring = PolynomialRing(base_field, [str(v) for v in variables])
         local = local_ring.ideal(
-            [
-                local_ring(str(g.subs(collapse)))
-                for g in initial.gens()
-                if g.subs(collapse) != 0
-            ]
+            [local_ring(str(g.subs(collapse))) for g in initial.gens() if g.subs(collapse) != 0]
         )
         multiplicity = (
             local.vector_space_dimension()

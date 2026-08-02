@@ -32,9 +32,7 @@ def _setup_logging(logfile=None):
     handlers = [logging.StreamHandler(sys.stdout)]
     if logfile:
         handlers.append(logging.FileHandler(logfile, encoding="utf-8"))
-    logging.basicConfig(
-        level=logging.INFO, format="%(message)s", handlers=handlers, force=True
-    )
+    logging.basicConfig(level=logging.INFO, format="%(message)s", handlers=handlers, force=True)
 
 
 def section(title):
@@ -91,11 +89,7 @@ def reductions(dim, degree, **_):
     logger.info(
         "  prefix          F_%d/(1-a) >= 0 :  %s",
         dim,
-        (
-            "holds"
-            if not pref
-            else f"FAILS, {len(pref)} negative, e.g. A_{pref[0][0]} = {pref[0][1]}"
-        ),
+        ("holds" if not pref else f"FAILS, {len(pref)} negative, e.g. A_{pref[0][0]} = {pref[0][1]}"),
     )
     if pref:
         logger.info(
@@ -174,24 +168,12 @@ SECTIONS = {
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("-d", "--dim", type=int, default=6, help="Morin order d (4, 5 or 6)")
-    p.add_argument(
-        "--degree", type=int, default=12, help="chamber-series truncation degree"
-    )
-    p.add_argument(
-        "--max-l", type=int, default=5, help="highest relative dimension to sweep"
-    )
-    p.add_argument(
-        "--cert-order", type=int, default=4, help="highest certificate order to try"
-    )
-    p.add_argument(
-        "--cert-degree", type=int, default=8, help="degree cap on the certificate parts"
-    )
-    p.add_argument(
-        "--probe", type=int, default=2, help="depth of the order-obstruction probe"
-    )
-    p.add_argument(
-        "--only", choices=sorted(SECTIONS), nargs="*", help="run only these sections"
-    )
+    p.add_argument("--degree", type=int, default=12, help="chamber-series truncation degree")
+    p.add_argument("--max-l", type=int, default=5, help="highest relative dimension to sweep")
+    p.add_argument("--cert-order", type=int, default=4, help="highest certificate order to try")
+    p.add_argument("--cert-degree", type=int, default=8, help="degree cap on the certificate parts")
+    p.add_argument("--probe", type=int, default=2, help="depth of the order-obstruction probe")
+    p.add_argument("--only", choices=sorted(SECTIONS), nargs="*", help="run only these sections")
     p.add_argument("--log", help="also append output to this file")
     args = p.parse_args()
 

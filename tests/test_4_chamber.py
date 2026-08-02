@@ -136,17 +136,13 @@ class TestReductions(unittest.TestCase):
         # The prefix sum runs over r <= i, so a negative coefficient at i = 0
         # passes through untouched.  A_5 has none; A_6 does.
         base = chamber_series(6, 10)
-        self.assertEqual(
-            [b for b, _ in sorted_negatives(base) if b[0] == 0], [(0, 2, 3, 2, 2)]
-        )
+        self.assertEqual([b for b, _ in sorted_negatives(base) if b[0] == 0], [(0, 2, 3, 2, 2)])
 
         prefix = chamber_series(6, 10, extra_factors=[monomial(5, 0)])
         self.assertEqual(prefix[(0, 2, 3, 2, 2)], -1)
 
     def test_a5_has_no_negative_coefficient_at_i_zero(self):
-        self.assertEqual(
-            [b for b, _ in sorted_negatives(chamber_series(5, 14)) if b[0] == 0], []
-        )
+        self.assertEqual([b for b, _ in sorted_negatives(chamber_series(5, 14)) if b[0] == 0], [])
 
 
 class TestReductionsFailAtA7(unittest.TestCase):

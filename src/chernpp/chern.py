@@ -91,10 +91,7 @@ def laurent_grid(dim: int, l_max: int = 2, check_overflow: bool = True) -> np.nd
         if all(e < cap for e, cap in zip(exponents, shape)):
             seed[exponents] = coefficient
 
-    factor_terms = [
-        [(int(c), tuple(e)) for e, c in factor.items()]
-        for factor in algebra.denominator_factors
-    ]
+    factor_terms = [[(int(c), tuple(e)) for e, c in factor.items()] for factor in algebra.denominator_factors]
     expand = _compile_expansion(shape, factor_terms, sum(shape))
     grid = np.asarray(expand(jnp.array(seed, dtype=jnp.int64)))
 
@@ -152,9 +149,7 @@ def chern_coefficients(
     starts = np.searchsorted(inverse[order], np.arange(len(unique)))
     totals = np.add.reduceat(values[order], starts)
 
-    return grid, {
-        tuple(int(a) for a in key): int(total) for key, total in zip(unique, totals)
-    }
+    return grid, {tuple(int(a) for a in key): int(total) for key, total in zip(unique, totals)}
 
 
 def format_monomial(multiset: ChernMultiset, l_max: int) -> str:

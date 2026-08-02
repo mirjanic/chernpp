@@ -98,10 +98,7 @@ def pack_polynomial_list(polynomials: Sequence[Poly], nvars: int):
 
 
 def unpack_polynomial_list(exponents, coefficients, offsets) -> List[Poly]:
-    return [
-        unpack_polynomial(exponents[a:b], coefficients[a:b])
-        for a, b in zip(offsets[:-1], offsets[1:])
-    ]
+    return [unpack_polynomial(exponents[a:b], coefficients[a:b]) for a, b in zip(offsets[:-1], offsets[1:])]
 
 
 @dataclass(frozen=True)
@@ -152,13 +149,9 @@ class ChamberAlgebra:
             raise ValueError(f"A_{self.order}: normalized numerator has constant term != 1")
         for index, factor in enumerate(self.denominator_factors):
             if not is_nonneg(factor):
-                raise ValueError(
-                    f"A_{self.order}: denominator factor {index} has a negative coefficient"
-                )
+                raise ValueError(f"A_{self.order}: denominator factor {index} has a negative coefficient")
             if any(sum(e) == 0 for e in factor):
-                raise ValueError(
-                    f"A_{self.order}: denominator factor {index} has a constant term"
-                )
+                raise ValueError(f"A_{self.order}: denominator factor {index} has a constant term")
 
     def summary(self) -> str:
         return (
@@ -174,9 +167,7 @@ def artifact_path(order: int) -> Path:
 
 def available_orders() -> List[int]:
     """Morin orders for which an artifact is present."""
-    return sorted(
-        int(path.name[1 : path.name.index("_")]) for path in DATA_DIR.glob("a*_algebra.npz")
-    )
+    return sorted(int(path.name[1 : path.name.index("_")]) for path in DATA_DIR.glob("a*_algebra.npz"))
 
 
 def save_algebra(fields: Dict[str, object], path: Path) -> None:
@@ -200,9 +191,7 @@ def save_algebra(fields: Dict[str, object], path: Path) -> None:
         exponents, coefficients = pack_polynomial(fields[name], nvars)
         payload[f"{name}__exponents"] = exponents
         payload[f"{name}__coefficients"] = coefficients
-    exponents, coefficients, offsets = pack_polynomial_list(
-        fields["denominator_factors"], nvars
-    )
+    exponents, coefficients, offsets = pack_polynomial_list(fields["denominator_factors"], nvars)
     payload["denominator__exponents"] = exponents
     payload["denominator__coefficients"] = coefficients
     payload["denominator__offsets"] = offsets
@@ -225,30 +214,23 @@ def load_algebra(order: int, validate: bool = True) -> ChamberAlgebra:
         version = int(raw["format_version"])
         if version != FORMAT_VERSION:
             raise ValueError(
-                f"{path} is format version {version}, this build expects "
-                f"{FORMAT_VERSION}; regenerate it"
+                f"{path} is format version {version}, this build expects " f"{FORMAT_VERSION}; regenerate it"
             )
         algebra = ChamberAlgebra(
             order=int(raw["order"]),
             chamber_vars=tuple(str(v) for v in raw["chamber_vars"]),
-            numerator=unpack_polynomial(
-                raw["numerator__exponents"], raw["numerator__coefficients"]
-            ),
+            numerator=unpack_polynomial(raw["numerator__exponents"], raw["numerator__coefficients"]),
             denominator_factors=unpack_polynomial_list(
                 raw["denominator__exponents"],
                 raw["denominator__coefficients"],
                 raw["denominator__offsets"],
             ),
-            multidegree=unpack_polynomial(
-                raw["multidegree__exponents"], raw["multidegree__coefficients"]
-            ),
+            multidegree=unpack_polynomial(raw["multidegree__exponents"], raw["multidegree__coefficients"]),
             normalized_numerator=unpack_polynomial(
                 raw["normalized_numerator__exponents"],
                 raw["normalized_numerator__coefficients"],
             ),
-            vandermonde=unpack_polynomial(
-                raw["vandermonde__exponents"], raw["vandermonde__coefficients"]
-            ),
+            vandermonde=unpack_polynomial(raw["vandermonde__exponents"], raw["vandermonde__coefficients"]),
             field=str(raw["field"]),
             characteristic=int(raw["characteristic"]),
             family=str(raw["family"]),

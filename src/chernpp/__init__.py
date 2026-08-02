@@ -1,5 +1,5 @@
 """
-Chern++ -- Positive Chern Classes in Thom Polynomials.
+Chern++ -- Chern-Monomial Positivity of Morin Thom Polynomials.
 
 Tools for the Thom polynomials of the Morin singularities A_d, in the form
 given by the Bérczi--Szenes residue formula, and for the two positivity

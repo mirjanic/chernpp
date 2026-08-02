@@ -30,15 +30,10 @@ def table(
     head = list(headers) + [""] * (ncols - len(headers)) if headers else []
 
     if align is None:
-        align = "".join(
-            "r" if all(_looks_numeric(r[c]) for r in body if r[c]) else "l"
-            for c in range(ncols)
-        )
+        align = "".join("r" if all(_looks_numeric(r[c]) for r in body if r[c]) else "l" for c in range(ncols))
     align = (align + "l" * ncols)[:ncols]
 
-    widths = [
-        max([len(r[c]) for r in body] + [len(head[c]) if head else 0]) for c in range(ncols)
-    ]
+    widths = [max([len(r[c]) for r in body] + [len(head[c]) if head else 0]) for c in range(ncols)]
 
     def render(cells):
         return "  ".join(
@@ -55,14 +50,7 @@ def table(
 
 
 def _looks_numeric(text: str) -> bool:
-    return (
-        bool(text)
-        and text.replace("-", "")
-        .replace(".", "")
-        .replace(",", "")
-        .replace("/", "")
-        .isdigit()
-    )
+    return bool(text) and text.replace("-", "").replace(".", "").replace(",", "").replace("/", "").isdigit()
 
 
 def polynomial_stats(p: Poly) -> Dict[str, object]:

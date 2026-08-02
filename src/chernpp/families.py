@@ -48,9 +48,7 @@ def rational_function(dim: int):
     algebra = load_algebra(dim)
     symbols = sp.symbols(" ".join(algebra.chamber_vars))
     numerator = to_sympy(algebra.numerator, symbols)
-    denominator = sp.prod(
-        [1 - to_sympy(factor, symbols) for factor in algebra.denominator_factors]
-    )
+    denominator = sp.prod([1 - to_sympy(factor, symbols) for factor in algebra.denominator_factors])
     return numerator / denominator, symbols
 
 

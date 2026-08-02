@@ -82,9 +82,7 @@ def absorbs(numerator: Poly, denominators: Sequence[Poly], nvars: int) -> bool:
         {(0,) * nvars: 1},
         poly_mul_many([one_minus(v, nvars) for v in denominators], nvars),
     )
-    return is_nonneg(
-        poly_sub(poly_mul(positive_part(numerator), W), negative_part(numerator))
-    )
+    return is_nonneg(poly_sub(poly_mul(positive_part(numerator), W), negative_part(numerator)))
 
 
 def pairs_generalised(u: Poly, v: Poly, nvars: int) -> bool:
@@ -201,9 +199,7 @@ def _match(numerator_us: Sequence[Poly], denominator_vs: Sequence[Poly]) -> Dict
     Edge ``i -- j`` exists exactly when ``(1 - u_i)/(1 - v_j)`` is nonnegative
     by Lemma 1.  Plain augmenting paths: the graphs here have tens of nodes.
     """
-    allowed = [
-        [j for j, v in enumerate(denominator_vs) if dominates(v, u)] for u in numerator_us
-    ]
+    allowed = [[j for j, v in enumerate(denominator_vs) if dominates(v, u)] for u in numerator_us]
     taken_by: Dict[int, int] = {}
 
     def augment(i: int, seen: set) -> bool:
@@ -245,15 +241,10 @@ class Lemma1Certificate:
             f"{len(self.leftover_denominators)} denominators left"
         ]
         for u, v in self.pairs[:8]:
-            lines.append(
-                f"   (1 - [{poly_to_string(u, names)}]) / (1 - [{poly_to_string(v, names)}])"
-            )
+            lines.append(f"   (1 - [{poly_to_string(u, names)}]) / (1 - [{poly_to_string(v, names)}])")
         if len(self.pairs) > 8:
             lines.append(f"   ... and {len(self.pairs) - 8} more")
-        lines.append(
-            "   leftover numerator: "
-            + poly_to_string(self.leftover_numerator, names, limit=4)
-        )
+        lines.append("   leftover numerator: " + poly_to_string(self.leftover_numerator, names, limit=4))
         lines.append(f"   => {'PROVED' if self.proved else 'not conclusive'}")
         return "\n".join(lines)
 
@@ -280,17 +271,14 @@ class Backoff:
     def summary(self) -> str:
         names = self.varnames or tuple(f"x{i}" for i in range(self.nvars))
         lines = [
-            f"{len(self.kept)} Lemma-1 ratios kept, {len(self.returned)} returned "
-            f"to the remainder",
+            f"{len(self.kept)} Lemma-1 ratios kept, {len(self.returned)} returned " f"to the remainder",
             f"remainder: {len(self.numerator)} numerator terms over "
             f"{len(self.denominators)} denominators",
         ]
         if self.returned:
             lines.append("returned:")
             for u, v in self.returned:
-                lines.append(
-                    f"   (1 - [{poly_to_string(u, names)}]) / (1 - [{poly_to_string(v, names)}])"
-                )
+                lines.append(f"   (1 - [{poly_to_string(u, names)}]) / (1 - [{poly_to_string(v, names)}])")
         lines.append(
             "remainder nonnegative to degree "
             + (str(self.nonneg_to) if self.nonneg_to is not None else "-- (has negatives)")
@@ -326,9 +314,7 @@ def search_with_backoff(
     from .polynomial import expand_rational
 
     pairing = _match(numerator_factors, denominator_factors)
-    pairs = [
-        (numerator_factors[i], denominator_factors[j]) for i, j in sorted(pairing.items())
-    ]
+    pairs = [(numerator_factors[i], denominator_factors[j]) for i, j in sorted(pairing.items())]
     used = set(pairing.values())
     unmatched = [v for j, v in enumerate(denominator_factors) if j not in used]
 
@@ -381,9 +367,7 @@ def search(
     used = set(pairing.values())
     unmatched_den = [v for j, v in enumerate(denominator_factors) if j not in used]
 
-    leftover = poly_mul(
-        residual, poly_mul_many([one_minus(u, nvars) for u in unmatched_num], nvars)
-    )
+    leftover = poly_mul(residual, poly_mul_many([one_minus(u, nvars) for u in unmatched_num], nvars))
 
     cancelled, remaining_den = [], []
     for v in unmatched_den:

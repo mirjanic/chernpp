@@ -75,9 +75,7 @@ class TestTailTarget(unittest.TestCase):
             flat_numerator, flat_denominators, _ = tail_target(order)
             rebuilt = poly_mul(
                 residual,
-                poly_mul_many(
-                    [one_minus(u, len(varnames)) for u in factors], len(varnames)
-                ),
+                poly_mul_many([one_minus(u, len(varnames)) for u in factors], len(varnames)),
             )
             with self.subTest(order=order):
                 self.assertEqual(rebuilt, flat_numerator)
@@ -89,9 +87,7 @@ class TestTailTarget(unittest.TestCase):
         cap = 12
         numerator, denominators, _ = tail_target(5)
         ours = expand_rational(numerator, denominators, cap)
-        theirs = expand_rational(
-            poly_mul_many(EQ9_NUMERATORS, 3, cap), EQ9_DENOMINATORS, cap
-        )
+        theirs = expand_rational(poly_mul_many(EQ9_NUMERATORS, 3, cap), EQ9_DENOMINATORS, cap)
         self.assertEqual(ours, theirs)
 
     def test_tail_series_is_nonnegative_in_range(self):
@@ -129,9 +125,7 @@ class TestUnpairedTailProof(unittest.TestCase):
         # This reconstructs Proposition 3 of the handoff note: every factor is
         # paired off by Lemma 1 and the leftover numerator is exactly 1.
         factors, residual, denominators, varnames = tail_target_factored(5)
-        certificate = lemma1.search(
-            factors, residual, denominators, len(varnames), varnames
-        )
+        certificate = lemma1.search(factors, residual, denominators, len(varnames), varnames)
         self.assertTrue(certificate.proved)
         self.assertEqual(certificate.leftover_numerator, {(0, 0, 0): 1})
         self.assertEqual(certificate.leftover_denominators, [])
@@ -143,9 +137,7 @@ class TestUnpairedTailProof(unittest.TestCase):
         # decomposition rather than a proof.  Pinned here so that any change to
         # the matching strategy shows up immediately.
         factors, residual, denominators, varnames = tail_target_factored(6)
-        certificate = lemma1.search(
-            factors, residual, denominators, len(varnames), varnames
-        )
+        certificate = lemma1.search(factors, residual, denominators, len(varnames), varnames)
         self.assertFalse(certificate.proved)
         self.assertEqual(
             certificate.leftover_numerator,
@@ -255,9 +247,7 @@ class TestAbsorption(unittest.TestCase):
         )
         self.assertIsNotNone(backoff)
         self.assertIsNone(
-            lemma1.absorbing_subset(
-                backoff.numerator, backoff.denominators, len(varnames), max_size=3
-            )
+            lemma1.absorbing_subset(backoff.numerator, backoff.denominators, len(varnames), max_size=3)
         )
 
 

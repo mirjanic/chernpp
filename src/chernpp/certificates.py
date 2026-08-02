@@ -127,8 +127,7 @@ class Certificate:
                 continue
             if S:
                 label = " * ".join(
-                    (f"(1 - {self.factor_names[r]})" if self.factor_names else f"(1-f_{r})")
-                    for r in S
+                    (f"(1 - {self.factor_names[r]})" if self.factor_names else f"(1-f_{r})") for r in S
                 )
             else:
                 label = "1"
@@ -166,9 +165,7 @@ def search_certificate(
     varnames = tuple(varnames) or tuple(f"x{i}" for i in range(nvars))
     for r, f in enumerate(factors):
         if not is_nonneg(f):
-            raise ValueError(
-                f"factor {r} has a negative coefficient; not a valid denominator"
-            )
+            raise ValueError(f"factor {r} has a negative coefficient; not a valid denominator")
         if any(sum(e) == 0 for e in f):
             raise ValueError(f"factor {r} has a nonzero constant term")
 
@@ -182,9 +179,7 @@ def search_certificate(
     if max_degree is None:
         max_degree = total_degree(N)
 
-    subs = (
-        list(subsets) if subsets is not None else certificate_subsets(len(factors), order)
-    )
+    subs = list(subsets) if subsets is not None else certificate_subsets(len(factors), order)
     A_ub, b_ub, columns, g_of = _build_program(N, factors, nvars, subs, max_degree)
 
     logger.info(
@@ -205,9 +200,7 @@ def search_certificate(
         method="highs",
     )
     if not res.success:
-        logger.info(
-            "LP infeasible at order %d, deg <= %d (%s)", order, max_degree, res.message
-        )
+        logger.info("LP infeasible at order %d, deg <= %d (%s)", order, max_degree, res.message)
         return None
 
     return _reconstruct(
@@ -266,9 +259,7 @@ def _build_program(
         for e in g:
             if e not in shift_rows:
                 shifted = basis_arr + np.array(e, dtype=np.int64)
-                idx = np.array(
-                    [row_index.get(tuple(m), -1) for m in shifted], dtype=np.int64
-                )
+                idx = np.array([row_index.get(tuple(m), -1) for m in shifted], dtype=np.int64)
                 shift_rows[e] = idx
 
     col_arange = np.arange(nbasis, dtype=np.int64)
@@ -319,12 +310,8 @@ def projection_is_feasible(
     **any** degree.  ``True`` is only the absence of an obstruction at this
     depth.
     """
-    subs = (
-        list(subsets) if subsets is not None else certificate_subsets(len(factors), order)
-    )
-    A_ub, b_ub, _, _ = _build_program(
-        N, factors, nvars, subs, probe_degree, ceiling=probe_degree
-    )
+    subs = list(subsets) if subsets is not None else certificate_subsets(len(factors), order)
+    A_ub, b_ub, _, _ = _build_program(N, factors, nvars, subs, probe_degree, ceiling=probe_degree)
     res = linprog(
         c=np.zeros(A_ub.shape[1]),
         A_ub=A_ub,
@@ -410,9 +397,7 @@ def _reconstruct(
                 notes=[f"nonempty parts snapped to multiples of 1/{q}"],
             )
             if not cert.is_valid(N, factors):  # belt and braces; should never fire
-                logger.warning(
-                    "reconstruction with 1/%d passed nonnegativity but failed verify", q
-                )
+                logger.warning("reconstruction with 1/%d passed nonnegativity but failed verify", q)
                 continue
             logger.info("verified exact certificate (coefficients in (1/%d)Z)", q)
             return cert
@@ -423,8 +408,5 @@ def _reconstruct(
             len(negative_terms(remainder)),
         )
 
-    logger.info(
-        "LP was feasible but no exact rational reconstruction succeeded; "
-        "reporting no certificate"
-    )
+    logger.info("LP was feasible but no exact rational reconstruction succeeded; " "reporting no certificate")
     return None

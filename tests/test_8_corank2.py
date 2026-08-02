@@ -54,9 +54,7 @@ class TestJetSpace(unittest.TestCase):
     def test_weights_follow_the_source_and_target_tori(self):
         # normal_weight is plain arithmetic on whatever z contains, so integer
         # vectors stand in for the torus characters here.
-        index_of = {
-            corank2.variable_name(*index): index for index in corank2.jet_indices(2)
-        }
+        index_of = {corank2.variable_name(*index): index for index in corank2.jet_indices(2)}
         s1, s2, t1, t2 = ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))
 
         def combine(name):
@@ -76,9 +74,7 @@ class TestJetSpace(unittest.TestCase):
         jet_space = load_survey()["jet_space"]
         for order, recorded in jet_space.items():
             with self.subTest(order=order):
-                self.assertEqual(
-                    recorded["ambient_dimension"], corank2.ambient_dimension(int(order))
-                )
+                self.assertEqual(recorded["ambient_dimension"], corank2.ambient_dimension(int(order)))
                 self.assertEqual(
                     [tuple(i) for i in recorded["indices"]],
                     corank2.jet_indices(int(order)),
@@ -158,9 +154,7 @@ class TestJetGroupLimit(unittest.TestCase):
     def test_the_jet_spaces_those_orders_need_are_still_described(self):
         for a, b in ((2, 3), (3, 3), (2, 4)):
             with self.subTest(a=a, b=b):
-                self.assertEqual(
-                    corank2.ambient_dimension(b), 2 * sum(j + 1 for j in range(2, b + 1))
-                )
+                self.assertEqual(corank2.ambient_dimension(b), 2 * sum(j + 1 for j in range(2, b + 1)))
 
 
 class TestTheOrbitClosureIsNotAnInvariant(unittest.TestCase):
@@ -197,10 +191,7 @@ class TestTheOrbitClosureIsNotAnInvariant(unittest.TestCase):
         # Not merely different ideals: different equivariant classes, so no
         # choice of representative can be dismissed as a change of coordinates.
         classes = {
-            tuple(
-                (tuple(exponents), coefficient)
-                for exponents, coefficient in e["multidegree"]
-            )
+            tuple((tuple(exponents), coefficient) for exponents, coefficient in e["multidegree"])
             for e in self.survey.values()
         }
         self.assertGreater(len(classes), 1)

@@ -177,13 +177,9 @@ class TestPublishedTables(unittest.TestCase):
         for (order, relative), table in sorted(self.published.items()):
             computed = computed_table(order, relative)
             with self.subTest(order=order, relative_dimension=relative):
-                self.assertEqual(
-                    set(table), set(computed), "the two tables list different monomials"
-                )
+                self.assertEqual(set(table), set(computed), "the two tables list different monomials")
                 for monomial in sorted(table):
-                    self.assertEqual(
-                        computed[monomial], table[monomial], f"A_{order}, {monomial}"
-                    )
+                    self.assertEqual(computed[monomial], table[monomial], f"A_{order}, {monomial}")
 
     def test_top_chern_coefficient(self):
         for (order, relative), table in sorted(self.published.items()):

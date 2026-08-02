@@ -126,9 +126,7 @@ class TestPredicatesAndRendering(unittest.TestCase):
 
     def test_product_of_many_is_order_independent(self):
         factors = [{(1, 0): 1, (0, 0): 1}, {(0, 1): 2, (0, 0): 1}, {(1, 1): 1, (0, 0): 1}]
-        self.assertEqual(
-            poly_mul_many(factors, 2), poly_mul_many(list(reversed(factors)), 2)
-        )
+        self.assertEqual(poly_mul_many(factors, 2), poly_mul_many(list(reversed(factors)), 2))
 
 
 if __name__ == "__main__":

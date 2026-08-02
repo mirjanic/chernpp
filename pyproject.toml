@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "chernpp"
 version = "1.0.0"
-description = "Chern++ - Positive Chern Classes in Thom Polynomials"
+description = "Chern++ - Chern-Monomial Positivity of Morin Thom Polynomials"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
@@ -50,5 +50,5 @@ include = ["chernpp*", "multidegree*"]
 chernpp = ["data/*.npz"]
 
 [tool.black]
-line-length = 92
+line-length = 110
 target-version = ["py311"]

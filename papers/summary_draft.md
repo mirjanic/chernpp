@@ -1,6 +1,6 @@
 # Chern++: certified positivity for Morin Thom polynomials
 
-**Positive Chern Classes in Thom Polynomials — draft summary, authors TBD**
+**Chern-Monomial Positivity of Morin Thom Polynomials — draft summary, authors TBD**
 
 *A report on computational tools and results for the positivity conjectures of Bérczi–Szenes and
 Rimányi. Written to be readable without a background in singularity theory; the technical

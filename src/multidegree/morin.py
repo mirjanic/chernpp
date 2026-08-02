@@ -2,7 +2,7 @@
 The Morin A_d model: ambient space, torus weights, reference point, chamber data.
 
 Everything specific to the A_d family lives here, separated from the algorithms
-in :mod:`multidegree.backends` that compute a multidegree for it.  A different
+in :mod:`multidegree.basic_equations` that compute a multidegree for it.  A different
 singularity family would supply its own module of this shape; a backend that
 only knows how to compute multidegrees does not need to change.
 
@@ -32,13 +32,7 @@ def weight_indices(d):
     Its size is dim N_d -- 7, 13 and 22 for d = 4, 5, 6 -- and equals the number
     of denominator factors in the residue formula.
     """
-    return [
-        (m, r, l)
-        for l in range(2, d + 1)
-        for m in range(1, l)
-        for r in range(m, l)
-        if m + r <= l
-    ]
+    return [(m, r, l) for l in range(2, d + 1) for m in range(1, l) for r in range(m, l) if m + r <= l]
 
 
 def expected_multidegree_degree(d):
@@ -120,9 +114,7 @@ def multiweight(polynomial, index_of, d):
             vector[l - 1] -= power
         weights.add(tuple(vector))
     if len(weights) != 1:
-        raise RuntimeError(
-            f"relation {polynomial} is not multihomogeneous; weights found: {weights}"
-        )
+        raise RuntimeError(f"relation {polynomial} is not multihomogeneous; weights found: {weights}")
     return weights.pop()
 
 
@@ -165,11 +157,7 @@ def random_orbit_point(d, base_field):
     values = {}
     for l in range(1, d + 1):
         image = sum(
-            (
-                inverse[k - 1, l - 1] * act(epsilon(k))
-                for k in range(1, l + 1)
-                if inverse[k - 1, l - 1] != 0
-            ),
+            (inverse[k - 1, l - 1] * act(epsilon(k)) for k in range(1, l + 1) if inverse[k - 1, l - 1] != 0),
             ring(0),
         )
         for m in range(1, l):
@@ -258,12 +246,9 @@ def chamber_algebra(d, multidegree_poly, weight_ring, base_field, characteristic
     multidegree_chamber = chamber_image(multidegree_poly, ring, d)
 
     indices = weight_indices(d)
-    vandermonde_factors = [
-        1 - chamber_monomial(m, l, xs, ring) for l in range(1, d + 1) for m in range(1, l)
-    ]
+    vandermonde_factors = [1 - chamber_monomial(m, l, xs, ring) for l in range(1, d + 1) for m in range(1, l)]
     denominator_factors = [
-        chamber_monomial(m, l, xs, ring) + chamber_monomial(r, l, xs, ring)
-        for (m, r, l) in indices
+        chamber_monomial(m, l, xs, ring) + chamber_monomial(r, l, xs, ring) for (m, r, l) in indices
     ]
     vandermonde = prod(vandermonde_factors, ring(1))
 

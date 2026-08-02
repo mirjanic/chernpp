@@ -61,9 +61,7 @@ def chamber_series(
     monomial ``a`` yields the prefix series ``F_d / (1 - a)``.
     """
     alg = algebra or load_algebra(dim)
-    return expand_rational(
-        alg.numerator, list(alg.denominator_factors) + list(extra_factors), max_deg
-    )
+    return expand_rational(alg.numerator, list(alg.denominator_factors) + list(extra_factors), max_deg)
 
 
 def monomial(nvars: int, index: int) -> Poly:
@@ -209,15 +207,11 @@ def tail_target_factored(
     half = Fraction(1, 2)
 
     bare_a = {tuple(1 if i == 0 else 0 for i in range(nvars)): 1}
-    factors = [
-        evaluate_variable(u, 0, half) for u in vandermonde_factors(dim) if u != bare_a
-    ]
+    factors = [evaluate_variable(u, 0, half) for u in vandermonde_factors(dim) if u != bare_a]
     residual = evaluate_variable(alg.normalized_numerator, 0, half)
 
     doubled_a = {tuple(1 if i == 0 else 0 for i in range(nvars)): 2}
-    denominators = [
-        evaluate_variable(f, 0, half) for f in alg.denominator_factors if f != doubled_a
-    ]
+    denominators = [evaluate_variable(f, 0, half) for f in alg.denominator_factors if f != doubled_a]
     return factors, residual, denominators, alg.chamber_vars[1:]
 
 

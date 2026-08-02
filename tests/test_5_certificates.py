@@ -51,13 +51,9 @@ class TestCertificateVerification(unittest.TestCase):
         )
         self.assertIsNotNone(certificate, "A_4 admits an order-4 certificate at degree 8")
         # Re-derive from scratch: exact identity plus nonnegativity of each part.
-        self.assertTrue(
-            certificate.is_valid(algebra.numerator, algebra.denominator_factors)
-        )
+        self.assertTrue(certificate.is_valid(algebra.numerator, algebra.denominator_factors))
         self.assertTrue(all(is_nonneg(part) for part in certificate.parts.values()))
-        self.assertFalse(
-            certificate.residual(algebra.numerator, algebra.denominator_factors)
-        )
+        self.assertFalse(certificate.residual(algebra.numerator, algebra.denominator_factors))
 
     def test_certificate_coefficients_are_exact_rationals(self):
         algebra = load_algebra(4)
@@ -102,9 +98,7 @@ class TestCertificateVerification(unittest.TestCase):
         algebra = load_algebra(4)
         parts = {(): {(0, 0, 0): -1}}
         certificate = Certificate(parts, 3, algebra.chamber_vars, 0, 0)
-        self.assertFalse(
-            certificate.is_valid(algebra.numerator, algebra.denominator_factors)
-        )
+        self.assertFalse(certificate.is_valid(algebra.numerator, algebra.denominator_factors))
 
 
 class TestOrderObstructions(unittest.TestCase):
@@ -157,9 +151,7 @@ class TestOrderObstructions(unittest.TestCase):
         algebra = load_algebra(5)
         factors = algebra.denominator_factors + [monomial(algebra.nvars, 0)]
         self.assertIsNone(
-            minimum_order(
-                algebra.numerator, factors, algebra.nvars, probe_degree=2, max_order=5
-            )
+            minimum_order(algebra.numerator, factors, algebra.nvars, probe_degree=2, max_order=5)
         )
 
 
@@ -184,9 +176,7 @@ class TestNoFalsePositives(unittest.TestCase):
     def test_order_zero_requires_a_nonnegative_numerator(self):
         algebra = load_algebra(4)
         self.assertIsNone(
-            search_certificate(
-                algebra.numerator, algebra.denominator_factors, algebra.nvars, order=0
-            )
+            search_certificate(algebra.numerator, algebra.denominator_factors, algebra.nvars, order=0)
         )
 
     def test_order_zero_succeeds_when_the_numerator_is_already_nonnegative(self):

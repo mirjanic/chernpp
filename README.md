@@ -1,6 +1,16 @@
 # Chern++
 
-**Positive Chern Classes in Thom Polynomials**
+**Chern-Monomial Positivity of Morin Thom Polynomials**
+
+> [!WARNING]
+> **This codebase was written with Claude (Anthropic).** The mathematics it
+> implements is from the cited literature, and every claim below is backed by a
+> computation in `tests/` — most importantly by agreement with Rimányi's
+> independently computed published tables. But the code, its comments and these
+> documents are machine-generated and have not been line-by-line audited by a
+> human. Treat conclusions as computational evidence to be checked, not as
+> refereed results, and see `papers/open_questions.md` for the points where the
+> computations run past what the literature settles.
 
 Tools for the Thom polynomials of the Morin singularities $A_d$ ($d \le 7$), in the form given by
 the Bérczi–Szenes residue formula, and for the positivity conjectures attached to them.
@@ -83,8 +93,9 @@ set: if the truncated LP is infeasible, no certificate of that order exists at *
 ```
 src/multidegree/     SageMath only.  Computes Q_d, writes chernpp/data/a{d}_algebra.npz
   morin.py             the A_d model: ambient weights, reference point, chamber assembly
+  basic_equations.py   the algorithm: orbit relations, saturation, initial ideal
+  monomial.py          minimal primes and localisation of monomial ideals (no Sage)
   corank2.py           corank-two I_{a,b} jets and their Borel orbit closures (exploratory)
-  backends/            selectable multidegree algorithms (see below)
   build.py             command-line entry point and artifact export
 src/chernpp/         Pure Python/JAX.  Reads the artifacts; never re-derives them
   polynomial.py        exact sparse polynomial arithmetic on exponent dictionaries
@@ -146,29 +157,20 @@ that imports `sage.all`, so run it with the interpreter of your Sage installatio
 cd src && "$(dirname "$(command -v sage)")/python" -m multidegree.build -d 6
 ```
 
-### Multidegree backends
+### The Sage stage
 
-The algorithm that computes $\mathcal{Q}_d$ is selectable, so a different route — or a singularity
-family beyond Morin $A_d$ — can be dropped in without touching the chamber assembly, the artifact
-schema, or anything in `chernpp`. One backend ships, and it suffices: the basic equations reach
-$d = 7$ in about a minute.
+`multidegree/morin.py` holds the *model* — which ambient space, what torus weights, which
+reference point, how the residue formula is rewritten in chamber coordinates. `basic_equations.py`
+holds the *algorithm*: the explicit quadratic relations of the orbit closure (Bérczi–Szenes
+Prop. 7.3), saturated by the defect-zero coordinates to isolate the orbit component, with the
+multidegree read off an initial ideal. The two meet only at `Multidegree`, which validates that the
+polynomial's degree really is the codimension claimed.
 
-```bash
-cd src && "$(dirname "$(command -v sage)")/python" -m multidegree.build --list-backends
-```
-
-```bash
-cd src && "$(dirname "$(command -v sage)")/python" -m multidegree.build -d 6 --backend basic-equations
-```
-
-The separation is: `multidegree/morin.py` holds the *model* (which ambient space, what torus
-weights, which reference point, how the residue formula is rewritten in chamber coordinates), and
-`multidegree/backends/` holds the *algorithms*. A backend implements one method,
-`compute(family, order, base_field)`, returning a `Multidegree` — which validates that the
-polynomial's degree really is the codimension the backend claims. Register it in
-`multidegree/backends/__init__.py`; `--backend` then selects it, and each artifact records the
-family and backend that produced it. A backend whose dependencies are missing is reported rather
-than taking the registry down, so `--list-backends` works even in a partial install.
+That last step is combinatorics, not algebra: the initial ideal is monomial, so its minimal primes
+are the minimal transversals of the generators' supports and localisation is a restriction of
+exponent vectors. Both live in `monomial.py`, free of Sage so they can be tested directly — they
+replaced a primary decomposition, and a silent error there would read as a different multidegree
+rather than as a crash.
 
 The Sage stage refuses to emit an artifact it cannot justify. It checks that every orbit equation
 is multihomogeneous for the torus weights, that the saturated ideal has exactly the codimension
@@ -188,8 +190,8 @@ chamber correction divides exactly, and that the resulting numerator has constan
 4. `test_4_chamber.py` — both conjectures, ballot combinatorics, the reductions at $d=5$ vs $d=6$,
    and a cross-validation of $C(M)$ between the two independent implementations.
 5. `test_5_certificates.py` — certificate verification, tamper rejection, order obstructions.
-6. `test_6_backends.py` — the backend registry: registration, lookup, family filtering, and the
-   contract a backend's result must satisfy. Runs without SageMath.
+6. `test_6_monomial.py` — the monomial-ideal combinatorics behind the multidegree, cross-checked
+   against exhaustive search on 100 random hypergraphs, plus the `Multidegree` contract.
 7. `test_7_tail.py` — the unpaired-tail series, multiplicative certificates, and absorption.
 8. `test_8_corank2.py` — corank-two orbit geometry for $I_{a,b}$. The only tier that needs
    SageMath, so it skips in the plain virtualenv; run it with Sage's interpreter.
