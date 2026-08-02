@@ -8,15 +8,20 @@ restriction of exponent vectors.  Doing that here rather than through a
 general-purpose primary decomposition is what brings ``Q_7`` into reach --- about
 41 s of Singular against a few tenths of a second.
 
-The *length* of a localised component is left to Sage.  Counting standard
-monomials by hand is a short function and an easy one to get subtly wrong, and an
-undercount here would not look like a bug: it would look like a different
-multidegree, which is to say like mathematics.
+The *length* of a localised component is counted here too, but bluntly.  An
+earlier attempt pruned the staircase while walking it and was wrong in a way that
+undercounts, which would not have looked like a bug -- it would have looked like a
+different multidegree, which is to say like mathematics.  What is here instead
+enumerates the whole box and tests divisibility at every point, with no pruning to
+get wrong.  It is affordable because the boxes are tiny: the largest at ``d = 7``
+holds 24 monomials.  It agrees with Sage on all 51 distinct localisations there
+and is 150 times faster.
 
 Deliberately free of any Sage import, so the arguments most likely to hide an
 off-by-one can be tested in the ordinary virtualenv.
 """
 
+from itertools import product
 from typing import FrozenSet, Iterable, List, Sequence, Tuple
 
 Exponents = Tuple[int, ...]
@@ -36,38 +41,61 @@ def minimal_transversals(supports: Iterable[FrozenSet[int]], bound: int) -> List
     a codimension check against ``bound`` honest in both directions, since a
     component of codimension *below* ``bound`` would still be found.
 
+    Sets are carried as integer bitmasks: the intersection, union and subset
+    tests below run once per pair of an antichain holding hundreds of elements at
+    ``d = 7`` and far more beyond, and ``frozenset`` makes each of them an object
+    allocation.  The masks are converted back on return, so callers see sets.
+
     Returns the transversals sorted by size, smallest first.
     """
     if bound < 0:
         raise ValueError(f"bound must be nonnegative, got {bound}")
 
-    antichain = {frozenset()}
-    # Smallest supports first: they branch least and constrain most.
-    for support in sorted(supports, key=len):
+    masks = []
+    for support in supports:
         if not support:
             # An empty support cannot be hit, so the ideal contains a unit and
             # has no minimal primes at all.
             return []
+        mask = 0
+        for index in support:
+            mask |= 1 << index
+        masks.append(mask)
+
+    antichain = [0]
+    # Smallest supports first: they branch least and constrain most.
+    for mask in sorted(masks, key=int.bit_count):
+        bits = []
+        remaining = mask
+        while remaining:
+            low = remaining & -remaining
+            bits.append(low)
+            remaining ^= low
+
         grown = set()
         for partial in antichain:
-            if partial & support:
+            if partial & mask:
                 grown.add(partial)
                 continue
-            for index in support:
-                extended = partial | {index}
-                if len(extended) <= bound:
+            for bit in bits:
+                extended = partial | bit
+                if extended.bit_count() <= bound:
                     grown.add(extended)
-        antichain = _minimal_elements(grown)
-    return sorted(antichain, key=lambda s: (len(s), sorted(s)))
+        antichain = _minimal_masks(grown)
+
+    return sorted(
+        (frozenset(i for i in range(m.bit_length()) if m >> i & 1) for m in antichain),
+        key=lambda s: (len(s), sorted(s)),
+    )
 
 
-def _minimal_elements(sets: Iterable[FrozenSet[int]]) -> set:
-    """Keep only the elements containing no other; a superset is never minimal."""
-    kept: List[FrozenSet[int]] = []
-    for candidate in sorted(sets, key=len):
-        if not any(other <= candidate for other in kept):
+def _minimal_masks(masks: Iterable[int]) -> List[int]:
+    """Keep only the masks containing no other; a superset is never minimal."""
+    kept: List[int] = []
+    for candidate in sorted(masks, key=int.bit_count):
+        if not any(other & candidate == other for other in kept):
             kept.append(candidate)
-    return set(kept)
+    return kept
 
 
 def restrict_generators(exponents: Sequence[Exponents], indices: Sequence[int]) -> Tuple[Exponents, ...]:
@@ -88,10 +116,65 @@ def restrict_generators(exponents: Sequence[Exponents], indices: Sequence[int]) 
         image = tuple(monomial[i] for i in indices)
         if any(image):
             restricted.add(image)
-    return tuple(
-        sorted(
-            image
-            for image in restricted
-            if not any(other != image and all(a <= b for a, b in zip(other, image)) for other in restricted)
+
+    # Sorting by total degree first means a generator can only be made redundant
+    # by one already kept, so each is compared against the minimal set rather
+    # than against every other image.  This runs once per component -- 572 times
+    # at d = 7 over a few hundred generators -- so the constant matters.
+    kept: List[Exponents] = []
+    for image in sorted(restricted, key=sum):
+        if not any(all(a <= b for a, b in zip(other, image)) for other in kept):
+            kept.append(image)
+    return tuple(sorted(kept))
+
+
+#: Refuse to enumerate a box larger than this rather than appear to hang.  The
+#: largest that arises through d = 7 holds 24 monomials.
+MAX_BOX = 10**7
+
+
+def standard_monomial_count(generators: Sequence[Exponents], nvars: int) -> int:
+    """
+    Length of ``k[x_1..x_nvars] / (generators)`` for an artinian monomial ideal.
+
+    The length is the number of monomials outside the ideal.  Artinian means some
+    generator is a pure power of each variable, which bounds every exponent; the
+    monomials below those bounds are enumerated and each is tested against every
+    generator.  There is no pruning, because pruning a staircase correctly is
+    fiddlier than it looks and the boxes here are small.
+
+    Raises if the ideal is not artinian --- for a component of the expected
+    codimension that would mean the transversal was not a minimal prime, and it
+    must not be reported as a multiplicity.
+    """
+    if nvars == 0:
+        return 0 if generators else 1
+
+    ceilings = []
+    for position in range(nvars):
+        pure = [
+            g[position]
+            for g in generators
+            if g[position] > 0 and all(e == 0 for i, e in enumerate(g) if i != position)
+        ]
+        if not pure:
+            raise ValueError(
+                f"the localised ideal is not artinian in variable {position}: no generator is "
+                "a pure power of it, so the component has no finite length"
+            )
+        ceilings.append(min(pure))
+
+    box = 1
+    for ceiling in ceilings:
+        box *= ceiling
+    if box > MAX_BOX:
+        raise ValueError(
+            f"the staircase box holds {box} monomials, past the {MAX_BOX} this counts by "
+            "enumeration; the component is far larger than anything seen through d = 7"
         )
+
+    return sum(
+        1
+        for point in product(*(range(c) for c in ceilings))
+        if not any(all(a <= b for a, b in zip(g, point)) for g in generators)
     )

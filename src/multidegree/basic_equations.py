@@ -29,7 +29,7 @@ weights.
 from sage.all import *
 
 from . import Multidegree, get_logger, morin
-from .monomial import minimal_transversals, restrict_generators
+from .monomial import minimal_transversals, restrict_generators, standard_monomial_count
 
 logger = get_logger(__name__)
 
@@ -93,6 +93,26 @@ def _strip_last_variable(polynomial, index, ring):
     )
 
 
+def reindex(polynomial, source_names, target_ring, target_names):
+    """
+    Rewrite a polynomial into a ring whose variables are a permutation of ``source_names``.
+
+    Every saturation step permutes the variable order, and the obvious way to
+    move a generator across is ``target_ring(str(polynomial))``.  That is both
+    slow and fragile: at ``d = 7`` some orders produce generators whose printed
+    form exceeds Python's recursion limit in Sage's parser, which is why several
+    promising variable orders looked like errors rather than like timings.
+    Permuting exponent vectors is exact, allocation-free and cannot overflow a
+    stack.
+    """
+    lookup = {name: position for position, name in enumerate(source_names)}
+    permutation = [lookup[name] for name in target_names]
+    terms = {}
+    for exponents, coefficient in polynomial.dict().items():
+        terms[tuple(exponents[i] for i in permutation)] = coefficient
+    return target_ring(terms)
+
+
 def saturate_by_variables(generators, names, variables, base_field):
     """
     ``I : (prod variables)^infinity`` for a homogeneous ideal, one variable at a time.
@@ -112,10 +132,11 @@ def saturate_by_variables(generators, names, variables, base_field):
     for name in reversed(list(variables)):
         order = [n for n in names if n != name] + [name]
         ring = PolynomialRing(base_field, order, order="degrevlex")
-        basis = ring.ideal([ring(str(g)) for g in generators]).groebner_basis(algorithm=ALGORITHM)
+        moved = [reindex(g, names, ring, order) for g in generators]
+        basis = ring.ideal(moved).groebner_basis(algorithm=ALGORITHM)
         last = len(ring.gens()) - 1
         generators = [_strip_last_variable(g, last, ring) for g in basis]
-        names = [str(v) for v in ring.gens()]
+        names = order
     return generators, names
 
 
@@ -128,9 +149,8 @@ def orbit_ideal(base_field, d):
     weights, and both the raw and the saturated ideal must vanish on random
     points of the orbit.
     """
-    defect_zero = morin.defect_zero_names(d)
-    natural = [morin.variable_name(m, r, l) for (m, r, l) in morin.weight_indices(d)]
-    cheap = [n for n in natural if n not in defect_zero] + defect_zero
+    cheap = morin.groebner_order(d)
+    defect_zero = [n for n in cheap if n in set(morin.defect_zero_names(d))]
 
     ring, index_of = morin.coordinate_ring(base_field, d, order=cheap)
     relations = basic_equations(ring, d)
@@ -141,10 +161,16 @@ def orbit_ideal(base_field, d):
     sample = morin.random_orbit_point(d, base_field)
 
     def vanishes(generators, names, label):
-        point_ring = PolynomialRing(base_field, names, order="degrevlex")
-        point = {point_ring(k): base_field(v) for k, v in sample.items()}
+        point = [base_field(sample[name]) for name in names]
         for generator in generators:
-            if point_ring(str(generator)).subs(point) != 0:
+            value = sum(
+                (
+                    coefficient * prod(p**e for p, e in zip(point, exponents))
+                    for exponents, coefficient in generator.dict().items()
+                ),
+                base_field(0),
+            )
+            if value != 0:
                 raise RuntimeError(f"A_{d}: {label} does not vanish on the orbit: {generator}")
 
     vanishes(relations, cheap, "a basic equation")
@@ -155,7 +181,7 @@ def orbit_ideal(base_field, d):
     logger.info("A_%d: orbit ideal verified on random B_d-translates of eps_ref", d)
 
     final_ring, final_index = morin.coordinate_ring(base_field, d, order=names)
-    ideal = final_ring.ideal([final_ring(str(g)) for g in generators])
+    ideal = final_ring.ideal([reindex(g, names, final_ring, names) for g in generators])
     return ideal, final_ring, final_index
 
 
@@ -164,25 +190,15 @@ def _multiplicity(exponents, indices, base_field, cache):
     Length of the monomial ideal localised at the prime on ``indices``.
 
     Setting every other variable to 1 leaves an artinian monomial ideal whose
-    length is the multiplicity of that component.  Restricting exponent vectors
-    is far cheaper than substituting into polynomials, and the restricted ideals
-    repeat heavily across components, so ``cache`` memoises them by their minimal
-    generators.  The cache is passed in rather than held at module scope: it is
-    only valid for one ideal over one field.
+    length is the multiplicity of that component.  Restricted ideals repeat
+    heavily across components -- 572 components share 51 of them at ``d = 7`` --
+    so ``cache`` memoises by minimal generators.  The cache is passed in rather
+    than held at module scope: it is only valid for one ideal.
     """
     minimal = restrict_generators(exponents, indices)
-    if minimal in cache:
-        return cache[minimal]
-
-    local_ring = PolynomialRing(base_field, len(indices), "y")
-    ideal = local_ring.ideal([local_ring({m: 1}) for m in minimal])
-    # Sage models a univariate ideal -- the codimension-one case -- differently,
-    # and there the length is the degree of the single generator.
-    value = (
-        ideal.vector_space_dimension() if hasattr(ideal, "vector_space_dimension") else ideal.gen().degree()
-    )
-    cache[minimal] = value
-    return value
+    if minimal not in cache:
+        cache[minimal] = standard_monomial_count(minimal, len(indices))
+    return cache[minimal]
 
 
 def compute(order, base_field):

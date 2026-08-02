@@ -15,7 +15,11 @@ import unittest
 from itertools import combinations
 
 from multidegree import Multidegree
-from multidegree.monomial import minimal_transversals, restrict_generators
+from multidegree.monomial import (
+    minimal_transversals,
+    restrict_generators,
+    standard_monomial_count,
+)
 
 
 def brute_force_transversals(supports, nvars):
@@ -122,6 +126,77 @@ class TestRestrictGenerators(unittest.TestCase):
 
     def test_index_order_is_respected(self):
         self.assertEqual(restrict_generators([(1, 2, 0)], [1, 0]), ((2, 1),))
+
+
+class TestStandardMonomialCount(unittest.TestCase):
+    """
+    The component multiplicities, which used to be Singular's job.
+
+    An undercount here does not crash; it produces a different multidegree. So
+    this is checked against an independent enumeration of the quotient basis,
+    on every artinian monomial ideal in a small random family.
+    """
+
+    def test_powers_of_the_variables(self):
+        # k[x,y]/(x^a, y^b) has basis the monomials below (a, b).
+        for a, b in ((1, 1), (2, 1), (2, 3), (4, 4)):
+            with self.subTest(a=a, b=b):
+                self.assertEqual(standard_monomial_count([(a, 0), (0, b)], 2), a * b)
+
+    def test_a_mixed_generator_cuts_the_box(self):
+        # k[x,y]/(x^2, y^2, xy) has basis {1, x, y}: the box holds 4, xy removes 1.
+        self.assertEqual(standard_monomial_count([(2, 0), (0, 2), (1, 1)], 2), 3)
+
+    def test_the_maximal_ideal_leaves_only_the_constants(self):
+        self.assertEqual(standard_monomial_count([(1, 0), (0, 1)], 2), 1)
+
+    def test_no_variables(self):
+        self.assertEqual(standard_monomial_count([], 0), 1)
+        self.assertEqual(standard_monomial_count([()], 0), 0)
+
+    def test_non_artinian_is_refused(self):
+        # Nothing bounds y, so the quotient is infinite-dimensional. Reporting a
+        # finite number here would be a silently wrong multiplicity.
+        with self.assertRaises(ValueError) as caught:
+            standard_monomial_count([(1, 0)], 2)
+        self.assertIn("artinian", str(caught.exception))
+
+    def test_matches_independent_enumeration_on_random_ideals(self):
+        import random
+        from itertools import product
+
+        def brute(generators, nvars, limit=6):
+            # Enumerate a box strictly larger than any generator and count the
+            # monomials outside the ideal, without using the artinian bound.
+            span = [limit] * nvars
+            return sum(
+                1
+                for point in product(*(range(s) for s in span))
+                if not any(all(a <= b for a, b in zip(g, point)) for g in generators)
+            )
+
+        rng = random.Random(31337)
+        checked = 0
+        for _ in range(200):
+            nvars = rng.randint(1, 3)
+            bounds = [rng.randint(1, 3) for _ in range(nvars)]
+            generators = [tuple(b if i == j else 0 for i in range(nvars)) for j, b in enumerate(bounds)]
+            for _ in range(rng.randint(0, 3)):
+                generators.append(tuple(rng.randint(0, b) for b in bounds))
+            generators = [g for g in generators if any(g)]
+            with self.subTest(generators=tuple(generators)):
+                self.assertEqual(standard_monomial_count(generators, nvars), brute(generators, nvars))
+            checked += 1
+        self.assertEqual(checked, 200)
+
+    def test_an_oversized_box_is_refused_rather_than_enumerated(self):
+        from multidegree.monomial import MAX_BOX
+
+        huge = [tuple(10**3 if i == j else 0 for i in range(4)) for j in range(4)]
+        self.assertGreater(10**12, MAX_BOX)
+        with self.assertRaises(ValueError) as caught:
+            standard_monomial_count(huge, 4)
+        self.assertIn("box", str(caught.exception))
 
 
 class StubPolynomial:

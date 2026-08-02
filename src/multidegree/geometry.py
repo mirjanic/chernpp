@@ -24,9 +24,14 @@ next object, since that is what a K-theoretic Thom polynomial would need; it is
 not computed here (see the report's open questions).
 
 **The component structure** of the initial ideal: which coordinate subspaces
-appear in the degeneration and with what multiplicity --- 2 at ``d = 4``, 39 at
-``d = 6``, 621 at ``d = 7``.  This is the combinatorial skeleton the multidegree is
-summed over, and the data a Stanley--Reisner or toric analysis would start from.
+appear in the degeneration and with what multiplicity --- 2, 5, 44 and 572 of
+them for ``d = 4, \ldots, 7``.  This is the combinatorial skeleton the multidegree
+is summed over, and the data a Stanley--Reisner or toric analysis would start
+from.  Unlike everything else recorded here it is *not* canonical: the initial
+ideal depends on the term order, and reordering the variables to speed up the
+saturation took ``d = 7`` from 621 components to 572.  The multidegree summed over
+them did not move, which is the point --- it is an invariant of the variety, and
+the degeneration is only a way of reaching it.
 
 The check they give each other
 ------------------------------
