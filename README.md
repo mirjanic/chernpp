@@ -109,6 +109,14 @@ papers/              project reports plus Bérczi–Szenes, Annals 175 (2012)
 Two environments, deliberately separate. The Sage stage is needed only to regenerate
 `src/chernpp/data/*.npz`, which are tracked — collaborators without SageMath can skip it.
 
+Those artifacts are stored in **git LFS** (`a7_algebra.npz` alone is 6 MB). Install
+git-lfs *before* cloning, or the files arrive as short text pointers and every
+`load_algebra` fails with a confusing parse error rather than a missing-file one:
+
+```bash
+git lfs install && git lfs pull
+```
+
 ```bash
 pip install -e .
 ```
