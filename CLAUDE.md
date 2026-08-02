@@ -153,33 +153,36 @@ reproduces the published $MBC$ summand. **Zero of the constructed kernels fail t
 falsifier at any order** — 3 at $d=5$, 65 at $d=6$, 4167 at $d=7$. Contour-safe swaps
 exist at every order ($s_{47}$, $s_{57}$, $s_{67}$ at $d=7$).
 
-The construction is tight: $A_sR$ is null **iff** $R$ is $s$-invariant (checked — non-symmetric
-$R$ fails the packet test), so there's no free enlargement.
+The first construction is tight: $A_sR$ is null **iff** $R$ is $s$-invariant. That is
+sufficient but incomplete, so there is a second family.
 
-### `solve_positive_gauge` — the end-to-end search
+### Partial absorption — the second swap
 
-Pools both column families in one MILP and **only returns an answer that survives a truncation
-it was not fitted at**. Free monomials are admitted only where packets outnumber them (true at
-$d=5$, false at $d=6$ by 26×).
+`partial_absorption_kernels` absorbs all the moved factors **but one**: $P = (A_s/u)\cdot R$
+with $R$ still $s$-invariant. Then $P/D_d = R/(Cu)$, whose antisymmetric part pairs $u$ with
+its image $s(u)$ — the source-multiset completion — so a *second* transposition can kill it.
+This is the mechanism that reaches $FBC$, which full invariance provably cannot.
 
-**$d=5$ is solved.** Fitted at degree 16, validated at 18 and 20, and the kernel it returns is
-*exactly* $GBC$ — the published one, term for term, from a search told nothing about it. So
-$\mathcal{Q}_5 - GBC = GDJ$ is recovered from scratch.
+These are a **shape, not a theorem**: most of what the family proposes is not null, so
+everything goes through the packet falsifier (`null_candidates`).
 
-**$d=6$ is not solved**, and the two families fail in complementary ways — this is the current
-frontier:
+**`filter_at` must exceed the fit truncation.** The falsifier is only as strong as the packets
+in range. At $d=6$, degree 12 offers 13 packets against thousands of candidates — far too weak,
+and non-null kernels get through and corrupt the search (observed: 3, then 8, then 22 packet
+sums moving). Filtering at degree 20 (62 packets) cuts 2297 candidates to 410 genuinely null
+ones.
 
-| columns | nullity out-of-sample | positivity out-of-sample |
-|---|---|---|
-| symmetry only (fit 14) | **holds** — 0 packets move | fails — 9/42, then 26/66 negatives |
-| symmetry + 766 monomials (fit 16) | fails — 12, then 27 packets move | nearly holds — 1/66, then 5/99 |
+### Status
 
-Positivity and nullity are each reachable at $d=6$, but not together. What's missing is a
-family large enough to be positive whose nullity doesn't have to be fitted — i.e. the **second
-swap**: $GBC = MBC + FBC$, only $MBC$ is outright $s_{45}$-invariant, and $FBC$ needs the
-antisymmetric part to become symmetric under a second transposition via the source-multiset
-completion $T(t)=P(t)M(t)$. Implementing that is the next step and is what would open $d=6$
-and $d=7$.
+**$d=5$ is solved with no fitted kernels at all** — the two structural families suffice,
+validated at 16, 18, 20. $GBC$ is among the valid gauges (the solver may return a different
+equally valid one).
+
+**$d=6$ is not solved.** With the depth-20 filter the 410 candidates are genuinely null (0
+packets move at any depth to 22), but no combination found so far is positive out of sample —
+and it degrades with depth: fitting at 14 leaves 13/42, 36/66, 83/99, then 165/147 negatives,
+i.e. worse than canonical by degree 22. Either the structural space lacks a positive element or
+the fit must be run at a depth where the MILP is currently too slow. That is the open question.
 
 The live lead, from the report's Assessment §4: since the $\tau$-orbit is not the right
 unit of cancellation, **what is?** The negative mass is strikingly small and bounded —

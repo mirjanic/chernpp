@@ -206,15 +206,32 @@ class TestSymmetryKernels(unittest.TestCase):
             self.assertGreater(checked, 0)
 
     def test_a_single_swap_does_not_span_enough_at_a5(self):
-        # Pinned as a limit of the construction, not of the gauge idea.  The
-        # kernel that works at d = 5 is a sum of two pieces; only the one whose
-        # quotient is outright s_45-invariant is reachable from a single swap.
-        # The other needs the antisymmetric part of the quotient to become
-        # symmetric under a *second* transposition, which this module does not
-        # yet construct.
+        # Full invariance alone is not enough: the d = 5 kernel is a sum of two
+        # pieces and only one has an outright s_45-invariant quotient.
         g = gauge.setup(5, 14)
         kernels = [k for k, _ in gauge.symmetry_kernels(g)]
         self.assertFalse(gauge.search_over_kernels(g, kernels, time_limit=120).found)
+
+    def test_partial_absorption_closes_a5_with_no_fitted_kernels(self):
+        # Absorbing all but one moved factor supplies the missing piece, and the
+        # two families together need no packet-fitted kernel at all.
+        g = gauge.setup(5, 14)
+        candidates = gauge.null_candidates(g, filter_at=18)
+        result = gauge.search_over_kernels(g, candidates, bound=8, time_limit=300)
+        self.assertTrue(result.found, result.note)
+        for truncation in (16, 18, 20):
+            v = gauge.validate_gauge(result.kernel, 5, truncation)
+            self.assertEqual(v.packets_changed, 0)
+            self.assertEqual(v.negatives_gauged, 0)
+
+    def test_the_falsifier_must_be_applied_deeper_than_the_fit(self):
+        # At d = 6 a shallow truncation offers too few packets to filter
+        # candidates: many that pass there are not null.  Deepening the filter
+        # is what removes them, and the count must fall.
+        g = gauge.setup(6, 12)
+        shallow = gauge.null_candidates(g)
+        deep = gauge.null_candidates(g, filter_at=16)
+        self.assertLess(len(deep), len(shallow))
 
 
 class TestSolvePositiveGauge(unittest.TestCase):
@@ -246,8 +263,12 @@ class TestSolvePositiveGauge(unittest.TestCase):
         for M in gauge.usable_packets(g):
             self.assertEqual(gauge.packet_sum(gauged, M), gauge.packet_sum(base, M))
 
-    def test_it_recovers_the_published_kernel(self):
+    def test_the_published_kernel_is_a_valid_gauge(self):
         # G * B * C with B = 2z1 - z2, C = z1 + z4 - z5, G = 2z1 + z2 - z5.
+        # The solver is free to return a different element of the null space --
+        # with the structural families in play it usually does -- so what is
+        # pinned here is the mathematics: this kernel is null and its
+        # representative is coefficientwise nonnegative.
         def lin(**kw):
             out = {}
             for name, c in kw.items():
@@ -264,10 +285,12 @@ class TestSolvePositiveGauge(unittest.TestCase):
                     out[e] = out.get(e, 0) + x * y
             return {k: v for k, v in out.items() if v}
 
-        B = lin(z1=2, z2=-1)
-        C = lin(z1=1, z4=1, z5=-1)
-        G = lin(z1=2, z2=1, z5=-1)
-        self.assertEqual(self.solution.kernel, mul(G, mul(B, C)))
+        gbc = mul(lin(z1=2, z2=1, z5=-1), mul(lin(z1=2, z2=-1), lin(z1=1, z4=1, z5=-1)))
+        for truncation in (16, 18, 20):
+            v = gauge.validate_gauge(gbc, 5, truncation)
+            self.assertEqual(v.packets_changed, 0)
+            self.assertEqual(v.negatives_gauged, 0)
+            self.assertGreater(v.negatives_canonical, 0)
 
     def test_a_failed_run_reports_the_failure_rather_than_the_candidate(self):
         # Truncation 8 is far too shallow to pin anything down; whatever the

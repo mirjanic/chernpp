@@ -536,8 +536,27 @@ we can check --- $3$ at $d = 5$, $65$ at $d = 6$, $4167$ at $d = 7$ --- and cont
 transpositions exist at every order, including $s_{47}$, $s_{57}$, $s_{67}$ at $d = 7$.
 
 The construction is tight in the direction one would hope: $A_sR$ passes the packet test
-\emph{exactly} when $R$ is $s$-invariant, so nothing is being left on the table by insisting
-on the symmetry.
+\emph{exactly} when $R$ is $s$-invariant, so insisting on the symmetry costs nothing.
+
+\subsection{The second swap, by partial absorption}
+
+Full invariance is sufficient but incomplete. Absorbing all the moved factors \emph{but one},
+\[
+  P = (A_s/u)\,R, \qquad u \in A_s, \quad R \ \text{$s$-invariant},
+\]
+gives $P/D_d = R/(Cu)$ with $C$ the $s$-stable part, whose antisymmetric half is
+$R\,(s(u)-u)/(C\,u\,s(u))$. The spare factor is now paired with its image: this is the
+source-multiset completion of [S, \S4.4], and when the completed object is invariant under a
+second transposition that swap kills it as well. The family is a shape rather than a theorem
+--- most of what it proposes is not null --- so every candidate is put through the packet
+falsifier. It contains $FBC$, the summand full invariance provably cannot reach.
+
+One point of method matters more than it looks. The falsifier is only as strong as the number
+of packets in range, so it must be applied \emph{deeper} than the fit. At $d = 6$ a truncation
+of $12$ offers thirteen packets against candidates numbering in the thousands; kernels that
+are not null survive the filter, and the search then builds on them, moving three, then eight,
+then twenty-two packet sums. Filtering at degree $20$, where sixty-two packets are available,
+cuts $2297$ candidates to $410$ whose nullity holds at every depth tested.
 
 \subsection{Searching for a positive representative}
 \label{sec:gaugesearch}
@@ -562,41 +581,40 @@ whereas its positivity is easily an artefact of where the fit stopped, and only 
 check tells them apart.
 
 \begin{proposition}
-At $d = 5$ the search returns a numerator whose chamber series has no negative coefficient.
-Fitted at degree $16$ and verified at $18$ and $20$, it is exactly $\Qd_5 - GBC = GDJ$: the
-representative of [S, \S4.5], recovered from scratch by a search told nothing about it.
+At $d = 5$ the search returns a numerator whose chamber series has no negative coefficient,
+using \emph{no fitted kernels at all}: the two structural families suffice. Fitted at degree
+$14$ and verified at $16$, $18$ and $20$, with no packet sum moving at any of them. The
+published $GBC$ is one such gauge, and with only the symmetry and monomial columns in play the
+search returns it exactly, recovered from scratch by a programme told nothing about it.
 \end{proposition}
 
-\subsection{Why one transposition is not enough}
+\subsection{What is still missing at \texorpdfstring{$d = 6$}{d = 6}}
 
-At $d = 6$ this does not close, and the obstruction is the same one that is already visible at
-$d = 5$. Restricted to symmetry kernels alone, the $d = 5$ programme is infeasible --- at an
-order where a positive gauge is known to exist. The reason is exact: $GBC = MBC + FBC$, only
-$MBC$ has $P/D_5$ outright $s_{45}$-invariant, and $FBC$ is not divisible by $A_{s_{45}} = MC$.
-[S] reaches it by a second swap --- antisymmetrise, then observe that the completed source
-multiset of $T(t) = P(t)M(t)$ is $s_{12}$-invariant. At $d = 5$ the free monomials cover the
-gap. At $d = 6$ neither family does, and they fail in exactly complementary ways.
+At $d = 6$ the same machinery does not close, and the failure is now sharp enough to state
+precisely. The $410$ candidates surviving the depth-$20$ filter are genuinely null: fitting a
+combination of them at degree $14$ moves no packet sum at degree $16$, $18$, $20$ or $22$. It
+is positivity that fails, and it fails worse the deeper one looks --- $13$ of $42$ negative
+coefficients remain at degree $16$, $36$ of $66$ at $18$, $83$ of $99$ at $20$, and $165$
+against a canonical $147$ at $22$. The gauge is real; it is simply not positive, and a
+combination tuned to a shallow truncation is actively worse than $\Qd_6$ further out.
 
 \begin{observation}
-Fitted at degree $14$, the symmetry kernels alone give a numerator that is genuinely null out
-of sample --- no packet sum moves at degree $16$ or $18$ --- but which still carries $9$ of
-$42$, then $26$ of $66$, negative coefficients. The gauge is real and is not positive.
-Admitting the $766$ free monomials as well and fitting at degree $16$ inverts the failure:
-the result is nearly positive, $1$ of $66$ and then $5$ of $99$ negatives surviving, but $12$
+Admitting the $766$ free monomials instead inverts the failure. Fitted at degree $16$ the
+result is nearly positive --- $1$ of $66$, then $5$ of $99$ negatives surviving --- but $12$
 and then $27$ packet sums move, so it is not a gauge at all.
 \end{observation}
 
-Positivity and nullity are therefore both within reach at $d = 6$, but not simultaneously,
-and the two are traded against one another by the choice of column family. That is a sharp
-statement of what is missing: a family large enough to be positive whose nullity does not have
-to be fitted.
+Positivity and nullity are therefore both within reach at $d = 6$ and not simultaneously, with
+the two traded against one another by the choice of column family. Two readings remain open:
+either the structural space genuinely contains no positive element at $d = 6$, or it does and
+the fit has to be run at a depth where the integer programme is currently too slow to settle.
+Distinguishing them is the next concrete question, and an infeasibility certificate at depth
+would answer it either way.
 
-Mechanising the second swap is therefore the concrete next piece of work, and the blocker is
-the construction rather than the computation. [A6, \S13] lifts the $d = 5$ kernel into a
-four-parameter family at $d = 6$ by a related source-multiset completion, though [A6, \S13.1]
-shows the lifted representative is not itself positive, and [A6, \S14.1] shows the freedom
-cuts both ways --- an individual $A_\beta$ is not determined by the Thom class, so no marked
-coefficient can be an intrinsic invariant.
+[A6, \S13] lifts the $d = 5$ kernel into a four-parameter family at $d = 6$ by a related
+completion, though [A6, \S13.1] shows the lifted representative is not itself positive, and
+[A6, \S14.1] shows the freedom cuts both ways --- an individual $A_\beta$ is not determined by
+the Thom class, so no marked coefficient can be an intrinsic invariant.
 
 \section{Assessment}
 \label{sec:assessment}

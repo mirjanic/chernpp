@@ -63,14 +63,16 @@ identifies the universal kernel as ``ker eps_+`` and whose section 4.4 proves
 ``G B C`` residue-null by two chamber-safe contour swaps; and ``a6_status.pdf``
 (31 July 2026), which lifts the construction to ``d = 6``.  Both are unrefereed.
 
-The symmetry construction below is this repository's reformulation of the first
-of those two swaps.  Their identity ``D_5 = B F E P(z_4) P(z_5) M(z_5) C`` makes
-``B M C / D_5 = 1 / (F E P(z_4) P(z_5))`` manifestly ``s_45``-invariant, and
-absorbing the moved factors ``M`` and ``C`` is exactly what :func:`analyse_swap`
-computes.  Their *second* swap -- antisymmetrise, then complete the source
-multiset so a different transposition applies -- is not implemented here, and
-:func:`symmetry_kernels` is correspondingly incomplete: it reaches their ``M B C``
-but not their ``F B C``.
+The two constructions below are this repository's reformulation of their two
+swaps.  For the first, their identity ``D_5 = B F E P(z_4) P(z_5) M(z_5) C``
+makes ``B M C / D_5 = 1 / (F E P(z_4) P(z_5))`` manifestly ``s_45``-invariant,
+and absorbing the moved factors ``M`` and ``C`` is what :func:`analyse_swap`
+computes.  For the second, absorbing all the moved factors *but one* leaves an
+antisymmetric part in which the spare factor is paired with its image, which is
+their source-multiset completion; :func:`partial_absorption_kernels` enumerates
+that shape and recovers their ``F B C``.
+
+Together the two families close ``d = 5`` with no fitted kernels at all.
 """
 
 from dataclasses import dataclass
@@ -99,6 +101,8 @@ __all__ = [
     "analyse_swap",
     "symmetric_basis",
     "symmetry_kernels",
+    "partial_absorption_kernels",
+    "null_candidates",
     "search_positive_gauge",
     "search_over_kernels",
     "solve_positive_gauge",
@@ -863,6 +867,99 @@ def symmetry_kernels(
     return out
 
 
+def partial_absorption_kernels(
+    gauge: GaugeSetup,
+    swaps: Optional[Sequence[Tuple[int, int]]] = None,
+    max_r_degree: Optional[int] = None,
+) -> List[Tuple[Poly, Swap, Exponent]]:
+    """
+    Null kernels that absorb all but *one* of the factors a transposition moves.
+
+    :func:`symmetry_kernels` makes ``P / D_d`` outright ``s``-invariant, which is
+    sufficient but leaves out the kernels the residue argument reaches by a second
+    swap.  Those have the shape
+
+        P = (A_s / u) * R,     u a single moved factor, R  s-invariant,
+
+    so that ``P / D_d = R / (C u)`` with ``C`` the ``s``-stable part.  The
+    ``s``-symmetric half of that still dies against the antisymmetric Vandermonde;
+    the antisymmetric half is
+
+        R (s(u) - u) / (C u s(u)),
+
+    which pairs ``u`` with its image and so completes the source multiset of the
+    remaining denominator.  When that completed object is invariant under some
+    *other* transposition, a second swap kills it too.
+
+    Whether the completion actually closes depends on the pair of transpositions,
+    so these are candidates rather than theorems, and every one is put through the
+    packet falsifier before use.  At ``d = 5`` the family contains ``F B C`` -- the
+    summand :func:`symmetry_kernels` provably cannot reach -- which is what makes
+    the difference between a search that closes and one that does not.
+    """
+    order = gauge.order
+    pairs = swaps if swaps is not None else list(combinations(range(order), 2))
+    out: List[Tuple[Poly, Swap, Exponent]] = []
+    for i, j in pairs:
+        swap = analyse_swap(order, i, j)
+        if swap.a_degree < 1:
+            continue
+        r_degree = gauge.degree - (swap.a_degree - 1)
+        if r_degree < 0:
+            continue
+        if max_r_degree is not None and r_degree > max_r_degree:
+            continue
+        for dropped in set(swap.moved):
+            kept = list(swap.moved)
+            kept.remove(dropped)
+            a = {(0,) * order: 1}
+            for w in kept:
+                a = poly_mul(a, linear_form(w))
+            for r in symmetric_basis(order, r_degree, i, j):
+                out.append((poly_mul(a, r), swap, dropped))
+    return out
+
+
+def null_candidates(
+    gauge: GaugeSetup,
+    max_r_degree: Optional[int] = None,
+    spread: Optional[int] = None,
+    filter_at: Optional[int] = None,
+) -> List[Poly]:
+    """
+    Every structurally motivated kernel that survives the packet falsifier.
+
+    Pools :func:`symmetry_kernels` with :func:`partial_absorption_kernels` and
+    keeps only those whose Chern packets all vanish.  The filter is what makes the
+    second family usable at all: partial absorption is a shape, not a proof, and
+    much of what it proposes is not null.
+
+    ``filter_at`` is the important knob and should be set *above* the truncation
+    the search will run at.  The falsifier is only as strong as the number of
+    packets in range, and at ``d = 6`` a truncation of 12 offers 13 of them
+    against candidates numbering in the thousands -- far too weak, so non-null
+    kernels get through and the search happily builds on them.  Filtering deeper
+    costs one pass and removes them before they can do any harm.
+    """
+    filter_gauge = setup(gauge.order, filter_at) if filter_at else gauge
+    packets = usable_packets(filter_gauge, spread)
+    seen, out = set(), []
+    families = [k for k, _ in symmetry_kernels(gauge, require_contour_safe=False)]
+    families += [k for k, _, _ in partial_absorption_kernels(gauge, max_r_degree=max_r_degree)]
+    for kernel in families:
+        key = tuple(sorted(kernel.items()))
+        if key in seen:
+            continue
+        seen.add(key)
+        try:
+            series = series_of(kernel, filter_gauge)
+        except ValueError:
+            continue
+        if all(packet_sum(series, M) == 0 for M in packets):
+            out.append(kernel)
+    return out
+
+
 @dataclass(frozen=True)
 class Solution:
     """
@@ -906,7 +1003,7 @@ def _solve_at(
 
     packets = usable_packets(gauge)
     monomials = admissible_monomials(gauge)
-    columns = [k for k, _ in symmetry_kernels(gauge, require_contour_safe=False)]
+    columns = null_candidates(gauge)
     determined = len(packets) > len(monomials)
     if determined:
         columns = columns + [{a: 1} for a in monomials]
