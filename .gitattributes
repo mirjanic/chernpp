@@ -1,1 +1,2 @@
 *.npz filter=lfs diff=lfs merge=lfs -text
+tests/data/published_thom_polynomials.json filter=lfs diff=lfs merge=lfs -text

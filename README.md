@@ -9,8 +9,8 @@
 > independently computed published tables. But the code, its comments and these
 > documents are machine-generated and have not been line-by-line audited by a
 > human. Treat conclusions as computational evidence to be checked, not as
-> refereed results, and see `papers/open_questions.md` for the points where the
-> computations run past what the literature settles.
+> refereed results, and see the final section of `papers/chernpp_report.pdf` for the
+> points where the computations run past what the literature settles.
 
 Tools for the Thom polynomials of the Morin singularities $A_d$ ($d \le 7$), in the form given by
 the Bérczi–Szenes residue formula, and for the positivity conjectures attached to them.
@@ -50,11 +50,13 @@ Reproducible from a clean checkout:
   $A_5$ at $\ell \le 11$. Past $\ell = 5$ the coefficients outgrow `int64` (they reach
   $1.75\times10^{22}$ at $A_6$, $\ell = 7$), so these use CRT reconstruction over word-sized
   primes, verified against a prime held back from the reconstruction.
-- **Agreement with Rimányi's published tables** at relative dimensions 0 and 1, for every
-  $A_1$ through $A_7$ — fourteen tables, including all 105 coefficients of $A_7$ at $\ell = 1$.
-  Those are computed by the restriction-equation method, mathematics independent of the residue
-  formula implemented here, so this constrains $\mathcal{Q}_d$ externally rather than
-  self-consistently.
+- **Agreement with Rimányi's published tables** across every relative dimension the registry
+  reaches — 35 tables spanning $A_1$ to $A_7$ and $\ell = 0$ to $5$, including all 105
+  coefficients of $A_7$ at $\ell = 1$. Those are computed by the restriction-equation method,
+  mathematics independent of the residue formula implemented here, so this constrains
+  $\mathcal{Q}_d$ externally rather than self-consistently. `tools/scrape_thom_polynomials.py`
+  refreshes the corpus, which also carries the $I$, $III$, $B$ and $C$ families for the
+  corank-two work.
 - **The $A_5$ reduction machinery breaks at $d = 7$.** The **unpaired tail**
   ($i>j \Rightarrow A_{i,j,\dots}\ge 0$) and the **paired inequality**
   ($A_{i,j,\dots} + A_{j-i,j,\dots} \ge 0$) both hold at $d = 5$ and $d = 6$, which is why they
@@ -111,6 +113,7 @@ src/chernpp/         Pure Python/JAX.  Reads the artifacts; never re-derives the
   experiments.py       command-line runner
   data/                the mined algebras, tracked
 src/examples.ipynb   annotated tour, from the published results to the new ones
+tools/               scrapers and helpers, not part of the package
 tests/               eight tiers, in dependency order
 papers/              project reports plus Bérczi–Szenes, Annals 175 (2012)
 ```
@@ -184,9 +187,10 @@ chamber correction divides exactly, and that the resulting numerator has constan
 
 1. `test_1_polynomial.py` — ring laws, truncation, geometric series, exact rationals.
 2. `test_2_artifacts.py` — schema invariants and internal consistency of the mined algebras.
-3. `test_3_thom.py` — Thom polynomials against both the classical $\ell=0$ values and Rimányi's
-   published $\ell=1$ tables (`tests/data/published_thom_polynomials.json`), Chern multiset
-   structure, $\ell$-independence, the overflow guard, and CRT reconstruction.
+3. `test_3_thom.py` — Thom polynomials against Rimányi's published tables at $\ell = 0$ to $5$
+   (`tests/data/published_thom_polynomials.json`, 171 tables, git LFS), the internal consistency
+   of the whole corpus, Chern multiset structure, $\ell$-independence, the overflow guard, and
+   CRT reconstruction.
 4. `test_4_chamber.py` — both conjectures, ballot combinatorics, the reductions at $d=5$ vs $d=6$,
    and a cross-validation of $C(M)$ between the two independent implementations.
 5. `test_5_certificates.py` — certificate verification, tamper rejection, order obstructions.
@@ -222,7 +226,7 @@ In `papers/`:
 - `report.pdf` — the $\ell$-free reduction, verification for $\ell \le 11$ at $d=5$, three dead ends.
 - `a5_weak_positivity_handoff.pdf` — the paired reduction and the proved unpaired tail.
 - `summary_draft.md` — a self-contained summary of this work for a non-specialist reader.
-- `open_questions.md` — the points where these computations run past what the
-  literature settles: what $\mathcal{Q}_d$ is an invariant of, the acting group beyond
-  2-jets, which positivity holds in which basis, what the $d=7$ failures leave of the
-  reduction programme, and the cost of $\mathcal{Q}_8$. Written for discussion.
+The report's final section, *Open questions and sharp edges*, collects the points where these
+computations run past what the literature settles: what $\mathcal{Q}_d$ is an invariant of, the
+acting group beyond 2-jets, which positivity holds in which basis, and the cost of
+$\mathcal{Q}_8$.

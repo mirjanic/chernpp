@@ -1,13 +1,19 @@
 """
 Tier 3: the Thom polynomials, checked against independently known values.
 
-Two external checks, and they are the strongest constraints on the whole
-pipeline. At relative dimension zero the classical polynomials are hard-coded
-below. At relative dimension one we compare against Rimányi's published tables,
-loaded from ``tests/data/published_thom_polynomials.json``; those are computed
-by the restriction-equation method, mathematics independent of the
-Bérczi--Szenes residue formula implemented here, so agreement constrains Q_d
-externally rather than self-consistently.
+This is the strongest constraint on the whole pipeline. Rimányi's registry
+publishes Thom polynomials at relative dimensions 0 through 5, computed by the
+restriction-equation method -- mathematics independent of the Bérczi--Szenes
+residue formula implemented here -- so agreement constrains Q_d externally
+rather than self-consistently. The tables are scraped by
+``tools/scrape_thom_polynomials.py`` into
+``tests/data/published_thom_polynomials.json``.
+
+Every A_d table the registry publishes that we have an artifact for is checked:
+35 tables, spanning d = 1..7 and l = 0..5. The corpus also carries the corank-two
+and other families (I, III, B, C), which nothing here computes; those are checked
+for internal consistency only, and are there for the work in
+:mod:`multidegree.corank2`.
 """
 
 import json
@@ -109,13 +115,33 @@ class TestOverflowGuard(unittest.TestCase):
 
 
 def load_published():
-    """The reference tables, keyed by ``(order, relative dimension)``."""
+    """
+    Every reference table, keyed by ``(singularity name, relative dimension)``.
+
+    Keyed by name rather than by order because the corpus is not only the Morin
+    family: ``order`` is meaningful for A_d and null for everything else, so it
+    does not identify a table.
+    """
     document = json.loads(PUBLISHED.read_text())
+    return {(table["singularity"], table["relative_dimension"]): table for table in document["tables"]}
+
+
+def terms_of(table):
+    """A table's terms as ``{sorted Chern index tuple: coefficient}``."""
+    return {tuple(term["chern_indices"]): term["coefficient"] for term in table["terms"]}
+
+
+def morin_tables(published):
+    """
+    The A_d tables we can actually check: those with a mined artifact.
+
+    A_0 is the regular germ, with no artifact and nothing to compute; A_8 and A_9
+    appear at l = 0 but are past what the Sage stage reaches.
+    """
     return {
-        (table["order"], table["relative_dimension"]): {
-            tuple(term["chern_indices"]): term["coefficient"] for term in table["terms"]
-        }
-        for table in document["tables"]
+        key: table
+        for key, table in published.items()
+        if table["order"] in ORDERS and table["singularity"].startswith("A_")
     }
 
 
@@ -132,60 +158,121 @@ def computed_table(dim, relative_dimension):
     return {k: v for k, v in result.items() if v != 0}
 
 
-class TestPublishedTables(unittest.TestCase):
-    """Agreement with Rimányi's tables at relative dimension one."""
+class TestReferenceCorpus(unittest.TestCase):
+    """Internal consistency of every scraped table, including families we cannot compute."""
 
     def setUp(self):
         self.published = load_published()
 
-    def test_reference_file_is_well_formed(self):
-        self.assertEqual(
-            {(d, l) for l in (0, 1) for d in ORDERS},
-            set(self.published),
-            "unexpected set of reference tables",
-        )
+    def test_the_corpus_spans_six_relative_dimensions(self):
+        dimensions = {relative for _, relative in self.published}
+        self.assertEqual(dimensions, {0, 1, 2, 3, 4, 5})
+        self.assertGreater(len(self.published), 150)
+
+    def test_every_monomial_has_the_stated_codimension(self):
+        # The Thom polynomial is homogeneous of the singularity's codimension,
+        # where c_i has weight i.  This is what catches a mis-parsed exponent.
         for key, table in self.published.items():
+            for monomial, coefficient in terms_of(table).items():
+                with self.subTest(table=key, monomial=monomial):
+                    self.assertEqual(sum(monomial), table["codimension"])
+                    self.assertIsInstance(coefficient, int)
+                    self.assertNotEqual(coefficient, 0)
+
+    def test_chern_indices_are_sorted_and_positive(self):
+        for key, table in self.published.items():
+            for monomial in terms_of(table):
+                with self.subTest(table=key, monomial=monomial):
+                    self.assertEqual(list(monomial), sorted(monomial))
+                    self.assertTrue(all(index >= 1 for index in monomial))
+
+    def test_no_monomial_appears_twice_in_a_table(self):
+        for key, table in self.published.items():
+            monomials = [tuple(term["chern_indices"]) for term in table["terms"]]
             with self.subTest(table=key):
-                self.assertTrue(all(isinstance(v, int) for v in table.values()))
-                self.assertTrue(all(tuple(sorted(m)) == m for m in table))
-                # Every monomial has the codimension of the singularity.
-                order, relative = key
-                for monomial in table:
-                    self.assertEqual(sum(monomial), order * (relative + 1))
+                self.assertEqual(len(monomials), len(set(monomials)))
+
+    def test_morin_codimension_follows_the_closed_form(self):
+        # codim A_d = d(l+1).  A cross-check on the scraper's name parsing: a
+        # table mislabelled A_5 that is really A_6 fails here.
+        for (name, relative), table in self.published.items():
+            if table["order"] is None:
+                continue
+            with self.subTest(table=(name, relative)):
+                self.assertEqual(table["codimension"], table["order"] * (relative + 1))
+
+    def test_corank_two_families_are_present_for_later_work(self):
+        # Nothing here computes these; they are the reference data for the
+        # corank-two question in multidegree/corank2.py.
+        names = {name for name, _ in self.published}
+        self.assertIn("I_2,2", names)
+        self.assertIn("III_2,2", names)
+        # Tp(I_2,2) at l = 0 is the Giambelli-Thom-Porteous class of Sigma^2,
+        # s_{2,2} = c_2^2 - c_1 c_3.  Note the negative Chern coefficient:
+        # Rimanyi's conjecture is a corank-one statement and does not extend.
+        self.assertEqual(terms_of(self.published[("I_2,2", 0)]), {(1, 3): -1, (2, 2): 1})
+
+
+class TestPublishedTables(unittest.TestCase):
+    """Agreement with Rimányi's tables, at every relative dimension they reach."""
+
+    def setUp(self):
+        self.published = load_published()
+        self.morin = morin_tables(self.published)
+
+    def test_we_check_every_morin_table_we_have_an_artifact_for(self):
+        # l = 0 publishes A_0 through A_9 and l = 5 only A_0 through A_4, so the
+        # reachable set is ragged; this pins which 35 tables are actually being
+        # compared, so a silently narrowed check would fail here.
+        by_dimension = {}
+        for (_, relative), table in self.morin.items():
+            by_dimension.setdefault(relative, set()).add(table["order"])
+        self.assertEqual(
+            by_dimension,
+            {
+                0: {1, 2, 3, 4, 5, 6, 7},
+                1: {1, 2, 3, 4, 5, 6, 7},
+                2: {1, 2, 3, 4, 5, 6},
+                3: {1, 2, 3, 4, 5, 6},
+                4: {1, 2, 3, 4, 5},
+                5: {1, 2, 3, 4},
+            },
+        )
+        self.assertEqual(len(self.morin), 35)
 
     def test_reference_tables_have_the_expected_size(self):
         for key, expected in (
-            ((1, 0), 1),
-            ((2, 0), 2),
-            ((3, 0), 3),
-            ((4, 0), 5),
-            ((5, 0), 7),
-            ((6, 0), 11),
-            ((7, 0), 15),
-            ((1, 1), 1),
-            ((2, 1), 3),
-            ((3, 1), 7),
-            ((4, 1), 15),
-            ((5, 1), 30),
-            ((6, 1), 58),
-            ((7, 1), 105),
+            (("A_1", 0), 1),
+            (("A_2", 0), 2),
+            (("A_3", 0), 3),
+            (("A_4", 0), 5),
+            (("A_5", 0), 7),
+            (("A_6", 0), 11),
+            (("A_7", 0), 15),
+            (("A_4", 1), 15),
+            (("A_5", 1), 30),
+            (("A_6", 1), 58),
+            (("A_7", 1), 105),
         ):
             with self.subTest(table=key):
-                self.assertEqual(len(self.published[key]), expected)
+                self.assertEqual(len(self.published[key]["terms"]), expected)
 
     def test_every_coefficient_agrees(self):
-        for (order, relative), table in sorted(self.published.items()):
-            computed = computed_table(order, relative)
-            with self.subTest(order=order, relative_dimension=relative):
-                self.assertEqual(set(table), set(computed), "the two tables list different monomials")
-                for monomial in sorted(table):
-                    self.assertEqual(computed[monomial], table[monomial], f"A_{order}, {monomial}")
+        for (name, relative), table in sorted(self.morin.items()):
+            published = terms_of(table)
+            computed = computed_table(table["order"], relative)
+            with self.subTest(singularity=name, relative_dimension=relative):
+                self.assertEqual(set(published), set(computed), "the two tables list different monomials")
+                for monomial in sorted(published):
+                    self.assertEqual(
+                        computed[monomial], published[monomial], f"{name}, l={relative}, {monomial}"
+                    )
 
     def test_top_chern_coefficient(self):
-        for (order, relative), table in sorted(self.published.items()):
-            top = (order * (relative + 1),)
-            with self.subTest(order=order):
-                self.assertEqual(computed_table(order, relative)[top], table[top])
+        for (name, relative), table in sorted(self.morin.items()):
+            top = (table["codimension"],)
+            with self.subTest(singularity=name, relative_dimension=relative):
+                self.assertEqual(computed_table(table["order"], relative)[top], terms_of(table)[top])
 
 
 class TestExactArithmeticViaCRT(unittest.TestCase):
