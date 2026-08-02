@@ -145,6 +145,15 @@ class ChamberAlgebra:
                 f"A_{self.order}: expected {self.order - 1} chamber variables, "
                 f"got {len(self.chamber_vars)}"
             )
+        if self.characteristic != 0:
+            # Everything downstream -- the chamber series, the Chern
+            # coefficients, the certificates -- assumes exact integers. A build
+            # run with `-p` writes a mod-p artifact into the same directory, and
+            # nothing else would notice.
+            raise ValueError(
+                f"A_{self.order}: artifact is over characteristic {self.characteristic}, "
+                "but the chamber-series machinery assumes characteristic 0"
+            )
         if self.normalized_numerator.get((0,) * self.nvars) != 1:
             raise ValueError(f"A_{self.order}: normalized numerator has constant term != 1")
         for index, factor in enumerate(self.denominator_factors):

@@ -103,10 +103,11 @@ def restrict_generators(exponents: Sequence[Exponents], indices: Sequence[int]) 
     Generators of a monomial ideal localised at the prime on ``indices``.
 
     Setting every other variable to 1 restricts each exponent vector to
-    ``indices``.  A generator restricting to zero would mean the localised ideal
-    is the unit ideal; that cannot happen for a prime containing the ideal, since
-    every generator's support then meets ``indices``, and such a generator is
-    dropped rather than silently producing a nonsense length.
+    ``indices``.  A generator restricting to 1 would make the localised ideal the
+    unit ideal, whose length is 0; that cannot happen when ``indices`` is a prime
+    containing the ideal, because every generator's support then meets it.  If it
+    does happen the caller passed something that is not a transversal, and the
+    honest answer is an exception rather than a positive length.
 
     Generators divisible by another are removed, so the result is the minimal
     generating set and can be used as a cache key.
@@ -114,8 +115,12 @@ def restrict_generators(exponents: Sequence[Exponents], indices: Sequence[int]) 
     restricted = set()
     for monomial in exponents:
         image = tuple(monomial[i] for i in indices)
-        if any(image):
-            restricted.add(image)
+        if not any(image):
+            raise ValueError(
+                f"generator {monomial} restricts to 1 on {tuple(indices)}, so that index set "
+                "is not a transversal and the localised ideal is the unit ideal"
+            )
+        restricted.add(image)
 
     # Sorting by total degree first means a generator can only be made redundant
     # by one already kept, so each is compared against the minimal set rather

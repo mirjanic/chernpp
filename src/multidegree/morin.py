@@ -243,10 +243,23 @@ def chamber_image(polynomial, ring, d):
 
 
 def to_python(polynomial, characteristic):
-    """Sage polynomial -> plain dict of int exponent tuples to int coefficients."""
+    """
+    Sage polynomial -> plain dict of int exponent tuples to int coefficients.
+
+    ``int()`` on a Sage ``Rational`` truncates toward zero without complaint, and
+    the chamber assembly divides by the numerator's constant term.  That constant
+    is 1 for every order through d = 7, so this has never fired --- but if it ever
+    were not, the artifact would be written with silently truncated coefficients
+    and every downstream check would still pass.
+    """
     half = characteristic // 2 if characteristic else 0
     result = {}
     for exponents, coefficient in polynomial.dict().items():
+        if not characteristic and coefficient.denominator() != 1:
+            raise RuntimeError(
+                f"chamber coefficient {coefficient} is not an integer; storing it would "
+                "truncate it silently"
+            )
         value = int(coefficient)
         if characteristic and value > half:
             value -= characteristic

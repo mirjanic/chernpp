@@ -115,7 +115,6 @@ src/chernpp/         Pure Python/JAX.  Reads the artifacts; never re-derives the
   lemma1.py            multiplicative certificates: Lemma 1, matching, absorption
   crt.py               exact Chern coefficients past the int64 ceiling
   tables.py            text tables and statistics for the mined objects
-  families.py          closed-form domination along infinite families
   lorentzian.py        log-concavity / M-convexity tests
   experiments.py       command-line runner
   data/                the mined algebras and geometry records, tracked (git LFS)
@@ -204,8 +203,8 @@ chamber correction divides exactly, and that the resulting numerator has constan
 6. `test_6_monomial.py` — the monomial-ideal combinatorics behind the multidegree, cross-checked
    against exhaustive search on 100 random hypergraphs, plus the `Multidegree` contract.
 7. `test_7_tail.py` — the unpaired-tail series, multiplicative certificates, and absorption.
-8. `test_8_corank2.py` — corank-two orbit geometry for $I_{a,b}$. The only tier that needs
-   SageMath, so it skips in the plain virtualenv; run it with Sage's interpreter.
+8. `test_8_corank2.py` — corank-two orbit geometry for $I_{a,b}$, against the frozen survey in
+   `tests/data/corank2_orbit_closures.json`. Like every other tier, it runs without SageMath.
 
 ## Caveats
 
@@ -213,10 +212,10 @@ chamber correction divides exactly, and that the resulting numerator has constan
   the values would wrap, rather than returning negative-looking garbage. `chernpp/crt.py` goes
   past that by residue arithmetic; it is slower, so the `int64` path stays the default.
 - Everything reported as "holds" over a truncation range is a finite exact computation, never a
-  proof of the infinite statement. `chernpp/certificates.py` and `chernpp/families.py` are the
-  only components that produce proofs.
+  proof of the infinite statement. `chernpp/certificates.py` is the only component that produces
+  proofs, and only through its order obstructions, which hold at every degree at once.
 - $\mathcal{Q}_7$ is the practical ceiling of the Gröbner route, and only just: $\deg\mathcal{Q}_7 = 13$
-  in a 34 variable ambient space, reached in about a minute by ordering the variables so the
+  in a 34 variable ambient space, reached in about ten seconds by ordering the variables so the
   defect-zero ones come last and saturating back to front. $d = 8$ has not been attempted.
 - `multidegree/corank2.py` is exploratory groundwork, not a result. It computes Borel orbit
   closures of corank-two jets, but that closure is an invariant of the *jet* rather than of the

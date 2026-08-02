@@ -19,23 +19,29 @@ def extract_log_concavity_sequence(grid_np, *fixed_indices):
 
 def check_strong_log_concavity(sequence):
     """
-    Validates against the normalized Huh-Brändén inequality for M-Convexity.
-    """
-    n = max(sequence.keys()) if sequence else 0
-    is_lorentzian = True
+    The normalised Huh--Brändén inequality for M-convexity, in exact integers.
 
+    Normalising by binomial coefficients and comparing ``a_k^2`` against
+    ``a_{k-1} a_{k+1}`` invites three divisions and two multiplications in
+    float64, on inputs that reach 10^22 here; a near-tie would then be settled by
+    rounding.  Cross-multiplying keeps the whole test in Python integers, which
+    is the convention everywhere else in this package.
+
+    A gap in ``sequence`` is treated as a missing constraint, not a satisfied
+    one, and reported: :func:`extract_log_concavity_sequence` records only
+    positive cells, so a genuine zero would otherwise excuse its neighbours from
+    the test and a vacuous ``True`` would read as a mathematical statement.
+    """
+    if len(sequence) < 3:
+        raise ValueError(f"log-concavity needs at least three consecutive terms, got {len(sequence)}")
+
+    n = max(sequence.keys())
     for k in range(1, n):
         if k not in sequence or (k - 1) not in sequence or (k + 1) not in sequence:
             continue
-
-        norm_k = sequence[k] / math.comb(n, k)
-        norm_km1 = sequence[k - 1] / math.comb(n, k - 1)
-        norm_kp1 = sequence[k + 1] / math.comb(n, k + 1)
-
-        lhs = norm_k**2
-        rhs = norm_km1 * norm_kp1
-
+        # a_k^2 / C(n,k)^2  >=  a_{k-1} a_{k+1} / (C(n,k-1) C(n,k+1)), cleared.
+        lhs = sequence[k] ** 2 * math.comb(n, k - 1) * math.comb(n, k + 1)
+        rhs = sequence[k - 1] * sequence[k + 1] * math.comb(n, k) ** 2
         if lhs < rhs:
-            is_lorentzian = False
-
-    return is_lorentzian
+            return False
+    return True

@@ -50,9 +50,6 @@ from . import basic_equations, get_logger, morin
 
 logger = get_logger(__name__)
 
-#: Bumped when the layout changes.
-FORMAT_VERSION = 1
-
 
 def hilbert_data(initial, ambient_dimension):
     """
@@ -92,11 +89,10 @@ def build(order, base_field=None):
     if base_field is None:
         base_field = QQ
 
-    result = basic_equations.compute(order, base_field)
+    result, context = basic_equations.analyse(order, base_field)
     multidegree = result.polynomial
     weight_ring = result.ring
-
-    ideal, ring, index_of = basic_equations.orbit_ideal(base_field, order)
+    ring, index_of, ideal = context["ring"], context["index_of"], context["ideal"]
 
     degenerate = result.codim == 0
     if degenerate:
@@ -107,8 +103,7 @@ def build(order, base_field=None):
         initial = ideal
         numerator, dimension, codimension, degree = [1], ring.ngens(), 0, 1
     else:
-        basis = ideal.groebner_basis(algorithm=basic_equations.ALGORITHM)
-        initial = ring.ideal([g.lt() for g in basis])
+        initial = context["initial"]
         numerator, dimension, codimension, degree = hilbert_data(initial, ring.ngens())
 
     at_one = multidegree.subs({v: 1 for v in weight_ring.gens()})
@@ -148,14 +143,7 @@ def build(order, base_field=None):
 
     component_records = []
     if not degenerate:
-        exponents = [next(iter(g.exponents())) for g in initial.gens()]
-        supports = [frozenset(i for i, e in enumerate(m) if e) for m in exponents]
-        cache = {}
-        component_records = [
-            (sorted(c), basic_equations._multiplicity(exponents, sorted(c), base_field, cache))
-            for c in basic_equations.minimal_transversals(supports, bound=codimension)
-            if len(c) == codimension
-        ]
+        component_records = list(zip(context["components"], context["multiplicities"]))
         # Each component contributes multiplicity x (product of its normal
         # weights), and at z = 1 every weight is 1, so the multiplicities sum to
         # the degree.  A third route to the same integer.

@@ -96,9 +96,14 @@ def laurent_grid(dim: int, l_max: int = 2, check_overflow: bool = True) -> np.nd
     grid = np.asarray(expand(jnp.array(seed, dtype=jnp.int64)))
 
     if check_overflow:
+        # The iteration accumulates a partial sum whose terms have mixed signs,
+        # so a cell can wrap mid-scan and come back inside the range by the end.
+        # Comparing the final grid against the float64 replay catches a wrap
+        # wherever it happened; testing only the final magnitude does not.
         probe = np.asarray(expand(jnp.array(seed, dtype=jnp.float64)))
         peak = float(np.abs(probe).max()) if probe.size else 0.0
-        if peak > _INT64_SAFE_BOUND:
+        wrapped = probe.size and not np.allclose(grid.astype(np.float64), probe, rtol=1e-9, atol=0.0)
+        if peak > _INT64_SAFE_BOUND or wrapped:
             raise OverflowError(
                 f"A_{dim} at l_max={l_max}: coefficients reach ~{peak:.3g}, beyond the "
                 f"int64 range ({_INT64_SAFE_BOUND:.3g}). The grid has wrapped and would "

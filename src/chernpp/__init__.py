@@ -19,8 +19,10 @@ This package reads those artifacts and never re-derives them:
 * :mod:`chernpp.artifacts`    -- the chamber algebra and its invariants
 * :mod:`chernpp.chamber`      -- the chamber series and the structural reductions
 * :mod:`chernpp.chern`        -- Chern coefficients via an XLA-compiled expansion
-* :mod:`chernpp.certificates` -- denominator certificates and order obstructions
-* :mod:`chernpp.families`     -- closed-form domination along infinite families
+* :mod:`chernpp.certificates` -- additive denominator certificates and obstructions
+* :mod:`chernpp.lemma1`       -- multiplicative certificates: matching and absorption
+* :mod:`chernpp.crt`          -- exact Chern coefficients past the int64 ceiling
+* :mod:`chernpp.tables`       -- text tables and statistics for the mined objects
 * :mod:`chernpp.lorentzian`   -- log-concavity / M-convexity tests
 """
 

@@ -108,10 +108,13 @@ class TestRestrictGenerators(unittest.TestCase):
         # x0^2 x2 restricted to {0, 1} is x0^2.
         self.assertEqual(restrict_generators([(2, 0, 1)], [0, 1]), ((2, 0),))
 
-    def test_generators_supported_away_from_the_prime_are_dropped(self):
-        # x2 restricts to 1, which would make the localised ideal the unit
-        # ideal; it cannot arise for a prime containing the ideal.
-        self.assertEqual(restrict_generators([(0, 0, 1), (1, 0, 0)], [0, 1]), ((1, 0),))
+    def test_a_generator_supported_away_from_the_prime_is_refused(self):
+        # x2 restricts to 1, so the localised ideal is the unit ideal and the
+        # index set is not a transversal. Dropping the generator would return a
+        # positive length for a component of length zero.
+        with self.assertRaises(ValueError) as caught:
+            restrict_generators([(0, 0, 1), (1, 0, 0)], [0, 1])
+        self.assertIn("transversal", str(caught.exception))
 
     def test_divisible_generators_are_removed(self):
         # x0^2 is divisible by x0, so only x0 survives.

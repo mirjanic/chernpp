@@ -129,5 +129,93 @@ class TestPredicatesAndRendering(unittest.TestCase):
         self.assertEqual(poly_mul_many(factors, 2), poly_mul_many(list(reversed(factors)), 2))
 
 
+class TestArtifactGuards(unittest.TestCase):
+    """
+    The refusals standing between a bad artifact and everything downstream.
+
+    Every other tier loads good artifacts and checks they validate. These are the
+    paths that fire when one is not good, and until now none of them was covered:
+    a guard nothing exercises is a guard nobody knows is wired up.
+    """
+
+    def algebra(self, **overrides):
+        from chernpp.artifacts import ChamberAlgebra
+
+        fields = dict(
+            order=4,
+            chamber_vars=("x1", "x2", "x3"),
+            numerator={(0, 0, 0): 1},
+            denominator_factors=[{(1, 0, 0): 1}],
+            multidegree={(0, 0, 0): 1},
+            normalized_numerator={(0, 0, 0): 1},
+            vandermonde={(0, 0, 0): 1},
+        )
+        fields.update(overrides)
+        return ChamberAlgebra(**fields)
+
+    def test_a_good_artifact_validates(self):
+        self.algebra().validate()
+
+    def test_a_mod_p_artifact_is_refused(self):
+        # `build.py -p 32003` writes into the same directory, and everything
+        # downstream assumes exact integers.
+        with self.assertRaises(ValueError) as caught:
+            self.algebra(characteristic=32003).validate()
+        self.assertIn("characteristic", str(caught.exception))
+
+    def test_wrong_chamber_variable_count_is_refused(self):
+        with self.assertRaises(ValueError):
+            self.algebra(chamber_vars=("x1", "x2")).validate()
+
+    def test_numerator_without_constant_term_one_is_refused(self):
+        # This is what makes the c_1^d coefficient of the Thom polynomial 1.
+        with self.assertRaises(ValueError):
+            self.algebra(normalized_numerator={(1, 0, 0): 1}).validate()
+
+    def test_negative_denominator_factor_is_refused(self):
+        # Every positivity argument rests on 1/(1 - f_r) expanding nonnegatively.
+        with self.assertRaises(ValueError):
+            self.algebra(denominator_factors=[{(1, 0, 0): -1}]).validate()
+
+    def test_denominator_factor_with_a_constant_term_is_refused(self):
+        with self.assertRaises(ValueError):
+            self.algebra(denominator_factors=[{(0, 0, 0): 1, (1, 0, 0): 1}]).validate()
+
+    def test_coefficients_too_large_for_int64_are_refused_not_widened(self):
+        # An object array would round-trip only with allow_pickle=True, which is
+        # the property the format exists to avoid.
+        from chernpp.artifacts import pack_polynomial
+
+        with self.assertRaises(OverflowError) as caught:
+            pack_polynomial({(0, 0): 2**64}, 2)
+        self.assertIn("int64", str(caught.exception))
+
+    def test_polynomials_round_trip_through_the_packed_form(self):
+        from chernpp.artifacts import pack_polynomial, unpack_polynomial
+
+        for poly in ({}, {(0, 0): 1}, {(2, 1): -7, (0, 3): 196803, (1, 1): 2}):
+            with self.subTest(poly=poly):
+                exponents, coefficients = pack_polynomial(poly, 2)
+                self.assertEqual(unpack_polynomial(exponents, coefficients), poly)
+
+    def test_polynomial_lists_round_trip_including_the_empty_case(self):
+        from chernpp.artifacts import pack_polynomial_list, unpack_polynomial_list
+
+        for polys in ([], [{}], [{(1, 0): 1}, {}, {(0, 2): 3}]):
+            with self.subTest(polys=polys):
+                packed = pack_polynomial_list(polys, 2)
+                self.assertEqual(unpack_polynomial_list(*packed), polys)
+
+    def test_values_survive_as_python_ints_not_numpy_scalars(self):
+        # A numpy int64 leaking into the exact arithmetic downstream would wrap
+        # silently where a Python int would not.
+        from chernpp.artifacts import pack_polynomial, unpack_polynomial
+
+        recovered = unpack_polynomial(*pack_polynomial({(1, 1): 5}, 2))
+        for exponents, coefficient in recovered.items():
+            self.assertIs(type(coefficient), int)
+            self.assertTrue(all(type(e) is int for e in exponents))
+
+
 if __name__ == "__main__":
     unittest.main()

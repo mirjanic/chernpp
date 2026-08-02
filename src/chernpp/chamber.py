@@ -263,29 +263,3 @@ def chern_coefficient(series: Poly, multiset: Sequence[int], max_deg: int) -> in
             )
         total += series.get(beta, 0)
     return total
-
-
-def prefix_report(dim: int, max_deg: int) -> Dict[str, object]:
-    """
-    Compare ``F_d`` with its prefix series ``F_d / (1 - a)``.
-
-    Section 8 of the handoff note observes that every tested coefficient of
-    ``F_5 / (1 - a)`` is nonnegative and proposes proving that as a route to
-    the weak conjecture.  The obstruction to the route at a given ``d`` is
-    visible immediately: the prefix sum runs over ``r <= i``, so any negative
-    coefficient with ``i = 0`` survives it untouched.
-    """
-    alg = load_algebra(dim)
-    nvars = len(alg.chamber_vars)
-    base = chamber_series(dim, max_deg, algebra=alg)
-    pref = chamber_series(dim, max_deg, extra_factors=[monomial(nvars, 0)], algebra=alg)
-
-    base_neg = sorted_negatives(base)
-    return {
-        "dim": dim,
-        "max_deg": max_deg,
-        "chamber_vars": alg.chamber_vars,
-        "base_negatives": base_neg,
-        "prefix_negatives": sorted_negatives(pref),
-        "base_negatives_at_i0": [(b, c) for b, c in base_neg if b[0] == 0],
-    }

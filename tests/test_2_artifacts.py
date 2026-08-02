@@ -102,10 +102,6 @@ class TestAssemblyConsistency(unittest.TestCase):
                     self.assertTrue(all(c in (1, 2) for c in factor.values()))
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class TestOrbitGeometry(unittest.TestCase):
     """
     The second artifact: geometry of O_d that the residue formula does not use.
@@ -197,3 +193,7 @@ class TestOrbitGeometry(unittest.TestCase):
                 with self.subTest(order=order, variable=name):
                     self.assertEqual(sum(weight), 1)
                     self.assertTrue(all(-1 <= w <= 2 for w in weight))
+
+
+if __name__ == "__main__":
+    unittest.main()

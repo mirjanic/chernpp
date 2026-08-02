@@ -308,7 +308,9 @@ def projection_is_feasible(
 
     Consequently ``False`` is a proof: no order-``order`` certificate exists at
     **any** degree.  ``True`` is only the absence of an obstruction at this
-    depth.
+    depth.  Both verdicts are modulo the LP solver, which works in floating
+    point over coefficients rounded from exact rationals; a solver that fails to
+    resolve raises rather than being read as either answer.
     """
     subs = list(subsets) if subsets is not None else certificate_subsets(len(factors), order)
     A_ub, b_ub, _, _ = _build_program(N, factors, nvars, subs, probe_degree, ceiling=probe_degree)
@@ -319,7 +321,18 @@ def projection_is_feasible(
         bounds=(0, None),
         method="highs",
     )
-    return bool(res.success)
+    # HiGHS reports 0 optimal, 1 iteration limit, 2 infeasible, 3 unbounded,
+    # 4 numerical difficulties.  Only 2 is the statement we are entitled to
+    # publish; `res.success` is false for all of 1, 3 and 4 as well, and
+    # returning False for those would report a solver bailout as a theorem.
+    if res.status == 2:
+        return False
+    if res.status == 0:
+        return True
+    raise RuntimeError(
+        f"the projection LP did not resolve: status {res.status} ({res.message}). "
+        "Neither feasibility nor infeasibility may be concluded from this."
+    )
 
 
 def minimum_order(

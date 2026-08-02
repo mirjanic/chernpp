@@ -201,6 +201,35 @@ class TestReferenceCorpus(unittest.TestCase):
             with self.subTest(table=(name, relative)):
                 self.assertEqual(table["codimension"], table["order"] * (relative + 1))
 
+    def test_rimanyi_positivity_holds_on_the_published_tables_we_cannot_compute(self):
+        # A_8 and A_9 are published at relative dimension 0 and are past what the
+        # Sage stage reaches -- Q_8 needs a Groebner basis in 50 variables that
+        # does not finish.  The conjecture can still be read off Rimanyi's own
+        # tables there, which is evidence for it at two orders beyond ours.
+        for name in ("A_8", "A_9"):
+            table = self.published[(name, 0)]
+            with self.subTest(singularity=name):
+                self.assertTrue(
+                    all(c > 0 for c in terms_of(table).values()),
+                    f"{name} has a negative Chern coefficient",
+                )
+        self.assertEqual(len(terms_of(self.published[("A_8", 0)])), 22)
+        self.assertEqual(len(terms_of(self.published[("A_9", 0)])), 30)
+
+    def test_every_morin_table_in_the_corpus_is_chern_positive(self):
+        # Rimanyi's conjecture, read across the whole scraped corpus rather than
+        # only where we can recompute: every A_d table at every relative
+        # dimension published.  This is not a proof of anything, but a negative
+        # coefficient here would be a counterexample, and there is none.
+        checked = 0
+        for (name, relative), table in self.published.items():
+            if not name.startswith("A_"):
+                continue
+            with self.subTest(singularity=name, relative_dimension=relative):
+                self.assertTrue(all(c > 0 for c in terms_of(table).values()))
+            checked += 1
+        self.assertGreater(checked, 40)
+
     def test_corank_two_families_are_present_for_later_work(self):
         # Nothing here computes these; they are the reference data for the
         # corank-two question in multidegree/corank2.py.

@@ -27,7 +27,6 @@ dependencies = [
     # XLA-compiled fixed-point expansion of the chamber series.
     "jax>=0.4.30",
     # Exact symbolic calculus for the infinite-family diagonals only.
-    "sympy>=1.12",
 ]
 
 [project.optional-dependencies]

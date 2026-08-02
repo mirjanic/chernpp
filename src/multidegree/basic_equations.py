@@ -127,7 +127,7 @@ def saturate_by_variables(generators, names, variables, base_field):
     variables sit last, and the trick then demands moving one of them to the
     very end.  Doing that **back-to-front** keeps each move a small perturbation
     of the cheap order; front-to-back does not, and at ``d = 7`` the first step
-    alone fails to finish.  Same trick, same mathematics, 23 s against hours.
+    alone fails to finish.  Same trick, same mathematics, seconds against hours.
     """
     for name in reversed(list(variables)):
         order = [n for n in names if n != name] + [name]
@@ -185,7 +185,7 @@ def orbit_ideal(base_field, d):
     return ideal, final_ring, final_index
 
 
-def _multiplicity(exponents, indices, base_field, cache):
+def _multiplicity(exponents, indices, cache):
     """
     Length of the monomial ideal localised at the prime on ``indices``.
 
@@ -195,14 +195,25 @@ def _multiplicity(exponents, indices, base_field, cache):
     so ``cache`` memoises by minimal generators.  The cache is passed in rather
     than held at module scope: it is only valid for one ideal.
     """
-    minimal = restrict_generators(exponents, indices)
-    if minimal not in cache:
-        cache[minimal] = standard_monomial_count(minimal, len(indices))
-    return cache[minimal]
+    # Keyed by the size too: an empty generating set does not determine it.
+    key = (restrict_generators(exponents, indices), len(indices))
+    if key not in cache:
+        cache[key] = standard_monomial_count(key[0], len(indices))
+    return cache[key]
 
 
-def compute(order, base_field):
-    """The multidegree ``Q_d`` of the Morin orbit closure, as a :class:`Multidegree`."""
+def analyse(order, base_field):
+    """
+    Everything the saturation yields: the multidegree and the working it left behind.
+
+    The twelve saturating Groebner bases are the dominant cost of the whole Sage
+    stage, so a caller that wants the initial ideal or the component structure as
+    well --- :mod:`multidegree.geometry` does --- must not pay for them twice.
+
+    Returns ``(multidegree, context)`` where ``context`` carries ``ring``,
+    ``index_of``, ``ideal``, ``initial``, ``components`` and ``multiplicities``.
+    ``initial`` and the rest are ``None`` in the degenerate case ``d <= 3``.
+    """
     ideal, ring, index_of = orbit_ideal(base_field, order)
     weight_ring = PolynomialRing(base_field, "z", order)
     z = weight_ring.gens()
@@ -218,13 +229,21 @@ def compute(order, base_field):
                 f"A_{order}: expected the orbit to fill N_d, but the ideal is " f"nontrivial: {ideal.gens()}"
             )
         logger.info("A_%d: orbit fills the ambient space, Q_%d = 1", order, order)
-        return Multidegree(
+        degenerate = Multidegree(
             polynomial=weight_ring(1),
             ring=weight_ring,
             family=morin.FAMILY,
             order=order,
             codim=0,
         )
+        return degenerate, {
+            "ring": ring,
+            "index_of": index_of,
+            "ideal": ideal,
+            "initial": None,
+            "components": None,
+            "multiplicities": None,
+        }
 
     logger.info("A_%d: Groebner basis and initial ideal", order)
     basis = ideal.groebner_basis(algorithm=ALGORITHM)
@@ -254,15 +273,28 @@ def compute(order, base_field):
     total = weight_ring(0)
     for component in top:
         indices = sorted(component)
-        multiplicity = _multiplicity(exponents, indices, base_field, cache)
+        multiplicity = _multiplicity(exponents, indices, cache)
         normal = prod(morin.normal_weight(variables[i], index_of, z) for i in indices)
         total += multiplicity * normal
 
     logger.info("A_%d: deg Q_%d = %d as required", order, order, expected)
-    return Multidegree(
+    result = Multidegree(
         polynomial=total,
         ring=weight_ring,
         family=morin.FAMILY,
         order=order,
         codim=expected,
     )
+    return result, {
+        "ring": ring,
+        "index_of": index_of,
+        "ideal": ideal,
+        "initial": initial,
+        "components": [sorted(c) for c in top],
+        "multiplicities": [_multiplicity(exponents, sorted(c), cache) for c in top],
+    }
+
+
+def compute(order, base_field):
+    """The multidegree ``Q_d`` of the Morin orbit closure, as a :class:`Multidegree`."""
+    return analyse(order, base_field)[0]
