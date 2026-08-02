@@ -200,7 +200,15 @@ def search_certificate(
         method="highs",
     )
     if not res.success:
-        logger.info("LP infeasible at order %d, deg <= %d (%s)", order, max_degree, res.message)
+        # Any non-optimal status lands here.  Returning None is the safe
+        # direction either way, but only status 2 is actually infeasibility.
+        logger.info(
+            "LP produced no solution at order %d, deg <= %d (status %d: %s)",
+            order,
+            max_degree,
+            res.status,
+            res.message,
+        )
         return None
 
     return _reconstruct(
@@ -303,8 +311,10 @@ def projection_is_feasible(
     A constraint on a monomial ``nu`` of total degree ``T`` involves only the
     ``P_S`` coefficients of degree ``<= T``, because every ``g_S`` has constant
     term 1 and no negative-degree terms.  Truncating both the constraints and
-    the unknowns at ``T`` is therefore an *exact projection* of the full
-    feasible set, not a further restriction.
+    the unknowns at ``T`` therefore gives a *relaxation* of the full feasible
+    set: dropping the constraints of degree above ``T`` can only admit more
+    points.  Infeasibility consequently transfers to the full problem, which is
+    the direction the conclusion below needs.  Feasibility does not.
 
     Consequently ``False`` is a proof: no order-``order`` certificate exists at
     **any** degree.  ``True`` is only the absence of an obstruction at this

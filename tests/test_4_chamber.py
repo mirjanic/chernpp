@@ -229,6 +229,28 @@ class TestLorentzian(unittest.TestCase):
         sequence = extract_log_concavity_sequence(grid, 2, 1, 1)
         self.assertFalse(check_strong_log_concavity(sequence))
 
+    def test_an_interior_gap_is_refused_rather_than_skipped(self):
+        # extract_log_concavity_sequence records only positive cells, so a zero
+        # in the middle leaves a hole. Skipping the triples that touch it would
+        # return True from a run that tested almost nothing.
+        with self.assertRaises(ValueError) as caught:
+            check_strong_log_concavity({0: 1, 5: 1, 10: 1})
+        self.assertIn("interior gaps", str(caught.exception))
+
+    def test_a_late_start_is_not_a_gap(self):
+        # The prefix sums begin at zero, so index 0 is routinely absent. That is
+        # an offset, not a missing constraint, and the triples are taken over the
+        # recorded range. Values equal to the binomials make every normalised
+        # term 1, so the inequality holds with equality.
+        from math import comb
+
+        binomials = {k: comb(5, k) for k in (3, 4, 5)}
+        self.assertTrue(check_strong_log_concavity(binomials))
+
+    def test_too_short_to_constrain_anything_is_refused(self):
+        with self.assertRaises(ValueError):
+            check_strong_log_concavity({1: 1, 2: 1})
+
 
 if __name__ == "__main__":
     unittest.main()

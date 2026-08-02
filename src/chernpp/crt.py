@@ -16,10 +16,14 @@ grouping here is computed once from the grid *geometry* and reused for every
 prime, so the residues of a given coefficient always correspond.
 
 *Certified range.*  Reconstruction is only valid if the true coefficient lies in
-the symmetric interval of width ``prod(primes)``.  We reconstruct, then verify
-by re-expanding modulo a prime that was not used; a coefficient outside the
-range fails that check with probability about ``1/p``, and the check is repeated
-until the modulus provably exceeds the observed magnitudes.
+the symmetric interval of width ``prod(primes)``.  Two things guard that, and
+only one of them is a proof.  The stopping rule -- keep adding primes until the
+modulus comfortably exceeds the largest reconstructed magnitude -- bounds the
+*representatives*, not the true values, so on its own it could stop early: a true
+value just past ``M/2`` has a small symmetric representative.  What makes the
+result trustworthy is the verification against a prime held back from the
+reconstruction, which a wrong value fails with probability about ``1 - 1/p``.
+Disabling that check leaves only the heuristic.
 """
 
 from typing import Dict, List, Optional, Sequence, Tuple
@@ -34,8 +38,10 @@ from .logger import get_logger
 
 logger = get_logger(__name__)
 
-#: Primes below 2^31, so that a product of two residues plus an accumulator
-#: stays inside int64 during the expansion.
+#: Primes below 2^31.  The expansion accumulates `base + sum_r c_r * shifted`,
+#: and every Morin denominator factor has at most two terms with coefficients in
+#: {1, 2} (pinned by tier 2), so the worst case is 2*(p-1)^2 + (p-1), inside
+#: int64 with room to spare.  A factor with larger coefficients would not be.
 DEFAULT_PRIMES: Tuple[int, ...] = (
     2147483647,
     2147483629,
@@ -59,6 +65,12 @@ def grouping(nvars: int, l_max: int):
     ``multisets`` for each kept cell and ``keep`` selects the cells that survive
     the ghost-term filter ``alpha_i >= -(l_max + 1)``.
     """
+    if nvars == 0:
+        # d = 1: no chamber variables, so the only cell is the empty multiset.
+        # chern.chern_coefficients has the matching branch; the two paths are
+        # documented as interchangeable and must stay so.
+        return [(0,)], np.zeros(1, dtype=np.int64), np.ones(1, dtype=bool)
+
     shape = _grid_shape(nvars, l_max)
     coords = np.stack(np.meshgrid(*[np.arange(n) for n in shape], indexing="ij"), axis=-1)
     coords = coords.reshape(-1, nvars)

@@ -236,9 +236,16 @@ def multidegree(jet, order, base_field=None):
         variables = support(prime)
         collapse = {v: ring(1) for v in ring.gens() if v not in variables}
         local_ring = PolynomialRing(base_field, [str(v) for v in variables])
-        local = local_ring.ideal(
-            [local_ring(str(g.subs(collapse))) for g in initial.gens() if g.subs(collapse) != 0]
-        )
+        collapsed = [g.subs(collapse) for g in initial.gens()]
+        if any(g.is_constant() and g != 0 for g in collapsed):
+            # A generator supported away from the prime collapses to 1, not to 0,
+            # making the localised ideal the unit ideal.  Its length is zero, and
+            # keeping the generator would report a positive multiplicity instead.
+            raise RuntimeError(
+                f"a generator collapses to a unit on {[str(v) for v in variables]}, "
+                "so that set is not a minimal prime of the initial ideal"
+            )
+        local = local_ring.ideal([local_ring(str(g)) for g in collapsed if g != 0])
         multiplicity = (
             local.vector_space_dimension()
             if hasattr(local, "vector_space_dimension")
@@ -249,12 +256,12 @@ def multidegree(jet, order, base_field=None):
     return total, codimension
 
 
-#: Four germs of the single class I_{2,2}, in the coefficient-dictionary format
-#: :func:`orbit_closure` consumes.  They give three different Borel orbit
-#: closures; see :func:`representative_survey`.
 #: A 2-jet in general position, used to measure generic orbit dimensions.
 _GENERIC_JET = ({(2, 0): 1, (1, 1): 3, (0, 2): 5}, {(2, 0): 7, (1, 1): 11, (0, 2): 2})
 
+#: Four germs of the single class I_{2,2}, in the coefficient-dictionary format
+#: :func:`orbit_closure` consumes.  They give three different Borel orbit
+#: closures; see :func:`representative_survey`.
 _REPRESENTATIVES = {
     "(xy, x^2 + y^2)": ({(1, 1): 1}, {(2, 0): 1, (0, 2): 1}),
     "(x^2, y^2)": ({(2, 0): 1}, {(0, 2): 1}),

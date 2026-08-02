@@ -135,25 +135,38 @@ computation is spending on.
 \subsection{Scale of the objects}
 
 Table~\ref{tab:algebra} is the practical reason sampling is no substitute for a proof: roughly
-half the coefficients of $N_d$ are negative at every order, and the counts grow fast.
+half the coefficients of $N_d$ are negative at every order, and the counts grow fast. Two features
+of it are structural rather than incidental. The Vandermonde $\prod_{m<l}(1 - z_m/z_l)$ collapses
+to exactly $d!$ terms in chamber coordinates --- it is a Weyl denominator, so the $2^{\binom{d}{2}}$
+products cancel down to a sum over $S_d$ --- and $\deg N_d$ is $\binom{d}{2}$ more than
+$\deg \Qd_d$ measured in the same coordinates.
 
-\begin{table}[ht]
-\centering
-\caption{The mined chamber algebras. $\deg\Qd_d = \dim\Nhat_d - \binom{d}{2}$ is the
-codimension of the orbit closure.}
-\label{tab:algebra}
-\begin{tabularx}{\textwidth}{@{}Lrrrrrrr@{}}
-\toprule
- & vars & $\dim\Nhat_d$ & $\deg\Qd_d$ & $\Qd_d$ terms & $N_d$ terms & $\deg N_d$
- & $N_d$ negative \\
-\midrule
-$A_4$ & 3 & 7  & 1 & 3   & 54    & 13 & 27 \ (50\%) \\
-$A_5$ & 4 & 13 & 3 & 19  & 814   & 31 & 414 \ (51\%) \\
-$A_6$ & 5 & 22 & 7 & 418 & 26618 & 66 & 13309 \ (50\%) \\
-$A_7$ & 6 & 34 & 13 & 14586 & 1210404 & 122 & 605234 \ (50\%) \\
-\bottomrule
-\end{tabularx}
-\end{table}
+\input{tables/algebra}
+
+Table~\ref{tab:geom} records the orbit closure itself. The degree there is three agreeing
+computations, not one: $\Qd_d(1,\dots,1)$, the Hilbert series of the flat degeneration, and the sum
+of the component multiplicities. Only the component count is not an invariant --- it belongs to the
+Gr\"obner degeneration, and a different term order gives a different one summing to the same class.
+
+\input{tables/geometry}
+
+\subsection{How much cancellation is being asked for}
+
+Strong Laurent positivity fails from $d = 5$, so some $A_\beta$ are negative; the weak conjecture
+survives because each Chern coefficient sums many of them. Table~\ref{tab:cancel} measures the gap.
+
+\input{tables/cancellation}
+
+Three things stand out. The negative coefficients are \emph{rare}, growing from $1\%$ to $2\%$ of
+the terms. They are \emph{flat}: every one is $-1$, with a single $-2$ at $d = 7$, while the
+positive coefficients reach $10^5$ and beyond. And the mass they carry is a fraction of a percent
+of the positive mass. Meanwhile $\min C(M) = 1$ at every order and every relative dimension we
+reach --- the Chern coefficients are not merely nonnegative but strictly positive, and never
+larger than they need to be at the bottom.
+
+This is the shape of the open question in \S\ref{sec:assessment}. A bound on the negative part of
+$C(M)$ in terms of its largest term would settle the conjecture without any pairing, and the
+numbers say such a bound has a great deal of room in it.
 
 \subsection{Exactness}
 
@@ -453,6 +466,7 @@ The mechanisation is therefore a way of reproducing and checking the small-$d$ a
 not a route to a general one.
 
 \section{Assessment}
+\label{sec:assessment}
 
 What the computations suggest about proof strategy:
 

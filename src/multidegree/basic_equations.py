@@ -270,10 +270,12 @@ def analyse(order, base_field):
 
     variables = ring.gens()
     cache = {}
+    multiplicities = []
     total = weight_ring(0)
     for component in top:
         indices = sorted(component)
         multiplicity = _multiplicity(exponents, indices, cache)
+        multiplicities.append(multiplicity)
         normal = prod(morin.normal_weight(variables[i], index_of, z) for i in indices)
         total += multiplicity * normal
 
@@ -291,7 +293,7 @@ def analyse(order, base_field):
         "ideal": ideal,
         "initial": initial,
         "components": [sorted(c) for c in top],
-        "multiplicities": [_multiplicity(exponents, sorted(c), cache) for c in top],
+        "multiplicities": multiplicities,
     }
 
 

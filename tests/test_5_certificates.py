@@ -193,5 +193,27 @@ class TestNoFalsePositives(unittest.TestCase):
             search_certificate({(0,): 1}, [{(0,): 1}], 1, order=1)
 
 
+class TestTheClaimTheReadmeMakes(unittest.TestCase):
+    """
+    The published lower bound, at the order and depth it is published at.
+
+    The rest of this tier probes to order 5, which is enough to exercise the
+    machinery but one short of the claim in the README and the report. Fourteen
+    seconds buys the actual statement.
+    """
+
+    def test_nothing_of_order_at_most_seven_certifies_a5(self):
+        from chernpp.chamber import monomial
+
+        algebra = load_algebra(5)
+        prefix = algebra.denominator_factors + [monomial(algebra.nvars, 0)]
+        for label, factors in (("F_5", algebra.denominator_factors), ("F_5/(1-a)", prefix)):
+            with self.subTest(series=label):
+                self.assertIsNone(
+                    minimum_order(algebra.numerator, factors, algebra.nvars, probe_degree=3, max_order=7),
+                    f"{label}: an order <= 7 came back unobstructed",
+                )
+
+
 if __name__ == "__main__":
     unittest.main()

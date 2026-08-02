@@ -152,6 +152,11 @@ def standard_monomial_count(generators: Sequence[Exponents], nvars: int) -> int:
     codimension that would mean the transversal was not a minimal prime, and it
     must not be reported as a multiplicity.
     """
+    if any(len(g) != nvars for g in generators):
+        raise ValueError(
+            f"every generator must have {nvars} exponents; got lengths "
+            f"{sorted({len(g) for g in generators})}"
+        )
     if nvars == 0:
         return 0 if generators else 1
 

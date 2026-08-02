@@ -164,7 +164,7 @@ class ChamberAlgebra:
 
     def summary(self) -> str:
         return (
-            f"A_{self.order}: variables {', '.join(self.chamber_vars)}; "
+            f"A_{self.order}: {self.nvars} chamber variables; "
             f"numerator {len(self.numerator)} terms, degree {total_degree(self.numerator)}; "
             f"{len(self.denominator_factors)} denominator factors"
         )

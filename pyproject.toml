@@ -24,9 +24,10 @@ dependencies = [
     "numpy>=1.26",
     # HiGHS, via scipy.optimize.linprog, drives the certificate search.
     "scipy>=1.11",
+    # Table rendering, text and LaTeX. Pure Python, no dependencies of its own.
+    "tabulate>=0.9",
     # XLA-compiled fixed-point expansion of the chamber series.
     "jax>=0.4.30",
-    # Exact symbolic calculus for the infinite-family diagonals only.
 ]
 
 [project.optional-dependencies]

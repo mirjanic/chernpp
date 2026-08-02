@@ -73,14 +73,26 @@ class TestAssemblyConsistency(unittest.TestCase):
                     algebra.numerator,
                 )
 
-    def test_vandermonde_has_binomial_many_factors(self):
-        # prod_{m < l} (1 - z_m/z_l) has binomial(d, 2) factors, hence degree
-        # binomial(d, 2) once every z_m/z_l is a chamber monomial of degree >= 1.
+    def test_vandermonde_degree_is_the_sum_of_chamber_monomial_degrees(self):
+        # Each factor 1 - z_m/z_l contributes the chamber monomial x_m...x_{l-1},
+        # of degree l - m, so the product has degree sum_{m<l} (l - m).  That is
+        # strictly more than binomial(d, 2) -- 56 against 21 at d = 7 -- so
+        # asserting the exact value is what makes this bite.
         for order in ORDERS:
             algebra = load_algebra(order)
+            expected = sum(l - m for l in range(2, order + 1) for m in range(1, l))
             with self.subTest(order=order):
                 self.assertEqual(algebra.vandermonde[(0,) * algebra.nvars], 1)
-                self.assertGreaterEqual(total_degree(algebra.vandermonde), comb(order, 2))
+                self.assertEqual(total_degree(algebra.vandermonde), expected)
+
+    def test_vandermonde_has_factorial_many_terms(self):
+        # The Vandermonde is a Weyl denominator: the 2^binomial(d,2) products of
+        # 1 - z_m/z_l collapse to a sum over the symmetric group, so d! terms.
+        from math import factorial
+
+        for order in ORDERS:
+            with self.subTest(order=order):
+                self.assertEqual(len(load_algebra(order).vandermonde), factorial(order))
 
     def test_multidegree_degree_matches_homogeneity(self):
         # Q_d in chamber coordinates is a specialisation of a homogeneous
@@ -88,8 +100,10 @@ class TestAssemblyConsistency(unittest.TestCase):
         for order, degree in MULTIDEGREE_DEGREE.items():
             algebra = load_algebra(order)
             with self.subTest(order=order):
-                self.assertEqual(AMBIENT_DIMENSION[order] - comb(order, 2), degree)
-                self.assertGreaterEqual(total_degree(algebra.multidegree), degree)
+                # Read from the artifact, not from the dicts above: the number of
+                # denominator factors is dim N_d, so this is the homogeneity
+                # relation checked against mined data rather than against itself.
+                self.assertEqual(len(algebra.denominator_factors) - comb(order, 2), degree)
 
     def test_denominator_factors_are_binomials_of_chamber_monomials(self):
         # Each factor is z_m/z_l + z_r/z_l, so it has one or two terms, all
