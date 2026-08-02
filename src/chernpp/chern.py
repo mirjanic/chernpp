@@ -17,7 +17,17 @@ of ``alpha`` therefore yields the Chern coefficients ``C(M)`` directly.  Since
 value appears at every relative dimension admitting that multiset.
 """
 
+import os
 from typing import Dict, Tuple
+
+# By default JAX grabs three quarters of the GPU on the first import, and if
+# something else already holds that memory the allocator walks a ladder of
+# smaller requests, printing each failure to stderr as an ERROR.  Those messages
+# are alarming and mean nothing -- the run then succeeds on a smaller arena.
+# Allocating on demand removes the ladder without suppressing any logging, so a
+# genuine out-of-memory still surfaces.  ``setdefault`` leaves an explicit
+# setting in the environment alone.
+os.environ.setdefault("XLA_PYTHON_CLIENT_PREALLOCATE", "false")
 
 import jax
 import jax.numpy as jnp

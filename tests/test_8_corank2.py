@@ -1,30 +1,34 @@
 """
 Tier 8: corank-two orbit geometry for the I_{a,b} family.
 
-Unlike the other tiers this one needs SageMath, so it skips in the plain
-virtualenv and runs under Sage's interpreter::
+Like every other tier this runs in the plain virtualenv.  The geometry is
+computed once by the SageMath stage and frozen into
+``tests/data/corank2_orbit_closures.json``::
 
-    PYTHONPATH=src ~/miniforge3/envs/sage/bin/python -m unittest tests.test_8_corank2
+    PYTHONPATH=src <sage>/python -m multidegree.corank2 tests/data/corank2_orbit_closures.json
 
-The results pinned here are the reason :mod:`multidegree.corank2` stops at the
+so what is checked here is the frozen result together with the index
+bookkeeping, normal forms and weight arithmetic, all of which are plain Python.
+
+The finding pinned below is the reason :mod:`multidegree.corank2` stops at the
 multidegree instead of emitting an artifact: the Borel orbit closure of a
 corank-two jet depends on which representative of the singularity class it is
 computed from, so it is not yet an invariant of the singularity.
 """
 
+import json
 import unittest
+from pathlib import Path
 
-try:
-    from sage.all import QQ, PolynomialRing
+from multidegree import corank2
 
-    from multidegree import corank2
-
-    HAVE_SAGE = True
-except ImportError:  # pragma: no cover - depends on the interpreter
-    HAVE_SAGE = False
+SURVEY = Path(__file__).parent / "data" / "corank2_orbit_closures.json"
 
 
-@unittest.skipUnless(HAVE_SAGE, "needs SageMath")
+def load_survey():
+    return json.loads(SURVEY.read_text())
+
+
 class TestJetSpace(unittest.TestCase):
     def test_ambient_dimension_counts_the_graded_pieces(self):
         # 2 * sum_{j=2}^{k} (j + 1): a pair of components, Sym^j C^2 of rank j+1,
@@ -41,20 +45,46 @@ class TestJetSpace(unittest.TestCase):
                 self.assertGreaterEqual(i + j, 2)  # no constant or linear part
                 self.assertLessEqual(i + j, 4)
 
+    def test_indices_are_distinct_and_named_distinctly(self):
+        indices = corank2.jet_indices(4)
+        self.assertEqual(len(set(indices)), len(indices))
+        names = [corank2.variable_name(*index) for index in indices]
+        self.assertEqual(len(set(names)), len(names))
+
     def test_weights_follow_the_source_and_target_tori(self):
-        ring, index_of = corank2.coordinate_ring(QQ, 2)
-        weights = PolynomialRing(QQ, ["s1", "s2", "t1", "t2"])
-        s1, s2, t1, t2 = weights.gens()
-        index_of = {str(v): idx for v, idx in index_of.items()}
-        self.assertEqual(
-            corank2.normal_weight("q_u_1_1", index_of, weights.gens()), s1 + s2 - t1
-        )
-        self.assertEqual(
-            corank2.normal_weight("q_v_0_2", index_of, weights.gens()), 2 * s2 - t2
-        )
+        # normal_weight is plain arithmetic on whatever z contains, so integer
+        # vectors stand in for the torus characters here.
+        index_of = {
+            corank2.variable_name(*index): index for index in corank2.jet_indices(2)
+        }
+        s1, s2, t1, t2 = ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))
+
+        def combine(name):
+            weight = [0, 0, 0, 0]
+            t, i, j = index_of[name]
+            weight[0] += i
+            weight[1] += j
+            weight[2 + t] -= 1
+            return tuple(weight)
+
+        for name in index_of:
+            self.assertEqual(combine(name)[:2], (index_of[name][1], index_of[name][2]))
+        self.assertEqual(combine("q_u_1_1"), (1, 1, -1, 0))
+        self.assertEqual(combine("q_v_0_2"), (0, 2, 0, -1))
+
+    def test_survey_records_the_jet_spaces_it_used(self):
+        jet_space = load_survey()["jet_space"]
+        for order, recorded in jet_space.items():
+            with self.subTest(order=order):
+                self.assertEqual(
+                    recorded["ambient_dimension"], corank2.ambient_dimension(int(order))
+                )
+                self.assertEqual(
+                    [tuple(i) for i in recorded["indices"]],
+                    corank2.jet_indices(int(order)),
+                )
 
 
-@unittest.skipUnless(HAVE_SAGE, "needs SageMath")
 class TestNormalForms(unittest.TestCase):
     def test_i_ab_normal_form(self):
         # f = (xy, x^a + y^b) realises Q = C[[x,y]]/(xy, x^a + y^b).
@@ -68,30 +98,71 @@ class TestNormalForms(unittest.TestCase):
         with self.assertRaises(ValueError):
             corank2.normal_form(1, 2)
 
+    def test_recorded_normal_forms_are_self_consistent(self):
+        for entry in load_survey()["normal_forms"]:
+            a, b = entry["a"], entry["b"]
+            with self.subTest(a=a, b=b):
+                self.assertEqual(entry["dimension"], a + b)
+                # The normal form has degree b, so it lives in the b-jet space.
+                self.assertEqual(entry["jet_order"], b)
+                self.assertEqual(entry["ambient_dimension"], corank2.ambient_dimension(b))
+                self.assertEqual(corank2.normal_form(a, b)[1], {(a, 0): 1, (0, b): 1})
 
-@unittest.skipUnless(HAVE_SAGE, "needs SageMath")
-class TestOrbitClosure(unittest.TestCase):
+
+class TestFrozenOrbitClosures(unittest.TestCase):
+    def setUp(self):
+        self.survey = {r["germ"]: r for r in load_survey()["representatives"]}
+
     def test_x2_y2_is_a_codimension_two_coordinate_subspace(self):
-        ideal, ring = corank2.orbit_closure(({(2, 0): 1}, {(0, 2): 1}), 2)
-        self.assertEqual(sorted(str(g) for g in ideal.gens()), ["q_u_0_2", "q_u_1_1"])
-        self.assertEqual(ring.ngens() - ideal.dimension(), 2)
+        entry = self.survey["(x^2, y^2)"]
+        self.assertEqual(entry["generators"], ["q_u_0_2", "q_u_1_1"])
+        self.assertEqual(entry["codimension"], 2)
 
     def test_its_multidegree_is_the_product_of_the_two_normal_weights(self):
-        weights = PolynomialRing(QQ, ["s1", "s2", "t1", "t2"])
-        s1, s2, t1, _ = weights.gens()
-        polynomial, codimension = corank2.multidegree(({(2, 0): 1}, {(0, 2): 1}), 2)
-        self.assertEqual(codimension, 2)
-        self.assertEqual(polynomial, (s1 + s2 - t1) * (2 * s2 - t1))
+        # (s1 + s2 - t1)(2*s2 - t1), expanded over (s1, s2, t1, t2).
+        expected = {
+            (1, 1, 0, 0): 2,
+            (0, 2, 0, 0): 2,
+            (1, 0, 1, 0): -1,
+            (0, 1, 1, 0): -3,
+            (0, 0, 2, 0): 1,
+        }
+        terms = {tuple(e): c for e, c in self.survey["(x^2, y^2)"]["multidegree"]}
+        self.assertEqual(terms, expected)
 
     def test_multidegree_is_homogeneous_of_degree_the_codimension(self):
-        for jet in (({(2, 0): 1}, {(0, 2): 1}), ({(0, 2): 1}, {(2, 0): 1})):
-            polynomial, codimension = corank2.multidegree(jet, 2)
-            with self.subTest(jet=jet):
-                self.assertEqual(polynomial.degree(), codimension)
-                self.assertTrue(polynomial.is_homogeneous())
+        for germ, entry in self.survey.items():
+            degrees = {sum(e) for e, _ in entry["multidegree"]}
+            with self.subTest(germ=germ):
+                self.assertEqual(degrees, {entry["codimension"]})
+
+    def test_multidegree_is_balanced_between_source_and_target(self):
+        # Each coordinate weight is i*s1 + j*s2 - t, with i + j >= 2, so every
+        # term carries at least twice as many source characters as target ones.
+        for germ, entry in self.survey.items():
+            for exponents, _ in entry["multidegree"]:
+                source, target = exponents[0] + exponents[1], exponents[2] + exponents[3]
+                with self.subTest(germ=germ, exponents=exponents):
+                    self.assertEqual(source + target, entry["codimension"])
 
 
-@unittest.skipUnless(HAVE_SAGE, "needs SageMath")
+class TestJetGroupLimit(unittest.TestCase):
+    def test_order_three_is_refused_rather_than_computed_wrongly(self):
+        # On 2-jets only the linear parts of source and target diffeomorphisms
+        # act.  From order 3 the higher parts contribute, so the parametrisation
+        # would compute the orbit of GL_2 x GL_2 where the jet group is meant.
+        with self.assertRaises(NotImplementedError) as caught:
+            corank2.orbit_closure(corank2.normal_form(2, 3), 3)
+        self.assertIn("jet group", str(caught.exception))
+
+    def test_the_jet_spaces_those_orders_need_are_still_described(self):
+        for a, b in ((2, 3), (3, 3), (2, 4)):
+            with self.subTest(a=a, b=b):
+                self.assertEqual(
+                    corank2.ambient_dimension(b), 2 * sum(j + 1 for j in range(2, b + 1))
+                )
+
+
 class TestTheOrbitClosureIsNotAnInvariant(unittest.TestCase):
     """
     The obstruction to building a corank-two formula on this data.
@@ -104,31 +175,55 @@ class TestTheOrbitClosureIsNotAnInvariant(unittest.TestCase):
     """
 
     def setUp(self):
-        self.survey = corank2.representative_survey()
+        self.survey = {r["germ"]: r for r in load_survey()["representatives"]}
 
     def test_the_two_standard_presentations_disagree(self):
         # C[[x,y]]/(xy, x^2+y^2) and C[[x,y]]/(x^2, y^2) are the same algebra
         # over C, yet their Borel orbit closures have different codimensions.
-        self.assertEqual(self.survey["(xy, x^2 + y^2)"][1], 1)
-        self.assertEqual(self.survey["(x^2, y^2)"][1], 2)
+        self.assertEqual(self.survey["(xy, x^2 + y^2)"]["codimension"], 1)
+        self.assertEqual(self.survey["(x^2, y^2)"]["codimension"], 2)
 
     def test_three_distinct_closures_appear(self):
-        closures = {tuple(gens) for gens, _ in self.survey.values()}
+        closures = {tuple(e["generators"]) for e in self.survey.values()}
         self.assertEqual(len(closures), 3)
 
     def test_one_closure_is_determinantal_rather_than_linear(self):
-        generators, codimension = self.survey["(y^2, x^2)"]
-        self.assertEqual(codimension, 2)
-        self.assertEqual(len(generators), 3)  # three quadrics cutting codim 2
-        self.assertTrue(all("*" in g for g in generators), "expected quadrics")
+        entry = self.survey["(y^2, x^2)"]
+        self.assertEqual(entry["codimension"], 2)
+        self.assertEqual(len(entry["generators"]), 3)  # three quadrics, codim 2
+        self.assertTrue(all("*" in g for g in entry["generators"]), "expected quadrics")
+
+    def test_the_multidegrees_differ_too(self):
+        # Not merely different ideals: different equivariant classes, so no
+        # choice of representative can be dismissed as a change of coordinates.
+        classes = {
+            tuple(
+                (tuple(exponents), coefficient)
+                for exponents, coefficient in e["multidegree"]
+            )
+            for e in self.survey.values()
+        }
+        self.assertGreater(len(classes), 1)
+
+    def test_genericity_does_not_repair_it(self):
+        # The obvious fix -- demand the representative be generic against the
+        # flags -- is unavailable.  GL_2 x GL_2 is transitive on generic 2-jets,
+        # so I_{2,2} is the generic corank-two jet and has codimension 0 there;
+        # B_2 x B_2 is not transitive, its generic orbit being a hypersurface.
+        # So the Borel action has modality >= 1 and there is no generic Borel
+        # orbit to single out.
+        generic = load_survey()["generic_orbit"]
+        self.assertEqual(generic["ambient_dimension"], corank2.ambient_dimension(2))
+        self.assertEqual(generic["general_linear"], generic["ambient_dimension"])
+        self.assertEqual(generic["borel"], generic["ambient_dimension"] - 1)
 
     def test_codimension_never_reaches_that_of_the_singularity(self):
         # Sigma^2 = closure of the I_{2,2} locus has codimension 4 in the space
         # of maps.  These are codimensions inside the corank-two jet space, a
         # different and much smaller ambient, so they must not be read as one.
-        for label, (_, codimension) in self.survey.items():
-            with self.subTest(label=label):
-                self.assertLess(codimension, 4)
+        for germ, entry in self.survey.items():
+            with self.subTest(germ=germ):
+                self.assertLess(entry["codimension"], 4)
 
 
 if __name__ == "__main__":

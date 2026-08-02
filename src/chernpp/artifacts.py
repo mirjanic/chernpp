@@ -15,6 +15,13 @@ Compressed ``.npz``.  Each polynomial is two arrays -- an ``(n, nvars)`` block
 of exponents and an ``(n,)`` vector of coefficients -- and the list of
 denominator factors adds an offsets vector delimiting the blocks.
 
+Coefficients are stored as ``int64``.  They are small -- the largest anywhere in
+``A_7`` is 196803 -- and NumPy would otherwise fall back to an object array of
+Python integers, which can only be read back with ``allow_pickle=True``.  That
+would reintroduce, through the back door, exactly the property this format
+exists to avoid, so :func:`pack_polynomial` refuses a coefficient that does not
+fit rather than widening the dtype.
+
 The choice matters for a repository meant to be shared: ``.npz`` is data, while
 a pickle is a program, and unpickling a file executes whatever it contains.  It
 is also readable from any language with a zip and NumPy-format reader, and it
@@ -35,8 +42,25 @@ from .polynomial import Poly, is_nonneg, total_degree
 DATA_DIR = Path(__file__).resolve().parent / "data"
 
 #: Bumped when the layout changes, so a stale artifact is reported rather than
-#: silently misread.
-FORMAT_VERSION = 1
+#: silently misread.  Version 2 stores coefficients as int64 instead of as an
+#: object array, which is what lets the loader refuse pickles outright.
+FORMAT_VERSION = 2
+
+#: Coefficients must round-trip exactly through int64.
+_INT64_RANGE = (-(2**63), 2**63 - 1)
+
+
+def _as_int64(coefficients):
+    """Coefficients as an int64 array, refusing anything that would not fit."""
+    values = [int(c) for c in coefficients]
+    for value in values:
+        if not _INT64_RANGE[0] <= value <= _INT64_RANGE[1]:
+            raise OverflowError(
+                f"coefficient {value} does not fit in int64. Storing it would "
+                "need an object array, which could only be read back with "
+                "allow_pickle=True; widen the format instead."
+            )
+    return np.array(values, dtype=np.int64)
 
 
 def pack_polynomial(poly: Poly, nvars: int):
@@ -44,11 +68,11 @@ def pack_polynomial(poly: Poly, nvars: int):
     if not poly:
         return (
             np.zeros((0, nvars), dtype=np.int32),
-            np.zeros((0,), dtype=object),
+            np.zeros((0,), dtype=np.int64),
         )
     items = sorted(poly.items())
     exponents = np.array([e for e, _ in items], dtype=np.int32)
-    coefficients = np.array([c for _, c in items], dtype=object)
+    coefficients = _as_int64(c for _, c in items)
     return exponents, coefficients
 
 
@@ -69,7 +93,7 @@ def pack_polynomial_list(polynomials: Sequence[Poly], nvars: int):
         coefficients = np.concatenate([c for _, c in blocks])
     else:
         exponents = np.zeros((0, nvars), dtype=np.int32)
-        coefficients = np.zeros((0,), dtype=object)
+        coefficients = np.zeros((0,), dtype=np.int64)
     return exponents, coefficients, offsets
 
 
@@ -195,7 +219,9 @@ def load_algebra(order: int, validate: bool = True) -> ChamberAlgebra:
             f"{path} is missing. Regenerate it with "
             f"'python -m multidegree.build -d {order}' under SageMath."
         )
-    with np.load(path, allow_pickle=True) as raw:
+    # allow_pickle stays off: an artifact is data, and must never be able to
+    # execute anything on being read.
+    with np.load(path, allow_pickle=False) as raw:
         version = int(raw["format_version"])
         if version != FORMAT_VERSION:
             raise ValueError(
