@@ -187,19 +187,19 @@ says that if this technique is to work at $d=5$ it must be used in a substantial
 5. `0.0000` weight on symmetry $s_{4,5}$ absorbing 2 factors
 6. `0.1000` weight on partial abs. $s_{1,2}$ dropping $(-z_4 + z_3 + z_1)$
 
-For $d=6$ at depth 32, the optimisation succeeds and the cancellation relies on the following top 10 most influential kernels:
-1. `-0.3996` weight on symmetry $s_{1,2}$ absorbing 5 factors
-2. `-0.3565` weight on symmetry $s_{5,6}$ absorbing 3 factors
-3. `-0.3038` weight on partial abs. $s_{4,6}$ dropping $(-z_6 + z_3 + z_2)$
-4. `-0.3016` weight on symmetry $s_{1,2}$ absorbing 5 factors
-5. `-0.2685` weight on symmetry $s_{2,3}$ absorbing 4 factors
-6. `0.2232` weight on symmetry $s_{1,2}$ absorbing 5 factors
-7. `0.2036` weight on symmetry $s_{2,3}$ absorbing 4 factors
-8. `0.2027` weight on symmetry $s_{2,3}$ absorbing 4 factors
-9. `0.1953` weight on partial abs. $s_{4,6}$ dropping $(-z_6 + z_3 + z_2)$
-10. `0.1683` weight on symmetry $s_{3,4}$ absorbing 4 factors
+For $d=6$ at depth 35, the optimisation succeeds and the cancellation relies on the following top 10 most influential kernels:
+1. `-0.3399` weight on symmetry $s_{1,2}$ absorbing 5 factors
+2. `-0.3232` weight on symmetry $s_{2,3}$ absorbing 4 factors
+3. `0.3066` weight on symmetry $s_{2,3}$ absorbing 4 factors
+4. `-0.2907` weight on symmetry $s_{1,2}$ absorbing 5 factors
+5. `-0.2895` weight on symmetry $s_{5,6}$ absorbing 3 factors
+6. `-0.2819` weight on partial abs. $s_{4,6}$ dropping $(-z_6 + z_3 + z_2)$
+7. `0.2159` weight on symmetry $s_{1,2}$ absorbing 5 factors
+8. `0.2149` weight on symmetry $s_{2,3}$ absorbing 4 factors
+9. `0.2115` weight on symmetry $s_{2,3}$ absorbing 4 factors
+10. `-0.2049` weight on symmetry $s_{2,3}$ absorbing 4 factors
 
-However, checking at level 38 we find that 298 negatives reappear.
+However, checking at level 40 we find that 342 negatives reappear.
 
 ## 5. Code contributions, in order of importance
 
