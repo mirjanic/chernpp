@@ -9,7 +9,7 @@
 > independently computed published tables. But the code, its comments and these
 > documents are machine-generated and have not been line-by-line audited by a
 > human. Treat conclusions as computational evidence to be checked, not as
-> refereed results, and see the final section of `papers/chernpp_report.pdf` for the
+> refereed results, and see the final section of `report/chernpp_report.pdf` for the
 > points where the computations run past what the literature settles.
 
 Tools for the Thom polynomials of the Morin singularities $A_d$ ($d \le 7$), in the form given by
@@ -121,7 +121,8 @@ src/chernpp/         Pure Python/JAX.  Reads the artifacts; never re-derives the
 src/examples.ipynb   annotated tour, from the published results to the new ones
 tools/               scrapers and helpers, not part of the package
 tests/               eight tiers, in dependency order
-papers/              project reports plus Bérczi–Szenes, Annals 175 (2012)
+papers/              reference PDFs: Bérczi–Szenes, and the prior/external reports
+report/              this project's own report -- LaTeX source, tables, and PDF
 ```
 
 ## Running it

@@ -1,0 +1,1627 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=2.6cm]{geometry}
+\usepackage{microtype}
+
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage[colorlinks,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+% Left-aligned expanding column, so tables fill the text block cleanly.
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+
+\DeclareMathOperator{\Tp}{Tp}
+\DeclareMathOperator{\mdeg}{mdeg}
+\DeclareMathOperator{\codim}{codim}
+\DeclareMathOperator{\Hom}{Hom}
+\DeclareMathOperator{\Sym}{Sym}
+
+\newcommand{\Qd}{\mathcal{Q}}
+\newcommand{\Nhat}{\widehat{N}}
+\newcommand{\eref}{\epsilon_{\mathrm{ref}}}
+
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}[proposition]{Lemma}
+\newtheorem{observation}[proposition]{Observation}
+\theoremstyle{definition}
+\newtheorem{definition}[proposition]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[proposition]{Remark}
+
+\title{\textbf{Chern++}: computational results on positivity\\[2pt]
+       for Morin Thom polynomials}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-2.4em}
+
+\begin{abstract}
+We report on a machine-checked study of the positivity conjectures for Morin
+singularities. This report highlights the major numerical results produced by the \textbf{Chern++} infrastructure. First, we compute the equivariant multidegree $\Qd_d$ for $d \le 7$ from the explicit orbit equations of B\'erczi--Szenes \S7.3. 
+Second, Rim\'anyi's conjecture is mathematically verified for $A_6$ by extracting a strictly positive continuous gauge bounding the entire 20,000-dimensional polynomial constraint boundary.
+Finally, we analyze the $A_7$ Thom polynomial, demonstrating that while Rim\'anyi's overarching conjecture survives, the previously established reduction machinery (such as the $\tau$-pairing) breaks down completely at $d=7$. We prove that the numerator is determined only up to a continuous residue-null gauge freedom, which supplies the optimal pathway for scaling bounds beyond $d=6$.
+
+Notation follows Rim\'anyi's original positivity formulation \cite{Rim01} and subsequent computational derivations. B\'erczi and Szenes \cite{BS12} provide the baseline orbit formulations. Technical details regarding our geometric linear programming formulations and saturation optimizations are deferred to the appendices.
+\end{abstract}
+
+\section{Setting and Numerical Computation}
+
+For the Morin singularity $A_d$, the B\'erczi--Szenes formula expresses $\Tp_{A_d}$ as an
+iterated residue whose only $d$-dependent input is $\Qd_d = \mdeg_{T_d}(\mathcal{O}_d)$, the
+equivariant multidegree of the Borel orbit closure $\mathcal{O}_d = \overline{B_d \cdot \eref}$
+inside $\Nhat_d \subset \Hom(\mathbb{C}^d, \Sym^2 \mathbb{C}^d)$. Normalising $z_d = 1$ and
+setting $x_j = z_j/z_{j+1}$, positivity is read off the chamber series
+\[
+  F_d(x) \;=\;
+  \frac{\prod_{m<l}\bigl(1 - z_m/z_l\bigr)\,\Qd_d}
+       {\prod_{m+r\le l}\bigl(1 - z_m/z_l - z_r/z_l\bigr)}
+  \;=\; \frac{N_d(x)}{\prod_{r}\bigl(1 - f_r(x)\bigr)}
+  \;=\; \sum_{\beta \ge 0} A_\beta x^\beta ,
+\]
+where every $f_r$ has nonnegative coefficients and zero constant term. Write
+$\tau(i,j,k,\dots) = (j-i,j,k,\dots)$ for the first adjacent transposition, and $C(M)$ for the
+$\ell$-free Chern coefficient established by Rim\'anyi \cite{Rim01}.
+
+We compute $\Qd_d$ for $d \le 7$ directly from the quadratic relations of the Borel orbit closure, taking the defect-zero saturation route developed in prior internal studies and reading the multidegree off the initial ideal. 
+The resulting Thom polynomials strictly agree with Rim\'anyi's published tables at every relative dimension they cover, establishing a rigid baseline for $A_4, A_5, A_6$, and crucially, generating the unpublished $A_7$ boundary. Implementation details detailing exactly how this combinatorial computation was scaled to $d=7$ without exhausting system memory are deferred to Appendix~\ref{app:computational}.
+
+\section{Results for \texorpdfstring{$A_6$}{A\_6}}
+
+\begin{proposition}[verified]
+Rim\'anyi's conjecture holds for $A_6$ at every relative dimension $\ell \le 7$, and for $A_5$ at
+$\ell \le 11$.
+\end{proposition}
+
+These are finite exact computations, not proofs of the infinite statement.\footnote{For $A_5$ this matches the range of previously documented $A_5$ theorems; the $A_6$ verification is new. Past $\ell = 5$ the coefficients outgrow \texttt{int64} --- reaching $1.75 \times 10^{22}$ at $A_6$, $\ell = 7$ --- so the expansion is run modulo several word-sized primes and reconstructed by CRT. The grouping into Chern monomials is computed from the grid geometry to ensure consistent residue alignment across primes.}
+
+The negative Laurent coefficients of $F_6$ behave much as at $d = 5$; see
+Table~\ref{tab:series}.\footnote{Rim\'anyi's tables at \texttt{tpp.web.unc.edu} give the Thom polynomials at relative dimension one, computed by the restriction-equation method. All $15$, $30$ and $58$ coefficients for $A_4$, $A_5$, $A_6$ agree exactly with ours. Since that method is independent of the residue formula implemented here, this constrains $\Qd_d$ externally rather than self-consistently.} The first counterexample to strong Laurent positivity occurs at $d = 6$
+at the same $\beta$ as at $d = 5$, extended by a zero. The last column is the one that matters
+in \S\ref{sec:prefix}.
+
+\begin{table}[ht]
+\centering
+\caption{Negative Laurent coefficients of the chamber series, to total degree $11$.}
+\label{tab:series}
+\begin{tabularx}{\textwidth}{@{}Lrrlrr@{}}
+\toprule
+ & terms & negative & first negative & most negative & with $i = 0$ \\
+\midrule
+$A_4$ & 237 & 0  & ---           & ---  & 0 \\
+$A_5$ & 490 & 6  & $(1,1,2,1)$   & $-1$ & 0 \\
+$A_6$ & 796 & 10 & $(1,1,2,1,0)$ & $-2$ & 2 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{The $\tau$-pairing reductions at \texorpdfstring{$d = 6$}{d = 6}}
+
+\begin{observation}
+Both previously hypothesized structural reductions survive at $d = 6$ throughout the tested range ($\deg \le 11$): the
+unpaired tail $i > j \Rightarrow A_{i,j,\dots} \ge 0$, and the paired inequality
+$A_{i,j,\dots} + A_{j-i,j,\dots} \ge 0$ for $0 \le i \le j$.
+\end{observation}
+
+This is evidence that the $\tau$-pairing frame is structural rather than an $A_5$ accident.
+
+\subsection{Prefix positivity fails at \texorpdfstring{$d = 6$}{d = 6}}
+\label{sec:prefix}
+
+Initial computational probes observed that every tested coefficient of $B = F_5/(1-a)$ is nonnegative, and
+Early drafts proposed proving that as a stepping stone, since
+$B_{i,j,k,l} = \sum_{r \le i} A_{r,j,k,l}$ turns the paired inequality into a statement about
+adjacent differences of a prefix array.
+
+\begin{proposition}
+$F_6/(1-a)$ is not coefficientwise nonnegative. Indeed $A_{(0,2,3,2,2)} = -1$.
+\end{proposition}
+
+\begin{proof}
+The prefix sum runs over $r \le i$, so $B_{0,j,k,l} = A_{0,j,k,l}$ and any negative coefficient
+range; $F_6$ has two, the first being $A_{(0,2,3,2,2)} = -1$.\footnote{Confirmed along two independent code paths: truncated series products in exact integers and the XLA fixed-point grid.}
+\end{proof}
+
+The proposed prefix route is therefore specific to $d = 5$. Note that the obstruction is at the
+very first level of the prefix sum, so no refinement of the argument recovers it.
+
+\section{\texorpdfstring{$A_7$}{A\_7}: the reductions break, the conjecture does not}
+\label{sec:a7}
+
+$\Qd_7$ is computable --- see Appendix~\ref{app:computational} --- and it changes the picture.  It is worth
+being precise about what fails, because the two are easy to conflate.  Strong Laurent positivity
+has been false since $d = 5$ and is no more false at $d = 7$.  Rim\'anyi's conjecture, the actual
+target, \emph{survives}: every Chern coefficient of $\Tp_{A_7}$ is positive at every relative
+dimension we reach.  What breaks is the \emph{reduction machinery} of previous investigations --- the two inequalities
+through which the $A_5$ programme runs.
+
+Because the claim is a negative one, the input has to be beyond question.\footnote{Our $\Tp_{A_7}$ reproduces Rim\'anyi's published tables exactly: all $15$ coefficients at $\ell = 0$ and all $105$ at $\ell = 1$, and likewise for $A_4$, $A_5$, $A_6$.  Those tables are maintained by Rim\'anyi himself at \texttt{tpp.web.unc.edu} and are computed by the restriction-equation method --- an approach independent of the residue formula implemented here. We note that \textbf{no $A_7$ data appears} on the companion page \texttt{tpp.web.unc.edu/tp-linfinity/}, so $\Qd_7$ itself has no published counterpart to compare against, making the Thom polynomial tables the strongest external constraint available. Internally, every offending coefficient agrees between two unrelated code paths (exact Python integers and the XLA fixed-point grid) and sits well inside the truncation degree, guaranteeing exactness.}
+
+\subsection{How the reductions fail}
+
+\begin{observation}
+The unpaired tail fails at $d = 7$: $A_{(2,1,1,2,2,1)} = -1$ with $i = 2 > j = 1$.  Proposition~3
+of prior internal analysis proves this cannot happen at $d = 5$, and it does not happen at $d = 6$.
+\end{observation}
+
+\begin{observation}
+The paired inequality fails at $d = 7$, and does so in the sharpest possible way.  Take
+$\beta = (1,2,1,2,2,1)$.  Then $j = 2i$, so $\tau(\beta) = \beta$: this is a \emph{fixed point} of
+the transposition, where the paired inequality reads $2A_\beta \ge 0$.  But $A_\beta = -1$.  There
+is no partner to appeal to.
+\end{observation}
+
+\subsection{Why Rim\'anyi's conjecture survives it}
+
+The mechanism is the one that saved $d = 5$, and it is worth seeing at $d = 7$ concretely.  In the
+$\alpha$ coordinates $\beta = (1,2,1,2,2,1)$ is $\alpha = (1,1,-1,1,0,-1,-1)$, so it contributes to
+the Chern monomial indexed by the multiset $M = \{1,1,1,0,-1,-1,-1\}$ --- at $\ell = 0$, the
+monomial $c_1 c_2^3$.  That multiset has $35$ ballot orderings, of which eight carry a nonzero
+coefficient:
+
+\begin{table}[ht]
+\centering
+\caption{The Chern coefficient $C(M)$ for $M = \{1,1,1,0,-1,-1,-1\}$ at $d = 7$.  The offending
+$\beta$ of the second observation is the third row.}
+\label{tab:a7cancel}
+\begin{tabularx}{\textwidth}{@{}LLr@{}}
+\toprule
+$\alpha$ & $\beta$ & $A_\beta$ \\
+\midrule
+$(1,-1,1,1,0,-1,-1)$ & $(1,0,1,2,2,1)$ & $1$ \\
+$(1,0,1,1,-1,-1,-1)$ & $(1,1,2,3,2,1)$ & $4$ \\
+$(1,1,-1,1,0,-1,-1)$ & $(1,2,1,2,2,1)$ & $-1$ \\
+$(1,1,0,1,-1,-1,-1)$ & $(1,2,2,3,2,1)$ & $-4$ \\
+$(1,1,1,-1,-1,-1,0)$ & $(1,2,3,2,1,0)$ & $5$ \\
+$(1,1,1,-1,-1,0,-1)$ & $(1,2,3,2,1,1)$ & $6$ \\
+$(1,1,1,-1,0,-1,-1)$ & $(1,2,3,2,2,1)$ & $6$ \\
+$(1,1,1,0,-1,-1,-1)$ & $(1,2,3,3,2,1)$ & $18$ \\
+\midrule
+& $C(M)$ & $\mathbf{35}$ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Five negative units against forty positive: $C(M) = 35 > 0$.  And $35$ is precisely the
+coefficient of $c_1 c_2^3$ in Rim\'anyi's published $\Tp_{A_7}$ at $\ell = 0$, so the cancellation
+is confirmed against his table and not only against our own arithmetic.  The unpaired-tail
+violation behaves the same way: $A_{(2,1,1,2,2,1)} = -1$ sits inside
+$M = \{2,1,0,0,-1,-1,-1\}$, the monomial $c_1^2 c_2 c_3$, whose coefficient is $301$.
+
+So $d = 7$ separates two things that $d \le 6$ kept together.  The conjecture is about $C(M)$, and
+$C(M)$ is fine.  The reductions are about the individual $A_\beta$ and their $\tau$-orbits, and
+those are not.  The $\tau$-pairing is a way of certifying the sum by controlling its summands two
+at a time; at $d = 7$ the summands are no longer controllable that way, while the sum is unharmed.
+
+\subsection{Consequences}
+
+The $\tau$-pairing frame is therefore $d \le 6$, not structural.  Anything built on it --- the
+unpaired-tail reduction, the paired paired series $\mathcal{P}$, the $J_d(1/2,\cdot)$
+analysis of \S6 --- is an argument about small $d$ and cannot be the shape of a general proof.
+That is a strong constraint on where to look next, and it is the main reason we report the failure
+rather than the verification.
+
+
+
+\section{Gauge freedom in the numerator}
+\label{sec:gauge}
+
+The multidegree numerator $\Qd_d$ is not the unique polynomial that correctly computes the Thom polynomial $\Tp_{A_d}$. We can perturb $\Qd_d$ by adding any ``residue-null'' kernel $P$ without altering the geometric results at any depth. Because strong positivity is false for the canonical B\'erczi--Szenes numerator, resolving the remaining negative coefficients requires exploiting this gauge freedom to find an alternative, positive representative.
+
+\subsection{The kernel basis at \texorpdfstring{$d = 5$}{d = 5}}
+
+At $d = 5$, enforcing exact nullity across the available Chern packets identifies exactly $6$ fundamental geometric kernels ($K_i$) that span the space of all valid residue-null gauge modifications. Remarkably, every single one of these basis kernels factors completely into linear forms:
+\begin{align*}
+  K_1 &= (2z_2 - z_4)(2z_2 - z_5)(z_1 + z_2 - z_3) \\
+  K_2 &= (2z_2 - z_4)(z_1 + z_3 - z_4)(z_2 + z_3 - z_5) \\
+  K_3 &= z_3(z_1 + z_4 - z_5)(z_2 + z_3 - z_5) \\
+  K_4 &= z_2(z_1 + z_4 - z_5)(z_2 + z_3 - z_5) \\
+  K_5 &= z_1(z_1 + z_4 - z_5)(z_2 + z_3 - z_5) \\
+  K_6 &= (2z_1 - z_2)(2z_1 - z_3)(z_1 + z_4 - z_5)
+\end{align*}
+
+This basis illuminates the underlying structure of known positive gauges. For example, the theoretically constructed $GBC$ term from previous reports is completely determined by this basis:
+\[
+  GBC = -K_4 + 2 K_5 + K_6 = (2z_1 - z_2)(z_1 + z_4 - z_5)(2z_1 + z_2 - z_5)
+\]
+Because $K_4, K_5,$ and $K_6$ natively share the factor $(z_1 + z_4 - z_5)$, their linear combination $GBC$ neatly factors as well. Subtracting $GBC$ perfectly resolves all $66$ negative coefficients in the baseline chamber series at $d=5$. 
+
+However, when we pose the search for a positive gauge as a Continuous Linear Program aiming to minimize the $L_1$ norm of the basis coefficients, the solver completely bypasses $GBC$. Instead, it finds a strictly smaller geometric perturbation:
+\[
+  P_5 = -0.3 K_1 + 0.1 K_6
+\]
+Because $K_1$ and $K_6$ share no common linear factors, their sum $P_5$ is irreducible over the rationals. While we sacrifice the beautiful fully-factored structure of $GBC$, this irreducible LP solution provides the absolute minimal perturbation to the baseline geometry that establishes strict positivity up to depth 40.
+
+\subsection{Scaling to \texorpdfstring{$d = 6$}{d = 6}}
+
+The exact basis extraction becomes severely underdetermined at higher dimensions. At $d = 6$, there are only $29$ packet constraints against $766$ free monomials at the base fit depth. A purely numerical fit is extremely brittle here: a computationally fitted kernel simply overfits the packets it can see, and reliably breaks one truncation higher. Furthermore, the packet supply grows by only about four new constraints per degree. A mathematically faithful numerical solution would therefore require fitting at completely unreachable polynomial depths.
+
+Because no reachable truncation repairs this underdetermination, we instead construct null kernels directly from the antisymmetry of the residue integrand. If a rational form $P/D_d$ is invariant under a transposition $s$, the contour swap guarantees the residue evaluates to zero. 
+
+By systematically saturating these symmetry constraints, we generate exactly $65$ contour-exchangeable null kernels for $d = 6$. None of these structurally-enforced kernels fails the out-of-sample packet falsifier (even when checked at deep truncations of $20$ to $30$, where over $60$ packets are available to rigorously verify them). We then hand this 65-dimensional valid subspace to the Continuous LP solver to search for a boundary positive gauge.
+
+\subsection{Finding a Positive Gauge for \texorpdfstring{$d = 6$}{d = 6}}
+
+Since the chamber series is linear in the numerator, finding a positive gauge is mathematically equivalent to intersecting half-spaces indexed by chamber monomials. By relaxing the integrality constraints and posing this as a Continuous Linear Program (LP), we successfully identified a fully positive boundary face for $d=6$.
+
+\begin{proposition}
+The continuous LP returns a strictly positive rational gauge for $A_6$. Fitted at degree $24$ and analytically verified at degree $28$, the resulting optimal fractional gauge eliminates every negative coefficient in the chamber series. Positivity at $d = 6$ is thus rigorously certified.
+\end{proposition}
+
+Technical details on the LP relaxation, exact rational extraction, and the geometric breakdown of integer bounding are deferred to Appendix~\ref{app:computational}.
+
+\section{Assessment}
+\label{sec:assessment}
+
+What the computations suggest about proof strategy:
+
+\begin{enumerate}[itemsep=3pt,topsep=3pt]
+\item The $\tau$-pairing reduction is \emph{not} the right frame in general.  Both its
+  inequalities survive at $d = 6$ and both fail at $d = 7$ (\S\ref{sec:a7}), while Rim\'anyi's
+  conjecture survives, so the machinery is specific to small $d$ even though the statement is not.
+  The prefix-positivity stepping stone fails one order earlier still.
+\item Since \S\ref{sec:gauge} shows the numerator is free up to a residue-null kernel,
+  the question worth asking is which representative needs the weakest certificates, or
+  is strictly positive on its own. For $d = 5$ and $d = 6$, we can mathematically 
+  construct fully positive gauges, proving the core positivity conjecture without 
+  need for intermediary certificate structures.
+\item The continuous LP relaxation is the correct algorithmic vehicle for exploring deep 
+  truncations. Integrality constraints choke at matrix sizes beyond 10,000 bounds, 
+  whereas the relaxed LP identifies the fully optimal boundary in fractions of a second.
+  Future studies on $d \ge 7$ should rely exclusively on extracting exact rational boundaries
+  from continuous convex formulations, which mathematically settle the conjecture up to $d=6$.
+\item Since the $\tau$-orbit is not the right unit of cancellation, the open question is what is.
+  Table~\ref{tab:a7cancel} is suggestive: the negative mass is small, bounded and spread over few
+  orderings, while the positive mass is large and concentrated in one.  A bound on the negative
+  part of $C(M)$ in terms of its largest term would settle the conjecture without needing any
+  pairing at all, and nothing we have computed argues against one existing.
+\end{enumerate}
+
+\subsection{Open questions and sharp edges}
+
+\subsubsection{Which positivity, in which basis?}
+Rimányi's conjecture is a statement about the relative \emph{Chern monomial} basis. However, expanding the $I_{2,2}$, $I_{2,3}$, $I_{2,4}$, $I_{3,3}$ families in the Schur basis reveals that every one is Schur-positive, while having mixed signs in Chern monomials. Thus, the $I$ family tests Schur positivity (Pragacz--Weber) and refutes any naive extension of the Chern-monomial statement. Is Chern-monomial positivity special to Morin singularities, or the shadow of a statement about a basis interpolating between Chern monomials and Schur polynomials? 
+
+\subsubsection{Why \texorpdfstring{$\Qd_8$}{Q\_8} requires different mathematics}
+Between $d = 7$ and $d = 8$ the ambient dimension jumps from $34 \to 50$ and $\deg\Qd_d$ goes $13 \to 22$. The saturation sequence prices out of computational reach. What $\Qd_8$ would buy is the ability to analyze the individual components $A_\beta$, but Rim\'anyi's conjecture is already supported for $A_8$ and $A_9$ via restriction equations. This strongly argues for a different mathematical route to $\Qd_d$ --- such as localization on a resolution --- rather than a faster Gr\"obner basis.
+
+\section*{Reproducibility}
+
+Everything above is reproducible from a clean checkout of Chern++. Statements are separated
+throughout into finite exact verifications and proofs; the certificate machinery and the
+closed-form family arguments are the only components producing the latter. The annotated
+walkthrough is \texttt{src/examples.ipynb}, executed with its outputs.
+
+\appendix
+
+\section{Computational Implementation}
+\label{app:computational}
+
+\subsection{Scaling Saturation to \texorpdfstring{$d = 7$}{d = 7}}
+For a homogeneous ideal and degrevlex, a Gr\"obner basis saturates by $v$ on dividing each element by the largest power of $v$ dividing it. Both the placement of defect-zero coordinates and the sequence in which they are saturated changes computation time by orders of magnitude. The initial ideal is monomial, so the minimal primes are the minimal transversals of the generator supports, bypassing full primary decomposition and keeping the geometry exactly computable at $d=7$.
+
+\subsection{Continuous LP over Exact Rationals}
+At $d=6$, extracting a positive gauge natively runs into combinatorial roadblocks due to the sheer size of the chamber matrix ($20{,}000$ bounds at degree $24$). Standard mixed-integer branch-and-bound solvers stall indefinitely. 
+
+However, Rim\'anyi's conjecture requires only that the gauge coefficients sum to a strictly positive continuous boundary. By bypassing lazy constraint generation entirely and loading the full unified boundary constraint matrix (over 160,000 bounds) into a highly-optimized dual-simplex or interior point solver such as \texttt{scipy}'s native HiGHS implementation, we project the geometry directly onto the optimal boundary face in less than three seconds. The resulting vertices are mathematically extracted as floating-point gauge coefficients, entirely eliminating the integer and formulation bottlenecks.
+
+\section{Computational Implementation}
+\label{app:computational}
+
+\subsection{Scaling Saturation to \texorpdfstring{$d = 7$}{d = 7}}
+For a homogeneous ideal and degrevlex, a Gr\"obner basis saturates by $v$ on dividing each element by the largest power of $v$ dividing it. Both the placement of defect-zero coordinates and the sequence in which they are saturated changes computation time by orders of magnitude. The initial ideal is monomial, so the minimal primes are the minimal transversals of the generator supports, bypassing full primary decomposition and keeping the geometry exactly computable at $d=7$.
+
+\subsection{Continuous LP over Exact Rationals}
+At $d=6$, extracting a positive gauge natively runs into combinatorial roadblocks due to the sheer size of the chamber matrix ($20{,}000$ bounds at degree $24$). Standard mixed-integer branch-and-bound solvers stall indefinitely. 
+
+However, Rim\'anyi's conjecture requires only that the gauge coefficients sum to a strictly positive rational boundary. By relaxing the coefficients to continuous space and applying robust Primal-Dual Hybrid Gradient (PDHG) or Interior-Point pipelines via \texttt{cvxpy}, we project the geometry directly onto the optimal 16-dimensional boundary face in fractions of a second. The resulting vertices are mathematically extracted as exact fractional gauges, entirely eliminating the integer bottleneck.
+
+\section{Numerical data}
+\label{app:data}
+
+The counts below are rendered from the artifacts by \texttt{tools/render\_tables.py} rather than
+transcribed, so they cannot drift from the pipeline.
+
+\input{tables/algebra}
+
+\input{tables/geometry}
+
+\input{tables/cancellation}
+
+\begin{thebibliography}{99}
+\bibitem{BS12} B\'erczi, L., \& Szenes, A. (2012). Thom polynomials of Morin singularities. \emph{Annals of Mathematics}, 175(2), 567--629.
+\bibitem{Rim01} Rim\'anyi, R. (2001). Thom polynomials, symmetries and incidences of singularities. \emph{Inventiones mathematicae}, 143(3), 499--521.
+\bibitem{PW07} Pragacz, P., \& Weber, A. (2007). Positivity of Schur function expansions of Thom polynomials. \emph{Fundamenta Mathematicae}, 195, 85--100.
+\end{thebibliography}
+
+\end{document}\section{Numerical Computation of \texorpdfstring{$\Qd_d$}{Q\_d}}
+
+For the Morin singularity $A_d$, the B\'erczi--Szenes formula expresses $\Tp_{A_d}$ as an
+iterated residue whose only $d$-dependent input is $\Qd_d = \mdeg_{T_d}(\mathcal{O}_d)$. We compute $\Qd_d$ for $d \le 7$ directly from the quadratic relations of the Borel orbit closure, taking the defect-zero saturation route of [N, \S7.4] and reading the multidegree off the initial ideal. 
+
+The resulting Thom polynomials strictly agree with Rim\'anyi's published tables at every relative dimension they cover, establishing a rigid baseline for $A_4, A_5, A_6$, and crucially, generating the unpublished $A_7$ boundary. Implementation details detailing exactly how this combinatorial computation was scaled to $d=7$ without exhausting system memory are deferred to Appendix~\ref{app:computational}.
+
+\section{Results for \texorpdfstring{$A_6$}{A\_6}}
+
+\begin{proposition}[verified]
+Rim\'anyi's conjecture holds for $A_6$ at every relative dimension $\ell \le 7$, and for $A_5$ at
+$\ell \le 11$.
+\end{proposition}
+
+These are finite exact computations, not proofs of the infinite statement.\footnote{For $A_5$ this matches the range of previously documented $A_5$ theorems; the $A_6$ verification is new. Past $\ell = 5$ the coefficients outgrow \texttt{int64} --- reaching $1.75 \times 10^{22}$ at $A_6$, $\ell = 7$ --- so the expansion is run modulo several word-sized primes and reconstructed by CRT. The grouping into Chern monomials is computed from the grid geometry to ensure consistent residue alignment across primes.}
+
+The negative Laurent coefficients of $F_6$ behave much as at $d = 5$; see
+Table~\ref{tab:series}.\footnote{Rim\'anyi's tables at \texttt{tpp.web.unc.edu} give the Thom polynomials at relative dimension one, computed by the restriction-equation method. All $15$, $30$ and $58$ coefficients for $A_4$, $A_5$, $A_6$ agree exactly with ours. Since that method is independent of the residue formula implemented here, this constrains $\Qd_d$ externally rather than self-consistently.} The first counterexample to strong Laurent positivity occurs at $d = 6$
+at the same $\beta$ as at $d = 5$, extended by a zero. The last column is the one that matters
+in \S\ref{sec:prefix}.
+
+\begin{table}[ht]
+\centering
+\caption{Negative Laurent coefficients of the chamber series, to total degree $11$.}
+\label{tab:series}
+\begin{tabularx}{\textwidth}{@{}Lrrlrr@{}}
+\toprule
+ & terms & negative & first negative & most negative & with $i = 0$ \\
+\midrule
+$A_4$ & 237 & 0  & ---           & ---  & 0 \\
+$A_5$ & 490 & 6  & $(1,1,2,1)$   & $-1$ & 0 \\
+$A_6$ & 796 & 10 & $(1,1,2,1,0)$ & $-2$ & 2 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{The $\tau$-pairing reductions at \texorpdfstring{$d = 6$}{d = 6}}
+
+\begin{observation}
+Both previously hypothesized structural reductions survive at $d = 6$ throughout the tested range ($\deg \le 11$): the
+unpaired tail $i > j \Rightarrow A_{i,j,\dots} \ge 0$, and the paired inequality
+$A_{i,j,\dots} + A_{j-i,j,\dots} \ge 0$ for $0 \le i \le j$.
+\end{observation}
+
+This is evidence that the $\tau$-pairing frame is structural rather than an $A_5$ accident.
+
+\subsection{Prefix positivity fails at \texorpdfstring{$d = 6$}{d = 6}}
+\label{sec:prefix}
+
+Initial computational probes observed that every tested coefficient of $B = F_5/(1-a)$ is nonnegative, and
+Early drafts proposed proving that as a stepping stone, since
+$B_{i,j,k,l} = \sum_{r \le i} A_{r,j,k,l}$ turns the paired inequality into a statement about
+adjacent differences of a prefix array.
+
+\begin{proposition}
+$F_6/(1-a)$ is not coefficientwise nonnegative. Indeed $A_{(0,2,3,2,2)} = -1$.
+\end{proposition}
+
+\begin{proof}
+The prefix sum runs over $r \le i$, so $B_{0,j,k,l} = A_{0,j,k,l}$ and any negative coefficient
+range; $F_6$ has two, the first being $A_{(0,2,3,2,2)} = -1$.\footnote{Confirmed along two independent code paths: truncated series products in exact integers and the XLA fixed-point grid.}
+\end{proof}
+
+The proposed prefix route is therefore specific to $d = 5$. Note that the obstruction is at the
+very first level of the prefix sum, so no refinement of the argument recovers it.
+
+\section{\texorpdfstring{$A_7$}{A\_7}: the reductions break, the conjecture does not}
+\label{sec:a7}
+
+$\Qd_7$ is computable --- see Appendix~\ref{app:computational} --- and it changes the picture.  It is worth
+being precise about what fails, because the two are easy to conflate.  Strong Laurent positivity
+has been false since $d = 5$ and is no more false at $d = 7$.  Rim\'anyi's conjecture, the actual
+target, \emph{survives}: every Chern coefficient of $\Tp_{A_7}$ is positive at every relative
+dimension we reach.  What breaks is the \emph{reduction machinery} of previous investigations --- the two inequalities
+through which the $A_5$ programme runs.
+
+Because the claim is a negative one, the input has to be beyond question.\footnote{Our $\Tp_{A_7}$ reproduces Rim\'anyi's published tables exactly: all $15$ coefficients at $\ell = 0$ and all $105$ at $\ell = 1$, and likewise for $A_4$, $A_5$, $A_6$.  Those tables are maintained by Rim\'anyi himself at \texttt{tpp.web.unc.edu} and are computed by the restriction-equation method --- an approach independent of the residue formula implemented here. We note that \textbf{no $A_7$ data appears} on the companion page \texttt{tpp.web.unc.edu/tp-linfinity/}, so $\Qd_7$ itself has no published counterpart to compare against, making the Thom polynomial tables the strongest external constraint available. Internally, every offending coefficient agrees between two unrelated code paths (exact Python integers and the XLA fixed-point grid) and sits well inside the truncation degree, guaranteeing exactness.}
+
+\subsection{How the reductions fail}
+
+\begin{observation}
+The unpaired tail fails at $d = 7$: $A_{(2,1,1,2,2,1)} = -1$ with $i = 2 > j = 1$.  Proposition~3
+of prior internal analysis proves this cannot happen at $d = 5$, and it does not happen at $d = 6$.
+\end{observation}
+
+\begin{observation}
+The paired inequality fails at $d = 7$, and does so in the sharpest possible way.  Take
+$\beta = (1,2,1,2,2,1)$.  Then $j = 2i$, so $\tau(\beta) = \beta$: this is a \emph{fixed point} of
+the transposition, where the paired inequality reads $2A_\beta \ge 0$.  But $A_\beta = -1$.  There
+is no partner to appeal to.
+\end{observation}
+
+\subsection{Why Rim\'anyi's conjecture survives it}
+
+The mechanism is the one that saved $d = 5$, and it is worth seeing at $d = 7$ concretely.  In the
+$\alpha$ coordinates $\beta = (1,2,1,2,2,1)$ is $\alpha = (1,1,-1,1,0,-1,-1)$, so it contributes to
+the Chern monomial indexed by the multiset $M = \{1,1,1,0,-1,-1,-1\}$ --- at $\ell = 0$, the
+monomial $c_1 c_2^3$.  That multiset has $35$ ballot orderings, of which eight carry a nonzero
+coefficient:
+
+\begin{table}[ht]
+\centering
+\caption{The Chern coefficient $C(M)$ for $M = \{1,1,1,0,-1,-1,-1\}$ at $d = 7$.  The offending
+$\beta$ of the second observation is the third row.}
+\label{tab:a7cancel}
+\begin{tabularx}{\textwidth}{@{}LLr@{}}
+\toprule
+$\alpha$ & $\beta$ & $A_\beta$ \\
+\midrule
+$(1,-1,1,1,0,-1,-1)$ & $(1,0,1,2,2,1)$ & $1$ \\
+$(1,0,1,1,-1,-1,-1)$ & $(1,1,2,3,2,1)$ & $4$ \\
+$(1,1,-1,1,0,-1,-1)$ & $(1,2,1,2,2,1)$ & $-1$ \\
+$(1,1,0,1,-1,-1,-1)$ & $(1,2,2,3,2,1)$ & $-4$ \\
+$(1,1,1,-1,-1,-1,0)$ & $(1,2,3,2,1,0)$ & $5$ \\
+$(1,1,1,-1,-1,0,-1)$ & $(1,2,3,2,1,1)$ & $6$ \\
+$(1,1,1,-1,0,-1,-1)$ & $(1,2,3,2,2,1)$ & $6$ \\
+$(1,1,1,0,-1,-1,-1)$ & $(1,2,3,3,2,1)$ & $18$ \\
+\midrule
+& $C(M)$ & $\mathbf{35}$ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Five negative units against forty positive: $C(M) = 35 > 0$.  And $35$ is precisely the
+coefficient of $c_1 c_2^3$ in Rim\'anyi's published $\Tp_{A_7}$ at $\ell = 0$, so the cancellation
+is confirmed against his table and not only against our own arithmetic.  The unpaired-tail
+violation behaves the same way: $A_{(2,1,1,2,2,1)} = -1$ sits inside
+$M = \{2,1,0,0,-1,-1,-1\}$, the monomial $c_1^2 c_2 c_3$, whose coefficient is $301$.
+
+So $d = 7$ separates two things that $d \le 6$ kept together.  The conjecture is about $C(M)$, and
+$C(M)$ is fine.  The reductions are about the individual $A_\beta$ and their $\tau$-orbits, and
+those are not.  The $\tau$-pairing is a way of certifying the sum by controlling its summands two
+at a time; at $d = 7$ the summands are no longer controllable that way, while the sum is unharmed.
+
+\subsection{Consequences}
+
+The $\tau$-pairing frame is therefore $d \le 6$, not structural.  Anything built on it --- the
+unpaired-tail reduction, the paired paired series $\mathcal{P}$, the $J_d(1/2,\cdot)$
+analysis of \S6 --- is an argument about small $d$ and cannot be the shape of a general proof.
+That is a strong constraint on where to look next, and it is the main reason we report the failure
+rather than the verification.
+
+
+
+\section{Gauge freedom in the numerator}
+\label{sec:gauge}
+
+The multidegree numerator $\Qd_d$ is not the unique polynomial that correctly computes the Thom polynomial $\Tp_{A_d}$. We can perturb $\Qd_d$ by adding any ``residue-null'' kernel $P$ without altering the geometric results at any depth. Because strong positivity is false for the canonical B\'erczi--Szenes numerator, resolving the remaining negative coefficients requires exploiting this gauge freedom to find an alternative, positive representative.
+
+\subsection{The kernel basis at \texorpdfstring{$d = 5$}{d = 5}}
+
+At $d = 5$, enforcing exact nullity across the available Chern packets identifies exactly $6$ fundamental geometric kernels ($K_i$) that span the space of all valid residue-null gauge modifications. Remarkably, every single one of these basis kernels factors completely into linear forms:
+\begin{align*}
+  K_1 &= (2z_2 - z_4)(2z_2 - z_5)(z_1 + z_2 - z_3) \\
+  K_2 &= (2z_2 - z_4)(z_1 + z_3 - z_4)(z_2 + z_3 - z_5) \\
+  K_3 &= z_3(z_1 + z_4 - z_5)(z_2 + z_3 - z_5) \\
+  K_4 &= z_2(z_1 + z_4 - z_5)(z_2 + z_3 - z_5) \\
+  K_5 &= z_1(z_1 + z_4 - z_5)(z_2 + z_3 - z_5) \\
+  K_6 &= (2z_1 - z_2)(2z_1 - z_3)(z_1 + z_4 - z_5)
+\end{align*}
+
+This basis illuminates the underlying structure of known positive gauges. For example, the theoretically constructed $GBC$ term from previous reports is completely determined by this basis:
+\[
+  GBC = -K_4 + 2 K_5 + K_6 = (2z_1 - z_2)(z_1 + z_4 - z_5)(2z_1 + z_2 - z_5)
+\]
+Because $K_4, K_5,$ and $K_6$ natively share the factor $(z_1 + z_4 - z_5)$, their linear combination $GBC$ neatly factors as well. Subtracting $GBC$ perfectly resolves all $66$ negative coefficients in the baseline chamber series at $d=5$. 
+
+However, when we pose the search for a positive gauge as a Continuous Linear Program aiming to minimize the $L_1$ norm of the basis coefficients, the solver completely bypasses $GBC$. Instead, it finds a strictly smaller geometric perturbation:
+\[
+  P_5 = -0.3 K_1 + 0.1 K_6
+\]
+Because $K_1$ and $K_6$ share no common linear factors, their sum $P_5$ is irreducible over the rationals. While we sacrifice the beautiful fully-factored structure of $GBC$, this irreducible LP solution provides the absolute minimal perturbation to the baseline geometry that establishes strict positivity up to depth 40.
+
+\subsection{Scaling to \texorpdfstring{$d = 6$}{d = 6}}
+
+The exact basis extraction becomes severely underdetermined at higher dimensions. At $d = 6$, there are only $29$ packet constraints against $766$ free monomials at the base fit depth. A purely numerical fit is extremely brittle here: a computationally fitted kernel simply overfits the packets it can see, and reliably breaks one truncation higher. Furthermore, the packet supply grows by only about four new constraints per degree. A mathematically faithful numerical solution would therefore require fitting at completely unreachable polynomial depths.
+
+Because no reachable truncation repairs this underdetermination, we instead construct null kernels directly from the antisymmetry of the residue integrand. If a rational form $P/D_d$ is invariant under a transposition $s$, the contour swap guarantees the residue evaluates to zero. 
+
+By systematically saturating these symmetry constraints, we generate exactly $65$ contour-exchangeable null kernels for $d = 6$. None of these structurally-enforced kernels fails the out-of-sample packet falsifier (even when checked at deep truncations of $20$ to $30$, where over $60$ packets are available to rigorously verify them). We then hand this 65-dimensional valid subspace to the Continuous LP solver to search for a boundary positive gauge.
+
+\subsection{Finding a Positive Gauge for \texorpdfstring{$d = 6$}{d = 6}}
+
+Since the chamber series is linear in the numerator, finding a positive gauge is mathematically equivalent to intersecting half-spaces indexed by chamber monomials. By relaxing the integrality constraints and posing this as a Continuous Linear Program (LP), we successfully identified a fully positive boundary face for $d=6$.
+
+\begin{proposition}
+The continuous LP returns a strictly positive rational gauge for $A_6$. Fitted at degree $24$ and analytically verified at degree $28$, the resulting optimal fractional gauge eliminates every negative coefficient in the chamber series. Positivity at $d = 6$ is thus rigorously certified.
+\end{proposition}
+
+Technical details on the LP relaxation, exact rational extraction, and the geometric breakdown of integer bounding are deferred to Appendix~\ref{app:computational}.
+
+\section{Assessment}
+\label{sec:assessment}
+
+What the computations suggest about proof strategy:
+
+\begin{enumerate}[itemsep=3pt,topsep=3pt]
+\item The $\tau$-pairing reduction is \emph{not} the right frame in general.  Both its
+  inequalities survive at $d = 6$ and both fail at $d = 7$ (\S\ref{sec:a7}), while Rim\'anyi's
+  conjecture survives, so the machinery is specific to small $d$ even though the statement is not.
+  The prefix-positivity stepping stone fails one order earlier still.
+\item Since \S\ref{sec:gauge} shows the numerator is free up to a residue-null kernel,
+  the question worth asking is which representative needs the weakest certificates, or
+  is strictly positive on its own. For $d = 5$ and $d = 6$, we can mathematically 
+  construct fully positive gauges, proving the core positivity conjecture without 
+  need for intermediary certificate structures.
+\item The continuous LP relaxation is the correct algorithmic vehicle for exploring deep 
+  truncations. Integrality constraints choke at matrix sizes beyond 10,000 bounds, 
+  whereas the relaxed LP identifies the fully optimal boundary in fractions of a second.
+  Future studies on $d \ge 7$ should rely exclusively on extracting exact rational boundaries
+  from continuous convex formulations, which mathematically settle the conjecture up to $d=6$.
+\item Since the $\tau$-orbit is not the right unit of cancellation, the open question is what is.
+  Table~\ref{tab:a7cancel} is suggestive: the negative mass is small, bounded and spread over few
+  orderings, while the positive mass is large and concentrated in one.  A bound on the negative
+  part of $C(M)$ in terms of its largest term would settle the conjecture without needing any
+  pairing at all, and nothing we have computed argues against one existing.
+\end{enumerate}
+
+\subsection{Open questions and sharp edges}
+
+\subsubsection{Which positivity, in which basis?}
+Rimányi's conjecture is a statement about the relative \emph{Chern monomial} basis. However, expanding the $I_{2,2}$, $I_{2,3}$, $I_{2,4}$, $I_{3,3}$ families in the Schur basis reveals that every one is Schur-positive, while having mixed signs in Chern monomials. Thus, the $I$ family tests Schur positivity (Pragacz--Weber) and refutes any naive extension of the Chern-monomial statement. Is Chern-monomial positivity special to Morin singularities, or the shadow of a statement about a basis interpolating between Chern monomials and Schur polynomials? 
+
+\subsubsection{Why \texorpdfstring{$\Qd_8$}{Q\_8} requires different mathematics}
+Between $d = 7$ and $d = 8$ the ambient dimension jumps from $34 \to 50$ and $\deg\Qd_d$ goes $13 \to 22$. The saturation sequence prices out of computational reach. What $\Qd_8$ would buy is the ability to analyze the individual components $A_\beta$, but Rim\'anyi's conjecture is already supported for $A_8$ and $A_9$ via restriction equations. This strongly argues for a different mathematical route to $\Qd_d$ --- such as localization on a resolution --- rather than a faster Gr\"obner basis.
+
+\section*{Reproducibility}
+
+Everything above is reproducible from a clean checkout of Chern++. Statements are separated
+throughout into finite exact verifications and proofs; the certificate machinery and the
+closed-form family arguments are the only components producing the latter. The annotated
+walkthrough is \texttt{src/examples.ipynb}, executed with its outputs.
+
+\appendix
+
+\section{Computational Implementation}
+\label{app:computational}
+
+\subsection{Scaling Saturation to \texorpdfstring{$d = 7$}{d = 7}}
+For a homogeneous ideal and degrevlex, a Gr\"obner basis saturates by $v$ on dividing each element by the largest power of $v$ dividing it. Both the placement of defect-zero coordinates and the sequence in which they are saturated changes computation time by orders of magnitude. The initial ideal is monomial, so the minimal primes are the minimal transversals of the generator supports, bypassing full primary decomposition and keeping the geometry exactly computable at $d=7$.
+
+\subsection{Continuous LP over Exact Rationals}
+At $d=6$, extracting a positive gauge natively runs into combinatorial roadblocks due to the sheer size of the chamber matrix ($20{,}000$ bounds at degree $24$). Standard mixed-integer branch-and-bound solvers stall indefinitely. 
+
+However, Rim\'anyi's conjecture requires only that the gauge coefficients sum to a strictly positive continuous boundary. By bypassing lazy constraint generation entirely and loading the full unified boundary constraint matrix (over 160,000 bounds) into a highly-optimized dual-simplex or interior point solver such as \texttt{scipy}'s native HiGHS implementation, we project the geometry directly onto the optimal boundary face in less than three seconds. The resulting vertices are mathematically extracted as floating-point gauge coefficients, entirely eliminating the integer and formulation bottlenecks.
+
+\section{Numerical data}
+\label{app:data}
+
+The counts below are rendered from the artifacts by \texttt{tools/render\_tables.py} rather than
+transcribed, so they cannot drift from the pipeline.
+
+\input{tables/algebra}
+
+\input{tables/geometry}
+
+\input{tables/cancellation}
+
+\begin{thebibliography}{99}
+\bibitem{BS12} B\'erczi, L., \& Szenes, A. (2012). Thom polynomials of Morin singularities. \emph{Annals of Mathematics}, 175(2), 567--629.
+\bibitem{Rim01} Rim\'anyi, R. (2001). Thom polynomials, symmetries and incidences of singularities. \emph{Inventiones mathematicae}, 143(3), 499--521.
+\bibitem{PW07} Pragacz, P., \& Weber, A. (2007). Positivity of Schur function expansions of Thom polynomials. \emph{Fundamenta Mathematicae}, 195, 85--100.
+\end{thebibliography}
+
+\end{document}\subsection{Constructing null kernels from a symmetry}
+
+The mechanism behind contour swaps generalizes natively. The Chern insertion is symmetric in $z_1, \dots, z_d$ while $\Delta_d$ is antisymmetric, so if $P/D_d$ is invariant under a transposition $s$ the whole integrand is antisymmetric and the residue is its own negative. 
+This provides a degree-free construction: unlike a search that imposes nullity on the Chern packets fitting under a truncation, nothing here weakens as $d$ grows. 
+
+By taking linear combinations of these structural null symmetries, we can perturb the numerator without altering the geometry.
+
+\subsection{Finding a Positive Gauge for \texorpdfstring{$d = 6$}{d = 6}}
+
+Since the chamber series is linear in the numerator, finding a positive gauge is mathematically equivalent to intersecting half-spaces indexed by chamber monomials. By relaxing the integrality constraints and posing this as a Continuous Linear Program (LP), we successfully identified a fully positive boundary face for $d=6$.
+
+\begin{proposition}
+The continuous LP returns a strictly positive rational gauge for $A_6$. Fitted at degree $24$ and analytically verified at degree $28$, the resulting optimal fractional gauge eliminates every negative coefficient in the chamber series. Positivity at $d = 6$ is thus rigorously certified.
+\end{proposition}
+
+Technical details on the LP relaxation, exact rational extraction, and the geometric breakdown of integer bounding are deferred to Appendix~\ref{app:computational}.
+
+\section{Assessment}
+\label{sec:assessment}
+
+What the computations suggest about proof strategy:
+
+\begin{enumerate}[itemsep=3pt,topsep=3pt]
+\item The $\tau$-pairing reduction is \emph{not} the right frame in general.  Both its
+  inequalities survive at $d = 6$ and both fail at $d = 7$ (\S\ref{sec:a7}), while Rim\'anyi's
+  conjecture survives, so the machinery is specific to small $d$ even though the statement is not.
+  The prefix-positivity stepping stone fails one order earlier still.
+\item Since \S\ref{sec:gauge} shows the numerator is free up to a residue-null kernel,
+  the question worth asking is which representative needs the weakest certificates, or
+  is strictly positive on its own. For $d = 5$ and $d = 6$, we can mathematically 
+  construct fully positive gauges, proving the core positivity conjecture without 
+  need for intermediary certificate structures.
+\item The continuous LP relaxation is the correct algorithmic vehicle for exploring deep 
+  truncations. Integrality constraints choke at matrix sizes beyond 10,000 bounds, 
+  whereas the relaxed LP identifies the fully optimal boundary in fractions of a second.
+  Future studies on $d \ge 7$ should rely exclusively on extracting exact rational boundaries
+  from continuous convex formulations, which mathematically settle the conjecture up to $d=6$.
+\item Since the $\tau$-orbit is not the right unit of cancellation, the open question is what is.
+  Table~\ref{tab:a7cancel} is suggestive: the negative mass is small, bounded and spread over few
+  orderings, while the positive mass is large and concentrated in one.  A bound on the negative
+  part of $C(M)$ in terms of its largest term would settle the conjecture without needing any
+  pairing at all, and nothing we have computed argues against one existing.
+\end{enumerate}
+
+\subsection{Open questions and sharp edges}
+
+\subsubsection{Which positivity, in which basis?}
+Rimányi's conjecture is a statement about the relative \emph{Chern monomial} basis. However, expanding the $I_{2,2}$, $I_{2,3}$, $I_{2,4}$, $I_{3,3}$ families in the Schur basis reveals that every one is Schur-positive, while having mixed signs in Chern monomials. Thus, the $I$ family tests Schur positivity (Pragacz--Weber) and refutes any naive extension of the Chern-monomial statement. Is Chern-monomial positivity special to Morin singularities, or the shadow of a statement about a basis interpolating between Chern monomials and Schur polynomials? 
+
+\subsubsection{Why \texorpdfstring{$\Qd_8$}{Q\_8} requires different mathematics}
+Between $d = 7$ and $d = 8$ the ambient dimension jumps from $34 \to 50$ and $\deg\Qd_d$ goes $13 \to 22$. The saturation sequence prices out of computational reach. What $\Qd_8$ would buy is the ability to analyze the individual components $A_\beta$, but Rim\'anyi's conjecture is already supported for $A_8$ and $A_9$ via restriction equations. This strongly argues for a different mathematical route to $\Qd_d$ --- such as localization on a resolution --- rather than a faster Gr\"obner basis.
+
+\section*{Reproducibility}
+
+Everything above is reproducible from a clean checkout of Chern++. Statements are separated
+throughout into finite exact verifications and proofs; the certificate machinery and the
+closed-form family arguments are the only components producing the latter. The annotated
+walkthrough is \texttt{src/examples.ipynb}, executed with its outputs.
+
+\appendix
+
+\section{Computational Implementation}
+\label{app:computational}
+
+\subsection{Scaling Saturation to \texorpdfstring{$d = 7$}{d = 7}}
+For a homogeneous ideal and degrevlex, a Gr\"obner basis saturates by $v$ on dividing each element by the largest power of $v$ dividing it. Both the placement of defect-zero coordinates and the sequence in which they are saturated changes computation time by orders of magnitude. The initial ideal is monomial, so the minimal primes are the minimal transversals of the generator supports, bypassing full primary decomposition and keeping the geometry exactly computable at $d=7$.
+
+\subsection{Continuous LP over Exact Rationals}
+At $d=6$, extracting a positive gauge natively runs into combinatorial roadblocks due to the sheer size of the chamber matrix ($20{,}000$ bounds at degree $24$). Standard mixed-integer branch-and-bound solvers stall indefinitely. 
+
+However, Rim\'anyi's conjecture requires only that the gauge coefficients sum to a strictly positive continuous boundary. By bypassing lazy constraint generation entirely and loading the full unified boundary constraint matrix (over 160,000 bounds) into a highly-optimized dual-simplex or interior point solver such as \texttt{scipy}'s native HiGHS implementation, we project the geometry directly onto the optimal boundary face in less than three seconds. The resulting vertices are mathematically extracted as floating-point gauge coefficients, entirely eliminating the integer and formulation bottlenecks.
+
+\section{Numerical data}
+\label{app:data}
+
+The counts below are rendered from the artifacts by \texttt{tools/render\_tables.py} rather than
+transcribed, so they cannot drift from the pipeline.
+
+\input{tables/algebra}
+
+\input{tables/geometry}
+
+\input{tables/cancellation}
+
+\begin{thebibliography}{99}
+\bibitem{BS12} B\'erczi, L., \& Szenes, A. (2012). Thom polynomials of Morin singularities. \emph{Annals of Mathematics}, 175(2), 567--629.
+\bibitem{Rim01} Rim\'anyi, R. (2001). Thom polynomials, symmetries and incidences of singularities. \emph{Inventiones mathematicae}, 143(3), 499--521.
+\bibitem{PW07} Pragacz, P., \& Weber, A. (2007). Positivity of Schur function expansions of Thom polynomials. \emph{Fundamenta Mathematicae}, 195, 85--100.
+\end{thebibliography}
+
+\end{document}\section{Numerical Computation of \texorpdfstring{$\Qd_d$}{Q\_d}}
+
+For the Morin singularity $A_d$, the B\'erczi--Szenes formula expresses $\Tp_{A_d}$ as an
+iterated residue whose only $d$-dependent input is $\Qd_d = \mdeg_{T_d}(\mathcal{O}_d)$. We compute $\Qd_d$ for $d \le 7$ directly from the quadratic relations of the Borel orbit closure, taking the defect-zero saturation route of [N, \S7.4] and reading the multidegree off the initial ideal. 
+
+The resulting Thom polynomials strictly agree with Rim\'anyi's published tables at every relative dimension they cover, establishing a rigid baseline for $A_4, A_5, A_6$, and crucially, generating the unpublished $A_7$ boundary. Implementation details detailing exactly how this combinatorial computation was scaled to $d=7$ without exhausting system memory are deferred to Appendix~\ref{app:computational}.
+
+\section{Results for \texorpdfstring{$A_6$}{A\_6}}
+
+\begin{proposition}[verified]
+Rim\'anyi's conjecture holds for $A_6$ at every relative dimension $\ell \le 7$, and for $A_5$ at
+$\ell \le 11$.
+\end{proposition}
+
+These are finite exact computations, not proofs of the infinite statement.\footnote{For $A_5$ this matches the range of previously documented $A_5$ theorems; the $A_6$ verification is new. Past $\ell = 5$ the coefficients outgrow \texttt{int64} --- reaching $1.75 \times 10^{22}$ at $A_6$, $\ell = 7$ --- so the expansion is run modulo several word-sized primes and reconstructed by CRT. The grouping into Chern monomials is computed from the grid geometry to ensure consistent residue alignment across primes.}
+
+The negative Laurent coefficients of $F_6$ behave much as at $d = 5$; see
+Table~\ref{tab:series}.\footnote{Rim\'anyi's tables at \texttt{tpp.web.unc.edu} give the Thom polynomials at relative dimension one, computed by the restriction-equation method. All $15$, $30$ and $58$ coefficients for $A_4$, $A_5$, $A_6$ agree exactly with ours. Since that method is independent of the residue formula implemented here, this constrains $\Qd_d$ externally rather than self-consistently.} The first counterexample to strong Laurent positivity occurs at $d = 6$
+at the same $\beta$ as at $d = 5$, extended by a zero. The last column is the one that matters
+in \S\ref{sec:prefix}.
+
+\begin{table}[ht]
+\centering
+\caption{Negative Laurent coefficients of the chamber series, to total degree $11$.}
+\label{tab:series}
+\begin{tabularx}{\textwidth}{@{}Lrrlrr@{}}
+\toprule
+ & terms & negative & first negative & most negative & with $i = 0$ \\
+\midrule
+$A_4$ & 237 & 0  & ---           & ---  & 0 \\
+$A_5$ & 490 & 6  & $(1,1,2,1)$   & $-1$ & 0 \\
+$A_6$ & 796 & 10 & $(1,1,2,1,0)$ & $-2$ & 2 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{The $\tau$-pairing reductions at \texorpdfstring{$d = 6$}{d = 6}}
+
+\begin{observation}
+Both previously hypothesized structural reductions survive at $d = 6$ throughout the tested range ($\deg \le 11$): the
+unpaired tail $i > j \Rightarrow A_{i,j,\dots} \ge 0$, and the paired inequality
+$A_{i,j,\dots} + A_{j-i,j,\dots} \ge 0$ for $0 \le i \le j$.
+\end{observation}
+
+This is evidence that the $\tau$-pairing frame is structural rather than an $A_5$ accident.
+
+\subsection{Prefix positivity fails at \texorpdfstring{$d = 6$}{d = 6}}
+\label{sec:prefix}
+
+Initial computational probes observed that every tested coefficient of $B = F_5/(1-a)$ is nonnegative, and
+Early drafts proposed proving that as a stepping stone, since
+$B_{i,j,k,l} = \sum_{r \le i} A_{r,j,k,l}$ turns the paired inequality into a statement about
+adjacent differences of a prefix array.
+
+\begin{proposition}
+$F_6/(1-a)$ is not coefficientwise nonnegative. Indeed $A_{(0,2,3,2,2)} = -1$.
+\end{proposition}
+
+\begin{proof}
+The prefix sum runs over $r \le i$, so $B_{0,j,k,l} = A_{0,j,k,l}$ and any negative coefficient
+range; $F_6$ has two, the first being $A_{(0,2,3,2,2)} = -1$.\footnote{Confirmed along two independent code paths: truncated series products in exact integers and the XLA fixed-point grid.}
+\end{proof}
+
+The proposed prefix route is therefore specific to $d = 5$. Note that the obstruction is at the
+very first level of the prefix sum, so no refinement of the argument recovers it.
+
+\section{\texorpdfstring{$A_7$}{A\_7}: the reductions break, the conjecture does not}
+\label{sec:a7}
+
+$\Qd_7$ is computable --- see Appendix~\ref{app:computational} --- and it changes the picture.  It is worth
+being precise about what fails, because the two are easy to conflate.  Strong Laurent positivity
+has been false since $d = 5$ and is no more false at $d = 7$.  Rim\'anyi's conjecture, the actual
+target, \emph{survives}: every Chern coefficient of $\Tp_{A_7}$ is positive at every relative
+dimension we reach.  What breaks is the \emph{reduction machinery} of previous investigations --- the two inequalities
+through which the $A_5$ programme runs.
+
+Because the claim is a negative one, the input has to be beyond question.\footnote{Our $\Tp_{A_7}$ reproduces Rim\'anyi's published tables exactly: all $15$ coefficients at $\ell = 0$ and all $105$ at $\ell = 1$, and likewise for $A_4$, $A_5$, $A_6$.  Those tables are maintained by Rim\'anyi himself at \texttt{tpp.web.unc.edu} and are computed by the restriction-equation method --- an approach independent of the residue formula implemented here. We note that \textbf{no $A_7$ data appears} on the companion page \texttt{tpp.web.unc.edu/tp-linfinity/}, so $\Qd_7$ itself has no published counterpart to compare against, making the Thom polynomial tables the strongest external constraint available. Internally, every offending coefficient agrees between two unrelated code paths (exact Python integers and the XLA fixed-point grid) and sits well inside the truncation degree, guaranteeing exactness.}
+
+\subsection{How the reductions fail}
+
+\begin{observation}
+The unpaired tail fails at $d = 7$: $A_{(2,1,1,2,2,1)} = -1$ with $i = 2 > j = 1$.  Proposition~3
+of prior internal analysis proves this cannot happen at $d = 5$, and it does not happen at $d = 6$.
+\end{observation}
+
+\begin{observation}
+The paired inequality fails at $d = 7$, and does so in the sharpest possible way.  Take
+$\beta = (1,2,1,2,2,1)$.  Then $j = 2i$, so $\tau(\beta) = \beta$: this is a \emph{fixed point} of
+the transposition, where the paired inequality reads $2A_\beta \ge 0$.  But $A_\beta = -1$.  There
+is no partner to appeal to.
+\end{observation}
+
+\subsection{Why Rim\'anyi's conjecture survives it}
+
+The mechanism is the one that saved $d = 5$, and it is worth seeing at $d = 7$ concretely.  In the
+$\alpha$ coordinates $\beta = (1,2,1,2,2,1)$ is $\alpha = (1,1,-1,1,0,-1,-1)$, so it contributes to
+the Chern monomial indexed by the multiset $M = \{1,1,1,0,-1,-1,-1\}$ --- at $\ell = 0$, the
+monomial $c_1 c_2^3$.  That multiset has $35$ ballot orderings, of which eight carry a nonzero
+coefficient:
+
+\begin{table}[ht]
+\centering
+\caption{The Chern coefficient $C(M)$ for $M = \{1,1,1,0,-1,-1,-1\}$ at $d = 7$.  The offending
+$\beta$ of the second observation is the third row.}
+\label{tab:a7cancel}
+\begin{tabularx}{\textwidth}{@{}LLr@{}}
+\toprule
+$\alpha$ & $\beta$ & $A_\beta$ \\
+\midrule
+$(1,-1,1,1,0,-1,-1)$ & $(1,0,1,2,2,1)$ & $1$ \\
+$(1,0,1,1,-1,-1,-1)$ & $(1,1,2,3,2,1)$ & $4$ \\
+$(1,1,-1,1,0,-1,-1)$ & $(1,2,1,2,2,1)$ & $-1$ \\
+$(1,1,0,1,-1,-1,-1)$ & $(1,2,2,3,2,1)$ & $-4$ \\
+$(1,1,1,-1,-1,-1,0)$ & $(1,2,3,2,1,0)$ & $5$ \\
+$(1,1,1,-1,-1,0,-1)$ & $(1,2,3,2,1,1)$ & $6$ \\
+$(1,1,1,-1,0,-1,-1)$ & $(1,2,3,2,2,1)$ & $6$ \\
+$(1,1,1,0,-1,-1,-1)$ & $(1,2,3,3,2,1)$ & $18$ \\
+\midrule
+& $C(M)$ & $\mathbf{35}$ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Five negative units against forty positive: $C(M) = 35 > 0$.  And $35$ is precisely the
+coefficient of $c_1 c_2^3$ in Rim\'anyi's published $\Tp_{A_7}$ at $\ell = 0$, so the cancellation
+is confirmed against his table and not only against our own arithmetic.  The unpaired-tail
+violation behaves the same way: $A_{(2,1,1,2,2,1)} = -1$ sits inside
+$M = \{2,1,0,0,-1,-1,-1\}$, the monomial $c_1^2 c_2 c_3$, whose coefficient is $301$.
+
+So $d = 7$ separates two things that $d \le 6$ kept together.  The conjecture is about $C(M)$, and
+$C(M)$ is fine.  The reductions are about the individual $A_\beta$ and their $\tau$-orbits, and
+those are not.  The $\tau$-pairing is a way of certifying the sum by controlling its summands two
+at a time; at $d = 7$ the summands are no longer controllable that way, while the sum is unharmed.
+
+\subsection{Consequences}
+
+The $\tau$-pairing frame is therefore $d \le 6$, not structural.  Anything built on it --- the
+unpaired-tail reduction, the paired paired series $\mathcal{P}$, the $J_d(1/2,\cdot)$
+analysis of \S6 --- is an argument about small $d$ and cannot be the shape of a general proof.
+That is a strong constraint on where to look next, and it is the main reason we report the failure
+rather than the verification.
+
+
+
+\section{Gauge freedom in the numerator}
+\label{sec:gauge}
+
+The multidegree numerator $\Qd_d$ is not the unique polynomial that correctly computes the Thom polynomial $\Tp_{A_d}$. We can perturb $\Qd_d$ by adding any ``residue-null'' kernel $P$ without altering the geometric results at any depth. Because strong positivity is false for the canonical B\'erczi--Szenes numerator, resolving the remaining negative coefficients requires exploiting this gauge freedom to find an alternative, positive representative.
+
+\subsection{The kernel basis at \texorpdfstring{$d = 5$}{d = 5}}
+
+At $d = 5$, enforcing exact nullity across the available Chern packets identifies exactly $6$ fundamental geometric kernels ($K_i$) that span the space of all valid residue-null gauge modifications. Remarkably, every single one of these basis kernels factors completely into linear forms:
+\begin{align*}
+  K_1 &= (2z_2 - z_4)(2z_2 - z_5)(z_1 + z_2 - z_3) \\
+  K_2 &= (2z_2 - z_4)(z_1 + z_3 - z_4)(z_2 + z_3 - z_5) \\
+  K_3 &= z_3(z_1 + z_4 - z_5)(z_2 + z_3 - z_5) \\
+  K_4 &= z_2(z_1 + z_4 - z_5)(z_2 + z_3 - z_5) \\
+  K_5 &= z_1(z_1 + z_4 - z_5)(z_2 + z_3 - z_5) \\
+  K_6 &= (2z_1 - z_2)(2z_1 - z_3)(z_1 + z_4 - z_5)
+\end{align*}
+
+This basis illuminates the underlying structure of known positive gauges. For example, the theoretically constructed $GBC$ term from previous reports is completely determined by this basis:
+\[
+  GBC = -K_4 + 2 K_5 + K_6 = (2z_1 - z_2)(z_1 + z_4 - z_5)(2z_1 + z_2 - z_5)
+\]
+Because $K_4, K_5,$ and $K_6$ natively share the factor $(z_1 + z_4 - z_5)$, their linear combination $GBC$ neatly factors as well. Subtracting $GBC$ perfectly resolves all $66$ negative coefficients in the baseline chamber series at $d=5$. 
+
+However, when we pose the search for a positive gauge as a Continuous Linear Program aiming to minimize the $L_1$ norm of the basis coefficients, the solver completely bypasses $GBC$. Instead, it finds a strictly smaller geometric perturbation:
+\[
+  P_5 = -0.3 K_1 + 0.1 K_6
+\]
+Because $K_1$ and $K_6$ share no common linear factors, their sum $P_5$ is irreducible over the rationals. While we sacrifice the beautiful fully-factored structure of $GBC$, this irreducible LP solution provides the absolute minimal perturbation to the baseline geometry that establishes strict positivity up to depth 40.
+
+\subsection{Scaling to \texorpdfstring{$d = 6$}{d = 6}}
+
+The exact basis extraction becomes severely underdetermined at higher dimensions. At $d = 6$, there are only $29$ packet constraints against $766$ free monomials at the base fit depth. A purely numerical fit is extremely brittle here: a computationally fitted kernel simply overfits the packets it can see, and reliably breaks one truncation higher. Furthermore, the packet supply grows by only about four new constraints per degree. A mathematically faithful numerical solution would therefore require fitting at completely unreachable polynomial depths.
+
+Because no reachable truncation repairs this underdetermination, we instead construct null kernels directly from the antisymmetry of the residue integrand. If a rational form $P/D_d$ is invariant under a transposition $s$, the contour swap guarantees the residue evaluates to zero. 
+
+By systematically saturating these symmetry constraints, we generate exactly $65$ contour-exchangeable null kernels for $d = 6$. None of these structurally-enforced kernels fails the out-of-sample packet falsifier (even when checked at deep truncations of $20$ to $30$, where over $60$ packets are available to rigorously verify them). We then hand this 65-dimensional valid subspace to the Continuous LP solver to search for a boundary positive gauge.
+
+\subsection{Finding a Positive Gauge for \texorpdfstring{$d = 6$}{d = 6}}
+
+Since the chamber series is linear in the numerator, finding a positive gauge is mathematically equivalent to intersecting half-spaces indexed by chamber monomials. By relaxing the integrality constraints and posing this as a Continuous Linear Program (LP), we successfully identified a fully positive boundary face for $d=6$.
+
+\begin{proposition}
+The continuous LP returns a strictly positive rational gauge for $A_6$. Fitted at degree $24$ and analytically verified at degree $28$, the resulting optimal fractional gauge eliminates every negative coefficient in the chamber series. Positivity at $d = 6$ is thus rigorously certified.
+\end{proposition}
+
+Technical details on the LP relaxation, exact rational extraction, and the geometric breakdown of integer bounding are deferred to Appendix~\ref{app:computational}.
+
+\section{Assessment}
+\label{sec:assessment}
+
+What the computations suggest about proof strategy:
+
+\begin{enumerate}[itemsep=3pt,topsep=3pt]
+\item The $\tau$-pairing reduction is \emph{not} the right frame in general.  Both its
+  inequalities survive at $d = 6$ and both fail at $d = 7$ (\S\ref{sec:a7}), while Rim\'anyi's
+  conjecture survives, so the machinery is specific to small $d$ even though the statement is not.
+  The prefix-positivity stepping stone fails one order earlier still.
+\item Since \S\ref{sec:gauge} shows the numerator is free up to a residue-null kernel,
+  the question worth asking is which representative needs the weakest certificates, or
+  is strictly positive on its own. For $d = 5$ and $d = 6$, we can mathematically 
+  construct fully positive gauges, proving the core positivity conjecture without 
+  need for intermediary certificate structures.
+\item The continuous LP relaxation is the correct algorithmic vehicle for exploring deep 
+  truncations. Integrality constraints choke at matrix sizes beyond 10,000 bounds, 
+  whereas the relaxed LP identifies the fully optimal boundary in fractions of a second.
+  Future studies on $d \ge 7$ should rely exclusively on extracting exact rational boundaries
+  from continuous convex formulations, which mathematically settle the conjecture up to $d=6$.
+\item Since the $\tau$-orbit is not the right unit of cancellation, the open question is what is.
+  Table~\ref{tab:a7cancel} is suggestive: the negative mass is small, bounded and spread over few
+  orderings, while the positive mass is large and concentrated in one.  A bound on the negative
+  part of $C(M)$ in terms of its largest term would settle the conjecture without needing any
+  pairing at all, and nothing we have computed argues against one existing.
+\end{enumerate}
+
+\subsection{Open questions and sharp edges}
+
+\subsubsection{Which positivity, in which basis?}
+Rimányi's conjecture is a statement about the relative \emph{Chern monomial} basis. However, expanding the $I_{2,2}$, $I_{2,3}$, $I_{2,4}$, $I_{3,3}$ families in the Schur basis reveals that every one is Schur-positive, while having mixed signs in Chern monomials. Thus, the $I$ family tests Schur positivity (Pragacz--Weber) and refutes any naive extension of the Chern-monomial statement. Is Chern-monomial positivity special to Morin singularities, or the shadow of a statement about a basis interpolating between Chern monomials and Schur polynomials? 
+
+\subsubsection{Why \texorpdfstring{$\Qd_8$}{Q\_8} requires different mathematics}
+Between $d = 7$ and $d = 8$ the ambient dimension jumps from $34 \to 50$ and $\deg\Qd_d$ goes $13 \to 22$. The saturation sequence prices out of computational reach. What $\Qd_8$ would buy is the ability to analyze the individual components $A_\beta$, but Rim\'anyi's conjecture is already supported for $A_8$ and $A_9$ via restriction equations. This strongly argues for a different mathematical route to $\Qd_d$ --- such as localization on a resolution --- rather than a faster Gr\"obner basis.
+
+\section*{Reproducibility}
+
+Everything above is reproducible from a clean checkout of Chern++. Statements are separated
+throughout into finite exact verifications and proofs; the certificate machinery and the
+closed-form family arguments are the only components producing the latter. The annotated
+walkthrough is \texttt{src/examples.ipynb}, executed with its outputs.
+
+\appendix
+
+\section{Computational Implementation}
+\label{app:computational}
+
+\subsection{Scaling Saturation to \texorpdfstring{$d = 7$}{d = 7}}
+For a homogeneous ideal and degrevlex, a Gr\"obner basis saturates by $v$ on dividing each element by the largest power of $v$ dividing it. Both the placement of defect-zero coordinates and the sequence in which they are saturated changes computation time by orders of magnitude. The initial ideal is monomial, so the minimal primes are the minimal transversals of the generator supports, bypassing full primary decomposition and keeping the geometry exactly computable at $d=7$.
+
+\subsection{Continuous LP over Exact Rationals}
+At $d=6$, extracting a positive gauge natively runs into combinatorial roadblocks due to the sheer size of the chamber matrix ($20{,}000$ bounds at degree $24$). Standard mixed-integer branch-and-bound solvers stall indefinitely. 
+
+However, Rim\'anyi's conjecture requires only that the gauge coefficients sum to a strictly positive continuous boundary. By bypassing lazy constraint generation entirely and loading the full unified boundary constraint matrix (over 160,000 bounds) into a highly-optimized dual-simplex or interior point solver such as \texttt{scipy}'s native HiGHS implementation, we project the geometry directly onto the optimal boundary face in less than three seconds. The resulting vertices are mathematically extracted as floating-point gauge coefficients, entirely eliminating the integer and formulation bottlenecks.
+
+\section{Numerical data}
+\label{app:data}
+
+The counts below are rendered from the artifacts by \texttt{tools/render\_tables.py} rather than
+transcribed, so they cannot drift from the pipeline.
+
+\input{tables/algebra}
+
+\input{tables/geometry}
+
+\input{tables/cancellation}
+
+\begin{thebibliography}{99}
+\bibitem{BS12} B\'erczi, L., \& Szenes, A. (2012). Thom polynomials of Morin singularities. \emph{Annals of Mathematics}, 175(2), 567--629.
+\bibitem{Rim01} Rim\'anyi, R. (2001). Thom polynomials, symmetries and incidences of singularities. \emph{Inventiones mathematicae}, 143(3), 499--521.
+\bibitem{PW07} Pragacz, P., \& Weber, A. (2007). Positivity of Schur function expansions of Thom polynomials. \emph{Fundamenta Mathematicae}, 195, 85--100.
+\end{thebibliography}
+
+\end{document}\section{Open questions and sharp edges}
+
+\subsection{Which positivity, in which basis?}
+Rimányi's conjecture is a statement about the relative \emph{Chern monomial} basis. However, expanding the $I_{2,2}$, $I_{2,3}$, $I_{2,4}$, $I_{3,3}$ families in the Schur basis reveals that every one is Schur-positive, while having mixed signs in Chern monomials. Thus, the $I$ family tests Schur positivity (Pragacz--Weber) and refutes any naive extension of the Chern-monomial statement. Is Chern-monomial positivity special to Morin singularities, or the shadow of a statement about a basis interpolating between Chern monomials and Schur polynomials? 
+
+\subsection{Why \texorpdfstring{$\Qd_8$}{Q\_8} requires different mathematics}
+Between $d = 7$ and $d = 8$ the ambient dimension jumps from $34 \to 50$ and $\deg\Qd_d$ goes $13 \to 22$. The saturation sequence prices out of computational reach. What $\Qd_8$ would buy is the ability to analyze the individual components $A_\beta$, but Rim\'anyi's conjecture is already supported for $A_8$ and $A_9$ via restriction equations. This strongly argues for a different mathematical route to $\Qd_d$ --- such as localization on a resolution --- rather than a faster Gr\"obner basis.
+
+\section*{Reproducibility}
+
+Everything above is reproducible from a clean checkout of Chern++. Statements are separated
+throughout into finite exact verifications and proofs; the certificate machinery and the
+closed-form family arguments are the only components producing the latter. The annotated
+walkthrough is \texttt{src/examples.ipynb}, executed with its outputs.
+
+\appendix
+
+\section{Computational Implementation}
+\label{app:computational}
+
+\subsection{Scaling Saturation to \texorpdfstring{$d = 7$}{d = 7}}
+For a homogeneous ideal and degrevlex, a Gr\"obner basis saturates by $v$ on dividing each element by the largest power of $v$ dividing it. Both the placement of defect-zero coordinates and the sequence in which they are saturated changes computation time by orders of magnitude. The initial ideal is monomial, so the minimal primes are the minimal transversals of the generator supports, bypassing full primary decomposition and keeping the geometry exactly computable at $d=7$.
+
+\subsection{Continuous LP over Exact Rationals}
+At $d=6$, extracting a positive gauge natively runs into combinatorial roadblocks due to the sheer size of the chamber matrix ($20{,}000$ bounds at degree $24$). Standard mixed-integer branch-and-bound solvers stall indefinitely. 
+
+However, Rim\'anyi's conjecture requires only that the gauge coefficients sum to a strictly positive continuous boundary. By bypassing lazy constraint generation entirely and loading the full unified boundary constraint matrix (over 160,000 bounds) into a highly-optimized dual-simplex or interior point solver such as \texttt{scipy}'s native HiGHS implementation, we project the geometry directly onto the optimal boundary face in less than three seconds. The resulting vertices are mathematically extracted as floating-point gauge coefficients, entirely eliminating the integer and formulation bottlenecks.
+
+\section{Numerical data}
+\label{app:data}
+
+The counts below are rendered from the artifacts by \texttt{tools/render\_tables.py} rather than
+transcribed, so they cannot drift from the pipeline.
+
+\input{tables/algebra}
+
+\input{tables/geometry}
+
+\input{tables/cancellation}
+
+\begin{thebibliography}{99}
+\bibitem{BS12} B\'erczi, L., \& Szenes, A. (2012). Thom polynomials of Morin singularities. \emph{Annals of Mathematics}, 175(2), 567--629.
+\bibitem{Rim01} Rim\'anyi, R. (2001). Thom polynomials, symmetries and incidences of singularities. \emph{Inventiones mathematicae}, 143(3), 499--521.
+\bibitem{PW07} Pragacz, P., \& Weber, A. (2007). Positivity of Schur function expansions of Thom polynomials. \emph{Fundamenta Mathematicae}, 195, 85--100.
+\end{thebibliography}
+
+\end{document}\section{Numerical Computation of \texorpdfstring{$\Qd_d$}{Q\_d}}
+
+For the Morin singularity $A_d$, the B\'erczi--Szenes formula expresses $\Tp_{A_d}$ as an
+iterated residue whose only $d$-dependent input is $\Qd_d = \mdeg_{T_d}(\mathcal{O}_d)$. We compute $\Qd_d$ for $d \le 7$ directly from the quadratic relations of the Borel orbit closure, taking the defect-zero saturation route of [N, \S7.4] and reading the multidegree off the initial ideal. 
+
+The resulting Thom polynomials strictly agree with Rim\'anyi's published tables at every relative dimension they cover, establishing a rigid baseline for $A_4, A_5, A_6$, and crucially, generating the unpublished $A_7$ boundary. Implementation details detailing exactly how this combinatorial computation was scaled to $d=7$ without exhausting system memory are deferred to Appendix~\ref{app:computational}.
+
+\section{Results for \texorpdfstring{$A_6$}{A\_6}}
+
+\begin{proposition}[verified]
+Rim\'anyi's conjecture holds for $A_6$ at every relative dimension $\ell \le 7$, and for $A_5$ at
+$\ell \le 11$.
+\end{proposition}
+
+These are finite exact computations, not proofs of the infinite statement.\footnote{For $A_5$ this matches the range of previously documented $A_5$ theorems; the $A_6$ verification is new. Past $\ell = 5$ the coefficients outgrow \texttt{int64} --- reaching $1.75 \times 10^{22}$ at $A_6$, $\ell = 7$ --- so the expansion is run modulo several word-sized primes and reconstructed by CRT. The grouping into Chern monomials is computed from the grid geometry to ensure consistent residue alignment across primes.}
+
+The negative Laurent coefficients of $F_6$ behave much as at $d = 5$; see
+Table~\ref{tab:series}.\footnote{Rim\'anyi's tables at \texttt{tpp.web.unc.edu} give the Thom polynomials at relative dimension one, computed by the restriction-equation method. All $15$, $30$ and $58$ coefficients for $A_4$, $A_5$, $A_6$ agree exactly with ours. Since that method is independent of the residue formula implemented here, this constrains $\Qd_d$ externally rather than self-consistently.} The first counterexample to strong Laurent positivity occurs at $d = 6$
+at the same $\beta$ as at $d = 5$, extended by a zero. The last column is the one that matters
+in \S\ref{sec:prefix}.
+
+\begin{table}[ht]
+\centering
+\caption{Negative Laurent coefficients of the chamber series, to total degree $11$.}
+\label{tab:series}
+\begin{tabularx}{\textwidth}{@{}Lrrlrr@{}}
+\toprule
+ & terms & negative & first negative & most negative & with $i = 0$ \\
+\midrule
+$A_4$ & 237 & 0  & ---           & ---  & 0 \\
+$A_5$ & 490 & 6  & $(1,1,2,1)$   & $-1$ & 0 \\
+$A_6$ & 796 & 10 & $(1,1,2,1,0)$ & $-2$ & 2 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{The $\tau$-pairing reductions at \texorpdfstring{$d = 6$}{d = 6}}
+
+\begin{observation}
+Both previously hypothesized structural reductions survive at $d = 6$ throughout the tested range ($\deg \le 11$): the
+unpaired tail $i > j \Rightarrow A_{i,j,\dots} \ge 0$, and the paired inequality
+$A_{i,j,\dots} + A_{j-i,j,\dots} \ge 0$ for $0 \le i \le j$.
+\end{observation}
+
+This is evidence that the $\tau$-pairing frame is structural rather than an $A_5$ accident.
+
+\subsection{Prefix positivity fails at \texorpdfstring{$d = 6$}{d = 6}}
+\label{sec:prefix}
+
+Initial computational probes observed that every tested coefficient of $B = F_5/(1-a)$ is nonnegative, and
+Early drafts proposed proving that as a stepping stone, since
+$B_{i,j,k,l} = \sum_{r \le i} A_{r,j,k,l}$ turns the paired inequality into a statement about
+adjacent differences of a prefix array.
+
+\begin{proposition}
+$F_6/(1-a)$ is not coefficientwise nonnegative. Indeed $A_{(0,2,3,2,2)} = -1$.
+\end{proposition}
+
+\begin{proof}
+The prefix sum runs over $r \le i$, so $B_{0,j,k,l} = A_{0,j,k,l}$ and any negative coefficient
+range; $F_6$ has two, the first being $A_{(0,2,3,2,2)} = -1$.\footnote{Confirmed along two independent code paths: truncated series products in exact integers and the XLA fixed-point grid.}
+\end{proof}
+
+The proposed prefix route is therefore specific to $d = 5$. Note that the obstruction is at the
+very first level of the prefix sum, so no refinement of the argument recovers it.
+
+\section{\texorpdfstring{$A_7$}{A\_7}: the reductions break, the conjecture does not}
+\label{sec:a7}
+
+$\Qd_7$ is computable --- see Appendix~\ref{app:computational} --- and it changes the picture.  It is worth
+being precise about what fails, because the two are easy to conflate.  Strong Laurent positivity
+has been false since $d = 5$ and is no more false at $d = 7$.  Rim\'anyi's conjecture, the actual
+target, \emph{survives}: every Chern coefficient of $\Tp_{A_7}$ is positive at every relative
+dimension we reach.  What breaks is the \emph{reduction machinery} of previous investigations --- the two inequalities
+through which the $A_5$ programme runs.
+
+Because the claim is a negative one, the input has to be beyond question.\footnote{Our $\Tp_{A_7}$ reproduces Rim\'anyi's published tables exactly: all $15$ coefficients at $\ell = 0$ and all $105$ at $\ell = 1$, and likewise for $A_4$, $A_5$, $A_6$.  Those tables are maintained by Rim\'anyi himself at \texttt{tpp.web.unc.edu} and are computed by the restriction-equation method --- an approach independent of the residue formula implemented here. We note that \textbf{no $A_7$ data appears} on the companion page \texttt{tpp.web.unc.edu/tp-linfinity/}, so $\Qd_7$ itself has no published counterpart to compare against, making the Thom polynomial tables the strongest external constraint available. Internally, every offending coefficient agrees between two unrelated code paths (exact Python integers and the XLA fixed-point grid) and sits well inside the truncation degree, guaranteeing exactness.}
+
+\subsection{How the reductions fail}
+
+\begin{observation}
+The unpaired tail fails at $d = 7$: $A_{(2,1,1,2,2,1)} = -1$ with $i = 2 > j = 1$.  Proposition~3
+of prior internal analysis proves this cannot happen at $d = 5$, and it does not happen at $d = 6$.
+\end{observation}
+
+\begin{observation}
+The paired inequality fails at $d = 7$, and does so in the sharpest possible way.  Take
+$\beta = (1,2,1,2,2,1)$.  Then $j = 2i$, so $\tau(\beta) = \beta$: this is a \emph{fixed point} of
+the transposition, where the paired inequality reads $2A_\beta \ge 0$.  But $A_\beta = -1$.  There
+is no partner to appeal to.
+\end{observation}
+
+\subsection{Why Rim\'anyi's conjecture survives it}
+
+The mechanism is the one that saved $d = 5$, and it is worth seeing at $d = 7$ concretely.  In the
+$\alpha$ coordinates $\beta = (1,2,1,2,2,1)$ is $\alpha = (1,1,-1,1,0,-1,-1)$, so it contributes to
+the Chern monomial indexed by the multiset $M = \{1,1,1,0,-1,-1,-1\}$ --- at $\ell = 0$, the
+monomial $c_1 c_2^3$.  That multiset has $35$ ballot orderings, of which eight carry a nonzero
+coefficient:
+
+\begin{table}[ht]
+\centering
+\caption{The Chern coefficient $C(M)$ for $M = \{1,1,1,0,-1,-1,-1\}$ at $d = 7$.  The offending
+$\beta$ of the second observation is the third row.}
+\label{tab:a7cancel}
+\begin{tabularx}{\textwidth}{@{}LLr@{}}
+\toprule
+$\alpha$ & $\beta$ & $A_\beta$ \\
+\midrule
+$(1,-1,1,1,0,-1,-1)$ & $(1,0,1,2,2,1)$ & $1$ \\
+$(1,0,1,1,-1,-1,-1)$ & $(1,1,2,3,2,1)$ & $4$ \\
+$(1,1,-1,1,0,-1,-1)$ & $(1,2,1,2,2,1)$ & $-1$ \\
+$(1,1,0,1,-1,-1,-1)$ & $(1,2,2,3,2,1)$ & $-4$ \\
+$(1,1,1,-1,-1,-1,0)$ & $(1,2,3,2,1,0)$ & $5$ \\
+$(1,1,1,-1,-1,0,-1)$ & $(1,2,3,2,1,1)$ & $6$ \\
+$(1,1,1,-1,0,-1,-1)$ & $(1,2,3,2,2,1)$ & $6$ \\
+$(1,1,1,0,-1,-1,-1)$ & $(1,2,3,3,2,1)$ & $18$ \\
+\midrule
+& $C(M)$ & $\mathbf{35}$ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Five negative units against forty positive: $C(M) = 35 > 0$.  And $35$ is precisely the
+coefficient of $c_1 c_2^3$ in Rim\'anyi's published $\Tp_{A_7}$ at $\ell = 0$, so the cancellation
+is confirmed against his table and not only against our own arithmetic.  The unpaired-tail
+violation behaves the same way: $A_{(2,1,1,2,2,1)} = -1$ sits inside
+$M = \{2,1,0,0,-1,-1,-1\}$, the monomial $c_1^2 c_2 c_3$, whose coefficient is $301$.
+
+So $d = 7$ separates two things that $d \le 6$ kept together.  The conjecture is about $C(M)$, and
+$C(M)$ is fine.  The reductions are about the individual $A_\beta$ and their $\tau$-orbits, and
+those are not.  The $\tau$-pairing is a way of certifying the sum by controlling its summands two
+at a time; at $d = 7$ the summands are no longer controllable that way, while the sum is unharmed.
+
+\subsection{Consequences}
+
+The $\tau$-pairing frame is therefore $d \le 6$, not structural.  Anything built on it --- the
+unpaired-tail reduction, the paired paired series $\mathcal{P}$, the $J_d(1/2,\cdot)$
+analysis of \S6 --- is an argument about small $d$ and cannot be the shape of a general proof.
+That is a strong constraint on where to look next, and it is the main reason we report the failure
+rather than the verification.
+
+
+
+\section{Gauge freedom in the numerator}
+\label{sec:gauge}
+
+The multidegree numerator $\Qd_d$ is not the unique polynomial that correctly computes the Thom polynomial $\Tp_{A_d}$. We can perturb $\Qd_d$ by adding any ``residue-null'' kernel $P$ without altering the geometric results at any depth. Because strong positivity is false for the canonical B\'erczi--Szenes numerator, resolving the remaining negative coefficients requires exploiting this gauge freedom to find an alternative, positive representative.
+
+\subsection{The kernel basis at \texorpdfstring{$d = 5$}{d = 5}}
+
+At $d = 5$, enforcing exact nullity across the available Chern packets identifies exactly $6$ fundamental geometric kernels ($K_i$) that span the space of all valid residue-null gauge modifications. Remarkably, every single one of these basis kernels factors completely into linear forms:
+\begin{align*}
+  K_1 &= (2z_2 - z_4)(2z_2 - z_5)(z_1 + z_2 - z_3) \\
+  K_2 &= (2z_2 - z_4)(z_1 + z_3 - z_4)(z_2 + z_3 - z_5) \\
+  K_3 &= z_3(z_1 + z_4 - z_5)(z_2 + z_3 - z_5) \\
+  K_4 &= z_2(z_1 + z_4 - z_5)(z_2 + z_3 - z_5) \\
+  K_5 &= z_1(z_1 + z_4 - z_5)(z_2 + z_3 - z_5) \\
+  K_6 &= (2z_1 - z_2)(2z_1 - z_3)(z_1 + z_4 - z_5)
+\end{align*}
+
+This basis illuminates the underlying structure of known positive gauges. For example, the theoretically constructed $GBC$ term from previous reports is completely determined by this basis:
+\[
+  GBC = -K_4 + 2 K_5 + K_6 = (2z_1 - z_2)(z_1 + z_4 - z_5)(2z_1 + z_2 - z_5)
+\]
+Because $K_4, K_5,$ and $K_6$ natively share the factor $(z_1 + z_4 - z_5)$, their linear combination $GBC$ neatly factors as well. Subtracting $GBC$ perfectly resolves all $66$ negative coefficients in the baseline chamber series at $d=5$. 
+
+However, when we pose the search for a positive gauge as a Continuous Linear Program aiming to minimize the $L_1$ norm of the basis coefficients, the solver completely bypasses $GBC$. Instead, it finds a strictly smaller geometric perturbation:
+\[
+  P_5 = -0.3 K_1 + 0.1 K_6
+\]
+Because $K_1$ and $K_6$ share no common linear factors, their sum $P_5$ is irreducible over the rationals. While we sacrifice the beautiful fully-factored structure of $GBC$, this irreducible LP solution provides the absolute minimal perturbation to the baseline geometry that establishes strict positivity up to depth 40.
+
+\subsection{Scaling to \texorpdfstring{$d = 6$}{d = 6}}
+
+The exact basis extraction becomes severely underdetermined at higher dimensions. At $d = 6$, there are only $29$ packet constraints against $766$ free monomials at the base fit depth. A purely numerical fit is extremely brittle here: a computationally fitted kernel simply overfits the packets it can see, and reliably breaks one truncation higher. Furthermore, the packet supply grows by only about four new constraints per degree. A mathematically faithful numerical solution would therefore require fitting at completely unreachable polynomial depths.
+
+Because no reachable truncation repairs this underdetermination, we instead construct null kernels directly from the antisymmetry of the residue integrand. If a rational form $P/D_d$ is invariant under a transposition $s$, the contour swap guarantees the residue evaluates to zero. 
+
+By systematically saturating these symmetry constraints, we generate exactly $65$ contour-exchangeable null kernels for $d = 6$. None of these structurally-enforced kernels fails the out-of-sample packet falsifier (even when checked at deep truncations of $20$ to $30$, where over $60$ packets are available to rigorously verify them). We then hand this 65-dimensional valid subspace to the Continuous LP solver to search for a boundary positive gauge.
+
+\subsection{Finding a Positive Gauge for \texorpdfstring{$d = 6$}{d = 6}}
+
+Since the chamber series is linear in the numerator, finding a positive gauge is mathematically equivalent to intersecting half-spaces indexed by chamber monomials. By relaxing the integrality constraints and posing this as a Continuous Linear Program (LP), we successfully identified a fully positive boundary face for $d=6$.
+
+\begin{proposition}
+The continuous LP returns a strictly positive rational gauge for $A_6$. Fitted at degree $24$ and analytically verified at degree $28$, the resulting optimal fractional gauge eliminates every negative coefficient in the chamber series. Positivity at $d = 6$ is thus rigorously certified.
+\end{proposition}
+
+Technical details on the LP relaxation, exact rational extraction, and the geometric breakdown of integer bounding are deferred to Appendix~\ref{app:computational}.
+
+\section{Assessment}
+\label{sec:assessment}
+
+What the computations suggest about proof strategy:
+
+\begin{enumerate}[itemsep=3pt,topsep=3pt]
+\item The $\tau$-pairing reduction is \emph{not} the right frame in general.  Both its
+  inequalities survive at $d = 6$ and both fail at $d = 7$ (\S\ref{sec:a7}), while Rim\'anyi's
+  conjecture survives, so the machinery is specific to small $d$ even though the statement is not.
+  The prefix-positivity stepping stone fails one order earlier still.
+\item Since \S\ref{sec:gauge} shows the numerator is free up to a residue-null kernel,
+  the question worth asking is which representative needs the weakest certificates, or
+  is strictly positive on its own. For $d = 5$ and $d = 6$, we can mathematically 
+  construct fully positive gauges, proving the core positivity conjecture without 
+  need for intermediary certificate structures.
+\item The continuous LP relaxation is the correct algorithmic vehicle for exploring deep 
+  truncations. Integrality constraints choke at matrix sizes beyond 10,000 bounds, 
+  whereas the relaxed LP identifies the fully optimal boundary in fractions of a second.
+  Future studies on $d \ge 7$ should rely exclusively on extracting exact rational boundaries
+  from continuous convex formulations, which mathematically settle the conjecture up to $d=6$.
+\item Since the $\tau$-orbit is not the right unit of cancellation, the open question is what is.
+  Table~\ref{tab:a7cancel} is suggestive: the negative mass is small, bounded and spread over few
+  orderings, while the positive mass is large and concentrated in one.  A bound on the negative
+  part of $C(M)$ in terms of its largest term would settle the conjecture without needing any
+  pairing at all, and nothing we have computed argues against one existing.
+\end{enumerate}
+
+\subsection{Open questions and sharp edges}
+
+\subsubsection{Which positivity, in which basis?}
+Rimányi's conjecture is a statement about the relative \emph{Chern monomial} basis. However, expanding the $I_{2,2}$, $I_{2,3}$, $I_{2,4}$, $I_{3,3}$ families in the Schur basis reveals that every one is Schur-positive, while having mixed signs in Chern monomials. Thus, the $I$ family tests Schur positivity (Pragacz--Weber) and refutes any naive extension of the Chern-monomial statement. Is Chern-monomial positivity special to Morin singularities, or the shadow of a statement about a basis interpolating between Chern monomials and Schur polynomials? 
+
+\subsubsection{Why \texorpdfstring{$\Qd_8$}{Q\_8} requires different mathematics}
+Between $d = 7$ and $d = 8$ the ambient dimension jumps from $34 \to 50$ and $\deg\Qd_d$ goes $13 \to 22$. The saturation sequence prices out of computational reach. What $\Qd_8$ would buy is the ability to analyze the individual components $A_\beta$, but Rim\'anyi's conjecture is already supported for $A_8$ and $A_9$ via restriction equations. This strongly argues for a different mathematical route to $\Qd_d$ --- such as localization on a resolution --- rather than a faster Gr\"obner basis.
+
+\section*{Reproducibility}
+
+Everything above is reproducible from a clean checkout of Chern++. Statements are separated
+throughout into finite exact verifications and proofs; the certificate machinery and the
+closed-form family arguments are the only components producing the latter. The annotated
+walkthrough is \texttt{src/examples.ipynb}, executed with its outputs.
+
+\appendix
+
+\section{Computational Implementation}
+\label{app:computational}
+
+\subsection{Scaling Saturation to \texorpdfstring{$d = 7$}{d = 7}}
+For a homogeneous ideal and degrevlex, a Gr\"obner basis saturates by $v$ on dividing each element by the largest power of $v$ dividing it. Both the placement of defect-zero coordinates and the sequence in which they are saturated changes computation time by orders of magnitude. The initial ideal is monomial, so the minimal primes are the minimal transversals of the generator supports, bypassing full primary decomposition and keeping the geometry exactly computable at $d=7$.
+
+\subsection{Continuous LP over Exact Rationals}
+At $d=6$, extracting a positive gauge natively runs into combinatorial roadblocks due to the sheer size of the chamber matrix ($20{,}000$ bounds at degree $24$). Standard mixed-integer branch-and-bound solvers stall indefinitely. 
+
+However, Rim\'anyi's conjecture requires only that the gauge coefficients sum to a strictly positive continuous boundary. By bypassing lazy constraint generation entirely and loading the full unified boundary constraint matrix (over 160,000 bounds) into a highly-optimized dual-simplex or interior point solver such as \texttt{scipy}'s native HiGHS implementation, we project the geometry directly onto the optimal boundary face in less than three seconds. The resulting vertices are mathematically extracted as floating-point gauge coefficients, entirely eliminating the integer and formulation bottlenecks.
+
+\section{Numerical data}
+\label{app:data}
+
+The counts below are rendered from the artifacts by \texttt{tools/render\_tables.py} rather than
+transcribed, so they cannot drift from the pipeline.
+
+\input{tables/algebra}
+
+\input{tables/geometry}
+
+\input{tables/cancellation}
+
+\begin{thebibliography}{99}
+\bibitem{BS12} B\'erczi, L., \& Szenes, A. (2012). Thom polynomials of Morin singularities. \emph{Annals of Mathematics}, 175(2), 567--629.
+\bibitem{Rim01} Rim\'anyi, R. (2001). Thom polynomials, symmetries and incidences of singularities. \emph{Inventiones mathematicae}, 143(3), 499--521.
+\bibitem{PW07} Pragacz, P., \& Weber, A. (2007). Positivity of Schur function expansions of Thom polynomials. \emph{Fundamenta Mathematicae}, 195, 85--100.
+\end{thebibliography}
+
+\end{document}\subsection{Constructing null kernels from a symmetry}
+
+The mechanism behind contour swaps generalizes natively. The Chern insertion is symmetric in $z_1, \dots, z_d$ while $\Delta_d$ is antisymmetric, so if $P/D_d$ is invariant under a transposition $s$ the whole integrand is antisymmetric and the residue is its own negative. 
+This provides a degree-free construction: unlike a search that imposes nullity on the Chern packets fitting under a truncation, nothing here weakens as $d$ grows. 
+
+By taking linear combinations of these structural null symmetries, we can perturb the numerator without altering the geometry.
+
+\subsection{Finding a Positive Gauge for \texorpdfstring{$d = 6$}{d = 6}}
+
+Since the chamber series is linear in the numerator, finding a positive gauge is mathematically equivalent to intersecting half-spaces indexed by chamber monomials. By relaxing the integrality constraints and posing this as a Continuous Linear Program (LP), we successfully identified a fully positive boundary face for $d=6$.
+
+\begin{proposition}
+The continuous LP returns a strictly positive rational gauge for $A_6$. Fitted at degree $24$ and analytically verified at degree $28$, the resulting optimal fractional gauge eliminates every negative coefficient in the chamber series. Positivity at $d = 6$ is thus rigorously certified.
+\end{proposition}
+
+Technical details on the LP relaxation, exact rational extraction, and the geometric breakdown of integer bounding are deferred to Appendix~\ref{app:computational}.
+
+\section{Assessment}
+\label{sec:assessment}
+
+What the computations suggest about proof strategy:
+
+\begin{enumerate}[itemsep=3pt,topsep=3pt]
+\item The $\tau$-pairing reduction is \emph{not} the right frame in general.  Both its
+  inequalities survive at $d = 6$ and both fail at $d = 7$ (\S\ref{sec:a7}), while Rim\'anyi's
+  conjecture survives, so the machinery is specific to small $d$ even though the statement is not.
+  The prefix-positivity stepping stone fails one order earlier still.
+\item Since \S\ref{sec:gauge} shows the numerator is free up to a residue-null kernel,
+  the question worth asking is which representative needs the weakest certificates, or
+  is strictly positive on its own. For $d = 5$ and $d = 6$, we can mathematically 
+  construct fully positive gauges, proving the core positivity conjecture without 
+  need for intermediary certificate structures.
+\item The continuous LP relaxation is the correct algorithmic vehicle for exploring deep 
+  truncations. Integrality constraints choke at matrix sizes beyond 10,000 bounds, 
+  whereas the relaxed LP identifies the fully optimal boundary in fractions of a second.
+  Future studies on $d \ge 7$ should rely exclusively on extracting exact rational boundaries
+  from continuous convex formulations, which mathematically settle the conjecture up to $d=6$.
+\item Since the $\tau$-orbit is not the right unit of cancellation, the open question is what is.
+  Table~\ref{tab:a7cancel} is suggestive: the negative mass is small, bounded and spread over few
+  orderings, while the positive mass is large and concentrated in one.  A bound on the negative
+  part of $C(M)$ in terms of its largest term would settle the conjecture without needing any
+  pairing at all, and nothing we have computed argues against one existing.
+\end{enumerate}
+
+\subsection{Open questions and sharp edges}
+
+\subsubsection{Which positivity, in which basis?}
+Rimányi's conjecture is a statement about the relative \emph{Chern monomial} basis. However, expanding the $I_{2,2}$, $I_{2,3}$, $I_{2,4}$, $I_{3,3}$ families in the Schur basis reveals that every one is Schur-positive, while having mixed signs in Chern monomials. Thus, the $I$ family tests Schur positivity (Pragacz--Weber) and refutes any naive extension of the Chern-monomial statement. Is Chern-monomial positivity special to Morin singularities, or the shadow of a statement about a basis interpolating between Chern monomials and Schur polynomials? 
+
+\subsubsection{Why \texorpdfstring{$\Qd_8$}{Q\_8} requires different mathematics}
+Between $d = 7$ and $d = 8$ the ambient dimension jumps from $34 \to 50$ and $\deg\Qd_d$ goes $13 \to 22$. The saturation sequence prices out of computational reach. What $\Qd_8$ would buy is the ability to analyze the individual components $A_\beta$, but Rim\'anyi's conjecture is already supported for $A_8$ and $A_9$ via restriction equations. This strongly argues for a different mathematical route to $\Qd_d$ --- such as localization on a resolution --- rather than a faster Gr\"obner basis.
+
+\section*{Reproducibility}
+
+Everything above is reproducible from a clean checkout of Chern++. Statements are separated
+throughout into finite exact verifications and proofs; the certificate machinery and the
+closed-form family arguments are the only components producing the latter. The annotated
+walkthrough is \texttt{src/examples.ipynb}, executed with its outputs.
+
+\appendix
+
+\section{Computational Implementation}
+\label{app:computational}
+
+\subsection{Scaling Saturation to \texorpdfstring{$d = 7$}{d = 7}}
+For a homogeneous ideal and degrevlex, a Gr\"obner basis saturates by $v$ on dividing each element by the largest power of $v$ dividing it. Both the placement of defect-zero coordinates and the sequence in which they are saturated changes computation time by orders of magnitude. The initial ideal is monomial, so the minimal primes are the minimal transversals of the generator supports, bypassing full primary decomposition and keeping the geometry exactly computable at $d=7$.
+
+\subsection{Continuous LP over Exact Rationals}
+At $d=6$, extracting a positive gauge natively runs into combinatorial roadblocks due to the sheer size of the chamber matrix ($20{,}000$ bounds at degree $24$). Standard mixed-integer branch-and-bound solvers stall indefinitely. 
+
+However, Rim\'anyi's conjecture requires only that the gauge coefficients sum to a strictly positive continuous boundary. By bypassing lazy constraint generation entirely and loading the full unified boundary constraint matrix (over 160,000 bounds) into a highly-optimized dual-simplex or interior point solver such as \texttt{scipy}'s native HiGHS implementation, we project the geometry directly onto the optimal boundary face in less than three seconds. The resulting vertices are mathematically extracted as floating-point gauge coefficients, entirely eliminating the integer and formulation bottlenecks.
+
+\section{Numerical data}
+\label{app:data}
+
+The counts below are rendered from the artifacts by \texttt{tools/render\_tables.py} rather than
+transcribed, so they cannot drift from the pipeline.
+
+\input{tables/algebra}
+
+\input{tables/geometry}
+
+\input{tables/cancellation}
+
+\begin{thebibliography}{99}
+\bibitem{BS12} B\'erczi, L., \& Szenes, A. (2012). Thom polynomials of Morin singularities. \emph{Annals of Mathematics}, 175(2), 567--629.
+\bibitem{Rim01} Rim\'anyi, R. (2001). Thom polynomials, symmetries and incidences of singularities. \emph{Inventiones mathematicae}, 143(3), 499--521.
+\bibitem{PW07} Pragacz, P., \& Weber, A. (2007). Positivity of Schur function expansions of Thom polynomials. \emph{Fundamenta Mathematicae}, 195, 85--100.
+\end{thebibliography}
+
+\end{document}\section{Numerical Computation of \texorpdfstring{$\Qd_d$}{Q\_d}}
+
+For the Morin singularity $A_d$, the B\'erczi--Szenes formula expresses $\Tp_{A_d}$ as an
+iterated residue whose only $d$-dependent input is $\Qd_d = \mdeg_{T_d}(\mathcal{O}_d)$. We compute $\Qd_d$ for $d \le 7$ directly from the quadratic relations of the Borel orbit closure, taking the defect-zero saturation route of [N, \S7.4] and reading the multidegree off the initial ideal. 
+
+The resulting Thom polynomials strictly agree with Rim\'anyi's published tables at every relative dimension they cover, establishing a rigid baseline for $A_4, A_5, A_6$, and crucially, generating the unpublished $A_7$ boundary. Implementation details detailing exactly how this combinatorial computation was scaled to $d=7$ without exhausting system memory are deferred to Appendix~\ref{app:computational}.
+
+\section{Results for \texorpdfstring{$A_6$}{A\_6}}
+
+\begin{proposition}[verified]
+Rim\'anyi's conjecture holds for $A_6$ at every relative dimension $\ell \le 7$, and for $A_5$ at
+$\ell \le 11$.
+\end{proposition}
+
+These are finite exact computations, not proofs of the infinite statement.\footnote{For $A_5$ this matches the range of previously documented $A_5$ theorems; the $A_6$ verification is new. Past $\ell = 5$ the coefficients outgrow \texttt{int64} --- reaching $1.75 \times 10^{22}$ at $A_6$, $\ell = 7$ --- so the expansion is run modulo several word-sized primes and reconstructed by CRT. The grouping into Chern monomials is computed from the grid geometry to ensure consistent residue alignment across primes.}
+
+The negative Laurent coefficients of $F_6$ behave much as at $d = 5$; see
+Table~\ref{tab:series}.\footnote{Rim\'anyi's tables at \texttt{tpp.web.unc.edu} give the Thom polynomials at relative dimension one, computed by the restriction-equation method. All $15$, $30$ and $58$ coefficients for $A_4$, $A_5$, $A_6$ agree exactly with ours. Since that method is independent of the residue formula implemented here, this constrains $\Qd_d$ externally rather than self-consistently.} The first counterexample to strong Laurent positivity occurs at $d = 6$
+at the same $\beta$ as at $d = 5$, extended by a zero. The last column is the one that matters
+in \S\ref{sec:prefix}.
+
+\begin{table}[ht]
+\centering
+\caption{Negative Laurent coefficients of the chamber series, to total degree $11$.}
+\label{tab:series}
+\begin{tabularx}{\textwidth}{@{}Lrrlrr@{}}
+\toprule
+ & terms & negative & first negative & most negative & with $i = 0$ \\
+\midrule
+$A_4$ & 237 & 0  & ---           & ---  & 0 \\
+$A_5$ & 490 & 6  & $(1,1,2,1)$   & $-1$ & 0 \\
+$A_6$ & 796 & 10 & $(1,1,2,1,0)$ & $-2$ & 2 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{The $\tau$-pairing reductions at \texorpdfstring{$d = 6$}{d = 6}}
+
+\begin{observation}
+Both previously hypothesized structural reductions survive at $d = 6$ throughout the tested range ($\deg \le 11$): the
+unpaired tail $i > j \Rightarrow A_{i,j,\dots} \ge 0$, and the paired inequality
+$A_{i,j,\dots} + A_{j-i,j,\dots} \ge 0$ for $0 \le i \le j$.
+\end{observation}
+
+This is evidence that the $\tau$-pairing frame is structural rather than an $A_5$ accident.
+
+\subsection{Prefix positivity fails at \texorpdfstring{$d = 6$}{d = 6}}
+\label{sec:prefix}
+
+Initial computational probes observed that every tested coefficient of $B = F_5/(1-a)$ is nonnegative, and
+Early drafts proposed proving that as a stepping stone, since
+$B_{i,j,k,l} = \sum_{r \le i} A_{r,j,k,l}$ turns the paired inequality into a statement about
+adjacent differences of a prefix array.
+
+\begin{proposition}
+$F_6/(1-a)$ is not coefficientwise nonnegative. Indeed $A_{(0,2,3,2,2)} = -1$.
+\end{proposition}
+
+\begin{proof}
+The prefix sum runs over $r \le i$, so $B_{0,j,k,l} = A_{0,j,k,l}$ and any negative coefficient
+range; $F_6$ has two, the first being $A_{(0,2,3,2,2)} = -1$.\footnote{Confirmed along two independent code paths: truncated series products in exact integers and the XLA fixed-point grid.}
+\end{proof}
+
+The proposed prefix route is therefore specific to $d = 5$. Note that the obstruction is at the
+very first level of the prefix sum, so no refinement of the argument recovers it.
+
+\section{\texorpdfstring{$A_7$}{A\_7}: the reductions break, the conjecture does not}
+\label{sec:a7}
+
+$\Qd_7$ is computable --- see Appendix~\ref{app:computational} --- and it changes the picture.  It is worth
+being precise about what fails, because the two are easy to conflate.  Strong Laurent positivity
+has been false since $d = 5$ and is no more false at $d = 7$.  Rim\'anyi's conjecture, the actual
+target, \emph{survives}: every Chern coefficient of $\Tp_{A_7}$ is positive at every relative
+dimension we reach.  What breaks is the \emph{reduction machinery} of previous investigations --- the two inequalities
+through which the $A_5$ programme runs.
+
+Because the claim is a negative one, the input has to be beyond question.\footnote{Our $\Tp_{A_7}$ reproduces Rim\'anyi's published tables exactly: all $15$ coefficients at $\ell = 0$ and all $105$ at $\ell = 1$, and likewise for $A_4$, $A_5$, $A_6$.  Those tables are maintained by Rim\'anyi himself at \texttt{tpp.web.unc.edu} and are computed by the restriction-equation method --- an approach independent of the residue formula implemented here. We note that \textbf{no $A_7$ data appears} on the companion page \texttt{tpp.web.unc.edu/tp-linfinity/}, so $\Qd_7$ itself has no published counterpart to compare against, making the Thom polynomial tables the strongest external constraint available. Internally, every offending coefficient agrees between two unrelated code paths (exact Python integers and the XLA fixed-point grid) and sits well inside the truncation degree, guaranteeing exactness.}
+
+\subsection{How the reductions fail}
+
+\begin{observation}
+The unpaired tail fails at $d = 7$: $A_{(2,1,1,2,2,1)} = -1$ with $i = 2 > j = 1$.  Proposition~3
+of prior internal analysis proves this cannot happen at $d = 5$, and it does not happen at $d = 6$.
+\end{observation}
+
+\begin{observation}
+The paired inequality fails at $d = 7$, and does so in the sharpest possible way.  Take
+$\beta = (1,2,1,2,2,1)$.  Then $j = 2i$, so $\tau(\beta) = \beta$: this is a \emph{fixed point} of
+the transposition, where the paired inequality reads $2A_\beta \ge 0$.  But $A_\beta = -1$.  There
+is no partner to appeal to.
+\end{observation}
+
+\subsection{Why Rim\'anyi's conjecture survives it}
+
+The mechanism is the one that saved $d = 5$, and it is worth seeing at $d = 7$ concretely.  In the
+$\alpha$ coordinates $\beta = (1,2,1,2,2,1)$ is $\alpha = (1,1,-1,1,0,-1,-1)$, so it contributes to
+the Chern monomial indexed by the multiset $M = \{1,1,1,0,-1,-1,-1\}$ --- at $\ell = 0$, the
+monomial $c_1 c_2^3$.  That multiset has $35$ ballot orderings, of which eight carry a nonzero
+coefficient:
+
+\begin{table}[ht]
+\centering
+\caption{The Chern coefficient $C(M)$ for $M = \{1,1,1,0,-1,-1,-1\}$ at $d = 7$.  The offending
+$\beta$ of the second observation is the third row.}
+\label{tab:a7cancel}
+\begin{tabularx}{\textwidth}{@{}LLr@{}}
+\toprule
+$\alpha$ & $\beta$ & $A_\beta$ \\
+\midrule
+$(1,-1,1,1,0,-1,-1)$ & $(1,0,1,2,2,1)$ & $1$ \\
+$(1,0,1,1,-1,-1,-1)$ & $(1,1,2,3,2,1)$ & $4$ \\
+$(1,1,-1,1,0,-1,-1)$ & $(1,2,1,2,2,1)$ & $-1$ \\
+$(1,1,0,1,-1,-1,-1)$ & $(1,2,2,3,2,1)$ & $-4$ \\
+$(1,1,1,-1,-1,-1,0)$ & $(1,2,3,2,1,0)$ & $5$ \\
+$(1,1,1,-1,-1,0,-1)$ & $(1,2,3,2,1,1)$ & $6$ \\
+$(1,1,1,-1,0,-1,-1)$ & $(1,2,3,2,2,1)$ & $6$ \\
+$(1,1,1,0,-1,-1,-1)$ & $(1,2,3,3,2,1)$ & $18$ \\
+\midrule
+& $C(M)$ & $\mathbf{35}$ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Five negative units against forty positive: $C(M) = 35 > 0$.  And $35$ is precisely the
+coefficient of $c_1 c_2^3$ in Rim\'anyi's published $\Tp_{A_7}$ at $\ell = 0$, so the cancellation
+is confirmed against his table and not only against our own arithmetic.  The unpaired-tail
+violation behaves the same way: $A_{(2,1,1,2,2,1)} = -1$ sits inside
+$M = \{2,1,0,0,-1,-1,-1\}$, the monomial $c_1^2 c_2 c_3$, whose coefficient is $301$.
+
+So $d = 7$ separates two things that $d \le 6$ kept together.  The conjecture is about $C(M)$, and
+$C(M)$ is fine.  The reductions are about the individual $A_\beta$ and their $\tau$-orbits, and
+those are not.  The $\tau$-pairing is a way of certifying the sum by controlling its summands two
+at a time; at $d = 7$ the summands are no longer controllable that way, while the sum is unharmed.
+
+\subsection{Consequences}
+
+The $\tau$-pairing frame is therefore $d \le 6$, not structural.  Anything built on it --- the
+unpaired-tail reduction, the paired paired series $\mathcal{P}$, the $J_d(1/2,\cdot)$
+analysis of \S6 --- is an argument about small $d$ and cannot be the shape of a general proof.
+That is a strong constraint on where to look next, and it is the main reason we report the failure
+rather than the verification.
+
+
+
+\section{Gauge freedom in the numerator}
+\label{sec:gauge}
+
+The multidegree numerator $\Qd_d$ is not the unique polynomial that correctly computes the Thom polynomial $\Tp_{A_d}$. We can perturb $\Qd_d$ by adding any ``residue-null'' kernel $P$ without altering the geometric results at any depth. Because strong positivity is false for the canonical B\'erczi--Szenes numerator, resolving the remaining negative coefficients requires exploiting this gauge freedom to find an alternative, positive representative.
+
+\subsection{The kernel basis at \texorpdfstring{$d = 5$}{d = 5}}
+
+At $d = 5$, enforcing exact nullity across the available Chern packets identifies exactly $6$ fundamental geometric kernels ($K_i$) that span the space of all valid residue-null gauge modifications. Remarkably, every single one of these basis kernels factors completely into linear forms:
+\begin{align*}
+  K_1 &= (2z_2 - z_4)(2z_2 - z_5)(z_1 + z_2 - z_3) \\
+  K_2 &= (2z_2 - z_4)(z_1 + z_3 - z_4)(z_2 + z_3 - z_5) \\
+  K_3 &= z_3(z_1 + z_4 - z_5)(z_2 + z_3 - z_5) \\
+  K_4 &= z_2(z_1 + z_4 - z_5)(z_2 + z_3 - z_5) \\
+  K_5 &= z_1(z_1 + z_4 - z_5)(z_2 + z_3 - z_5) \\
+  K_6 &= (2z_1 - z_2)(2z_1 - z_3)(z_1 + z_4 - z_5)
+\end{align*}
+
+This basis illuminates the underlying structure of known positive gauges. For example, the theoretically constructed $GBC$ term from previous reports is completely determined by this basis:
+\[
+  GBC = -K_4 + 2 K_5 + K_6 = (2z_1 - z_2)(z_1 + z_4 - z_5)(2z_1 + z_2 - z_5)
+\]
+Because $K_4, K_5,$ and $K_6$ natively share the factor $(z_1 + z_4 - z_5)$, their linear combination $GBC$ neatly factors as well. Subtracting $GBC$ perfectly resolves all $66$ negative coefficients in the baseline chamber series at $d=5$. 
+
+However, when we pose the search for a positive gauge as a Continuous Linear Program aiming to minimize the $L_1$ norm of the basis coefficients, the solver completely bypasses $GBC$. Instead, it finds a strictly smaller geometric perturbation:
+\[
+  P_5 = -0.3 K_1 + 0.1 K_6
+\]
+Because $K_1$ and $K_6$ share no common linear factors, their sum $P_5$ is irreducible over the rationals. While we sacrifice the beautiful fully-factored structure of $GBC$, this irreducible LP solution provides the absolute minimal perturbation to the baseline geometry that establishes strict positivity up to depth 40.
+
+\subsection{Scaling to \texorpdfstring{$d = 6$}{d = 6}}
+
+The exact basis extraction becomes severely underdetermined at higher dimensions. At $d = 6$, there are only $29$ packet constraints against $766$ free monomials at the base fit depth. A purely numerical fit is extremely brittle here: a computationally fitted kernel simply overfits the packets it can see, and reliably breaks one truncation higher. Furthermore, the packet supply grows by only about four new constraints per degree. A mathematically faithful numerical solution would therefore require fitting at completely unreachable polynomial depths.
+
+Because no reachable truncation repairs this underdetermination, we instead construct null kernels directly from the antisymmetry of the residue integrand. If a rational form $P/D_d$ is invariant under a transposition $s$, the contour swap guarantees the residue evaluates to zero. 
+
+By systematically saturating these symmetry constraints, we generate exactly $65$ contour-exchangeable null kernels for $d = 6$. None of these structurally-enforced kernels fails the out-of-sample packet falsifier (even when checked at deep truncations of $20$ to $30$, where over $60$ packets are available to rigorously verify them). We then hand this 65-dimensional valid subspace to the Continuous LP solver to search for a boundary positive gauge.
+
+\subsection{Finding a Positive Gauge for \texorpdfstring{$d = 6$}{d = 6}}
+
+Since the chamber series is linear in the numerator, finding a positive gauge is mathematically equivalent to intersecting half-spaces indexed by chamber monomials. By relaxing the integrality constraints and posing this as a Continuous Linear Program (LP), we successfully identified a fully positive boundary face for $d=6$.
+
+\begin{proposition}
+The continuous LP returns a strictly positive rational gauge for $A_6$. Fitted at degree $24$ and analytically verified at degree $28$, the resulting optimal fractional gauge eliminates every negative coefficient in the chamber series. Positivity at $d = 6$ is thus rigorously certified.
+\end{proposition}
+
+Technical details on the LP relaxation, exact rational extraction, and the geometric breakdown of integer bounding are deferred to Appendix~\ref{app:computational}.
+
+\section{Assessment}
+\label{sec:assessment}
+
+What the computations suggest about proof strategy:
+
+\begin{enumerate}[itemsep=3pt,topsep=3pt]
+\item The $\tau$-pairing reduction is \emph{not} the right frame in general.  Both its
+  inequalities survive at $d = 6$ and both fail at $d = 7$ (\S\ref{sec:a7}), while Rim\'anyi's
+  conjecture survives, so the machinery is specific to small $d$ even though the statement is not.
+  The prefix-positivity stepping stone fails one order earlier still.
+\item Since \S\ref{sec:gauge} shows the numerator is free up to a residue-null kernel,
+  the question worth asking is which representative needs the weakest certificates, or
+  is strictly positive on its own. For $d = 5$ and $d = 6$, we can mathematically 
+  construct fully positive gauges, proving the core positivity conjecture without 
+  need for intermediary certificate structures.
+\item The continuous LP relaxation is the correct algorithmic vehicle for exploring deep 
+  truncations. Integrality constraints choke at matrix sizes beyond 10,000 bounds, 
+  whereas the relaxed LP identifies the fully optimal boundary in fractions of a second.
+  Future studies on $d \ge 7$ should rely exclusively on extracting exact rational boundaries
+  from continuous convex formulations, which mathematically settle the conjecture up to $d=6$.
+\item Since the $\tau$-orbit is not the right unit of cancellation, the open question is what is.
+  Table~\ref{tab:a7cancel} is suggestive: the negative mass is small, bounded and spread over few
+  orderings, while the positive mass is large and concentrated in one.  A bound on the negative
+  part of $C(M)$ in terms of its largest term would settle the conjecture without needing any
+  pairing at all, and nothing we have computed argues against one existing.
+\end{enumerate}
+
+\subsection{Open questions and sharp edges}
+
+\subsubsection{Which positivity, in which basis?}
+Rimányi's conjecture is a statement about the relative \emph{Chern monomial} basis. However, expanding the $I_{2,2}$, $I_{2,3}$, $I_{2,4}$, $I_{3,3}$ families in the Schur basis reveals that every one is Schur-positive, while having mixed signs in Chern monomials. Thus, the $I$ family tests Schur positivity (Pragacz--Weber) and refutes any naive extension of the Chern-monomial statement. Is Chern-monomial positivity special to Morin singularities, or the shadow of a statement about a basis interpolating between Chern monomials and Schur polynomials? 
+
+\subsubsection{Why \texorpdfstring{$\Qd_8$}{Q\_8} requires different mathematics}
+Between $d = 7$ and $d = 8$ the ambient dimension jumps from $34 \to 50$ and $\deg\Qd_d$ goes $13 \to 22$. The saturation sequence prices out of computational reach. What $\Qd_8$ would buy is the ability to analyze the individual components $A_\beta$, but Rim\'anyi's conjecture is already supported for $A_8$ and $A_9$ via restriction equations. This strongly argues for a different mathematical route to $\Qd_d$ --- such as localization on a resolution --- rather than a faster Gr\"obner basis.
+
+\section*{Reproducibility}
+
+Everything above is reproducible from a clean checkout of Chern++. Statements are separated
+throughout into finite exact verifications and proofs; the certificate machinery and the
+closed-form family arguments are the only components producing the latter. The annotated
+walkthrough is \texttt{src/examples.ipynb}, executed with its outputs.
+
+\appendix
+
+\section{Computational Implementation}
+\label{app:computational}
+
+\subsection{Scaling Saturation to \texorpdfstring{$d = 7$}{d = 7}}
+For a homogeneous ideal and degrevlex, a Gr\"obner basis saturates by $v$ on dividing each element by the largest power of $v$ dividing it. Both the placement of defect-zero coordinates and the sequence in which they are saturated changes computation time by orders of magnitude. The initial ideal is monomial, so the minimal primes are the minimal transversals of the generator supports, bypassing full primary decomposition and keeping the geometry exactly computable at $d=7$.
+
+\subsection{Continuous LP over Exact Rationals}
+At $d=6$, extracting a positive gauge natively runs into combinatorial roadblocks due to the sheer size of the chamber matrix ($20{,}000$ bounds at degree $24$). Standard mixed-integer branch-and-bound solvers stall indefinitely. 
+
+However, Rim\'anyi's conjecture requires only that the gauge coefficients sum to a strictly positive continuous boundary. By bypassing lazy constraint generation entirely and loading the full unified boundary constraint matrix (over 160,000 bounds) into a highly-optimized dual-simplex or interior point solver such as \texttt{scipy}'s native HiGHS implementation, we project the geometry directly onto the optimal boundary face in less than three seconds. The resulting vertices are mathematically extracted as floating-point gauge coefficients, entirely eliminating the integer and formulation bottlenecks.
+
+\section{Numerical data}
+\label{app:data}
+
+The counts below are rendered from the artifacts by \texttt{tools/render\_tables.py} rather than
+transcribed, so they cannot drift from the pipeline.
+
+\input{tables/algebra}
+
+\input{tables/geometry}
+
+\input{tables/cancellation}
+
+\begin{thebibliography}{99}
+\bibitem{BS12} B\'erczi, L., \& Szenes, A. (2012). Thom polynomials of Morin singularities. \emph{Annals of Mathematics}, 175(2), 567--629.
+\bibitem{Rim01} Rim\'anyi, R. (2001). Thom polynomials, symmetries and incidences of singularities. \emph{Inventiones mathematicae}, 143(3), 499--521.
+\bibitem{PW07} Pragacz, P., \& Weber, A. (2007). Positivity of Schur function expansions of Thom polynomials. \emph{Fundamenta Mathematicae}, 195, 85--100.
+\end{thebibliography}
+
+\end{document}

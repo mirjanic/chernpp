@@ -36,6 +36,8 @@ dev = ["black>=24", "pre-commit>=3"]
 
 [project.scripts]
 chernpp-experiments = "chernpp.experiments:main"
+chernpp-search = "chernpp.search_cli:main"
+
 
 [tool.setuptools]
 package-dir = { "" = "src" }

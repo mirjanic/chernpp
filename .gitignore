@@ -22,3 +22,6 @@ dist/
 *.out
 *.toc
 *.synctex.gz
+
+# Root scripts
+/*.py

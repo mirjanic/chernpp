@@ -26,6 +26,18 @@ This package reads those artifacts and never re-derives them:
 * :mod:`chernpp.lorentzian`   -- log-concavity / M-convexity tests
 """
 
+import logging
+import os
+
+# Configure basic logging with level from env, default INFO
+_log_level = os.environ.get("CHERNPP_LOG_LEVEL", "INFO").upper()
+logging.basicConfig(
+    level=getattr(logging, _log_level, logging.INFO),
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    datefmt="%H:%M:%S",
+)
+logger = logging.getLogger(__name__)
+
 from .artifacts import ChamberAlgebra, available_orders, load_algebra
 from .certificates import (
     Certificate,

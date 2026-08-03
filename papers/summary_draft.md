@@ -179,6 +179,28 @@ into theorems. It shows that no certificate of order $\le 7$ exists for $A_5$ â€
 prefix series of (T1) â€” which extends a published order-1 infeasibility result considerably and
 says that if this technique is to work at $d=5$ it must be used in a substantially richer form.
 
+**(T6) Explicit geometric construction of positive gauges.** Our search identifies the exact structural symmetries driving the cancellations in the continuous LP solver. For $d=5$, the positive gauge is completely described by 6 certified kernels, though the optimal solution only places weight on two of them:
+1. `-0.3000` weight on symmetry $s_{2,3}$ absorbing 3 factors
+2. `0.0000` weight on symmetry $s_{3,4}$ absorbing 3 factors
+3. `0.0000` weight on symmetry $s_{4,5}$ absorbing 2 factors
+4. `0.0000` weight on symmetry $s_{4,5}$ absorbing 2 factors
+5. `0.0000` weight on symmetry $s_{4,5}$ absorbing 2 factors
+6. `0.1000` weight on partial abs. $s_{1,2}$ dropping $(-z_4 + z_3 + z_1)$
+
+For $d=6$ at depth 32, the optimisation succeeds and the cancellation relies on the following top 10 most influential kernels:
+1. `-0.3996` weight on symmetry $s_{1,2}$ absorbing 5 factors
+2. `-0.3565` weight on symmetry $s_{5,6}$ absorbing 3 factors
+3. `-0.3038` weight on partial abs. $s_{4,6}$ dropping $(-z_6 + z_3 + z_2)$
+4. `-0.3016` weight on symmetry $s_{1,2}$ absorbing 5 factors
+5. `-0.2685` weight on symmetry $s_{2,3}$ absorbing 4 factors
+6. `0.2232` weight on symmetry $s_{1,2}$ absorbing 5 factors
+7. `0.2036` weight on symmetry $s_{2,3}$ absorbing 4 factors
+8. `0.2027` weight on symmetry $s_{2,3}$ absorbing 4 factors
+9. `0.1953` weight on partial abs. $s_{4,6}$ dropping $(-z_6 + z_3 + z_2)$
+10. `0.1683` weight on symmetry $s_{3,4}$ absorbing 4 factors
+
+However, checking at level 38 we find that 298 negatives reappear.
+
 ## 5. Code contributions, in order of importance
 
 **(C1) A self-justifying computation of $\mathcal{Q}_d$.** Everything downstream depends on one

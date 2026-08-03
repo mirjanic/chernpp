@@ -49,16 +49,104 @@ def poly_scale(p: Poly, c) -> Poly:
     return {e: v * c for e, v in p.items()}
 
 
-def poly_mul(p: Poly, q: Poly, max_deg: int = None) -> Poly:
+import numpy as np
+
+
+def _poly_mul_numpy(p: Poly, q: Poly, max_deg: int) -> Poly:
+    if not p or not q:
+        return {}
+
+    nvars = len(next(iter(p.keys())))
+    p_len = len(p)
+    q_len = len(q)
+
+    p_exps = np.zeros((p_len, nvars), dtype=np.uint32)
+    p_coeffs = np.zeros(p_len, dtype=np.float64)
+    for i, (e, c) in enumerate(p.items()):
+        p_exps[i] = e
+        p_coeffs[i] = float(c)
+
+    q_exps = np.zeros((q_len, nvars), dtype=np.uint32)
+    q_coeffs = np.zeros(q_len, dtype=np.float64)
+    for i, (e, c) in enumerate(q.items()):
+        q_exps[i] = e
+        q_coeffs[i] = float(c)
+
+    # Base for 1D indices must be strictly greater than max_deg to avoid collisions
+    b = max(max_deg + 1, 31)
+    base = np.array([b ** (nvars - 1 - i) for i in range(nvars)], dtype=np.uint64)
+
+    # Iterate over the smaller polynomial to minimize loop overhead
+    if q_len > p_len:
+        p_exps, q_exps = q_exps, p_exps
+        p_coeffs, q_coeffs = q_coeffs, p_coeffs
+        p_len, q_len = q_len, p_len
+
+    all_exps = []
+    all_coeffs = []
+
+    for j in range(q_len):
+        qe = q_exps[j]
+        qc = q_coeffs[j]
+
+        new_exps = p_exps + qe
+        degrees = new_exps.sum(axis=1)
+        mask = degrees <= max_deg
+
+        valid_exps = new_exps[mask]
+        valid_coeffs = p_coeffs[mask] * qc
+
+        if len(valid_exps) > 0:
+            all_exps.append(valid_exps)
+            all_coeffs.append(valid_coeffs)
+
+    if not all_exps:
+        return {}
+
+    flat_exps = np.concatenate(all_exps, axis=0)
+    flat_coeffs = np.concatenate(all_coeffs, axis=0)
+
+    flat_idx = flat_exps.dot(base)
+    unique_idx, inverse = np.unique(flat_idx, return_inverse=True)
+    res_coeffs = np.zeros(len(unique_idx), dtype=np.float64)
+    np.add.at(res_coeffs, inverse, flat_coeffs)
+
+    # Get the unique exponents corresponding to unique_idx
+    # inverse gives the mapping, we can find the first occurrence of each unique_idx
+    _, first_occurrences = np.unique(inverse, return_index=True)
+    unique_exps_arr = flat_exps[first_occurrences]
+
+    res = {}
+    # Convert exactly once at the end
+    for e, c in zip(unique_exps_arr, res_coeffs):
+        if abs(c) > 1e-10:
+            res[tuple(int(x) for x in e)] = c
+    return res
+
+
+def poly_mul(p1: Poly, p2: Poly, max_deg: int = None, exact: bool = False) -> Poly:
     """Product, optionally truncated above total degree ``max_deg``."""
-    res: Dict[Exponent, object] = defaultdict(int)
-    for e1, c1 in p.items():
-        d1 = sum(e1)
-        for e2, c2 in q.items():
-            if max_deg is not None and d1 + sum(e2) > max_deg:
+    if p1 and p2 and max_deg is not None and not exact:
+        try:
+            return _poly_mul_numpy(p1, p2, max_deg)
+        except Exception as e:
+            pass  # Fallback
+
+    out: Dict[Exponent, object] = {}
+    if exact:
+        p1 = {
+            e: (Fraction(c).limit_denominator(10**10) if isinstance(c, float) else c) for e, c in p1.items()
+        }
+        p2 = {
+            e: (Fraction(c).limit_denominator(10**10) if isinstance(c, float) else c) for e, c in p2.items()
+        }
+    for e1, c1 in p1.items():
+        for e2, c2 in p2.items():
+            if max_deg is not None and sum(e1) + sum(e2) > max_deg:
                 continue
-            res[tuple(a + b for a, b in zip(e1, e2))] += c1 * c2
-    return strip_zeros(res)
+            e = tuple(a + b for a, b in zip(e1, e2))
+            out[e] = out.get(e, 0) + c1 * c2
+    return strip_zeros(out)
 
 
 def poly_mul_many(ps: Iterable[Poly], nvars: int, max_deg: int = None) -> Poly:
@@ -113,7 +201,7 @@ def one_minus(f: Poly, nvars: int) -> Poly:
     return poly_sub(poly_one(nvars), f)
 
 
-def divide_by_one_minus(p: Poly, f: Poly, max_deg: int) -> Poly:
+def divide_by_one_minus(p: Poly, f: Poly, max_deg: int, exact: bool = False) -> Poly:
     """
     ``p / (1 - f)`` truncated at total degree ``max_deg``.
 
@@ -125,14 +213,14 @@ def divide_by_one_minus(p: Poly, f: Poly, max_deg: int) -> Poly:
     res = {e: c for e, c in p.items() if sum(e) <= max_deg}
     term = res
     for _ in range(max_deg):
-        term = poly_mul(term, f, max_deg)
+        term = poly_mul(term, f, max_deg, exact=exact)
         if not term:
             break
         res = poly_add(res, term)
     return res
 
 
-def expand_rational(num: Poly, factors: List[Poly], max_deg: int) -> Poly:
+def expand_rational(num: Poly, factors: List[Poly], max_deg: int, exact: bool = False) -> Poly:
     """
     Taylor expansion of ``num / prod_r (1 - f_r)``, truncated at ``max_deg``.
 
@@ -141,7 +229,7 @@ def expand_rational(num: Poly, factors: List[Poly], max_deg: int) -> Poly:
     """
     series = {e: c for e, c in num.items() if sum(e) <= max_deg}
     for f in factors:
-        series = divide_by_one_minus(series, f, max_deg)
+        series = divide_by_one_minus(series, f, max_deg, exact=exact)
     return series
 
 

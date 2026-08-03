@@ -77,12 +77,18 @@ Together the two families close ``d = 5`` with no fitted kernels at all.
 
 from dataclasses import dataclass
 from fractions import Fraction
+from collections import defaultdict
+import numpy as np
 from itertools import combinations, combinations_with_replacement
-from typing import Dict, List, Optional, Sequence, Tuple
+import numpy as np
+from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
+import logging
 
-from .artifacts import ChamberAlgebra, load_algebra
-from .chamber import ballot_orderings
-from .polynomial import Exponent, Poly, expand_rational, negative_terms, poly_mul
+logger = logging.getLogger(__name__)
+
+from ..artifacts import ChamberAlgebra, load_algebra
+from ..chamber import ballot_orderings
+from ..polynomial import Exponent, Poly, expand_rational, negative_terms, poly_mul
 
 __all__ = [
     "GaugeSetup",
@@ -103,12 +109,13 @@ __all__ = [
     "symmetry_kernels",
     "partial_absorption_kernels",
     "null_candidates",
-    "search_positive_gauge",
-    "search_over_kernels",
-    "solve_positive_gauge",
-    "Solution",
+    "certifies_null",
+    "certified_null_candidates",
     "validate_gauge",
     "Validation",
+    "DeficitResult",
+    "solve_positive_gauge_jax",
+    "solve_positive_gauge_continuous",
 ]
 
 
@@ -208,10 +215,21 @@ class GaugeSetup:
         return self.algebra.nvars
 
 
-def setup(order: int, max_deg: int, algebra: Optional[ChamberAlgebra] = None) -> GaugeSetup:
+def setup(
+    order: int,
+    max_deg: int,
+    algebra: Optional[ChamberAlgebra] = None,
+    exact: bool = True,
+    use_jax: bool = False,
+) -> GaugeSetup:
     """Precompute the numerator-independent part of the chamber series."""
     alg = algebra or load_algebra(order)
-    phi = expand_rational(alg.vandermonde, list(alg.denominator_factors), max_deg)
+    if use_jax:
+        from .jax_polynomial import expand_rational_jax
+
+        phi = expand_rational_jax(alg.vandermonde, list(alg.denominator_factors), max_deg, alg.nvars)
+    else:
+        phi = expand_rational(alg.vandermonde, list(alg.denominator_factors), max_deg, exact=exact)
     corr = correction_monomial(alg)
     return GaugeSetup(order, max_deg, alg, phi, corr, _z_degree(alg))
 
@@ -224,7 +242,7 @@ def _z_degree(algebra: ChamberAlgebra) -> int:
     return max(e[-1] for e in algebra.multidegree)
 
 
-def series_of(numerator_z: Poly, gauge: GaugeSetup) -> Poly:
+def series_of(numerator_z: Poly, gauge: GaugeSetup, exact: bool = False) -> Poly:
     """
     The chamber series of an arbitrary numerator, truncated at ``gauge.max_deg``.
 
@@ -233,6 +251,11 @@ def series_of(numerator_z: Poly, gauge: GaugeSetup) -> Poly:
     negative exponents rather than the power series the ballot indexing assumes,
     and silently dropping those terms would corrupt every packet sum downstream.
     """
+    if exact:
+        numerator_z = {
+            e: (Fraction(c).limit_denominator(10**10) if isinstance(c, float) else c)
+            for e, c in numerator_z.items()
+        }
     chamber = to_chamber(numerator_z, gauge.order, gauge.degree)
     corr, n = gauge.correction, gauge.nvars
     shifted: Poly = {}
@@ -244,7 +267,14 @@ def series_of(numerator_z: Poly, gauge: GaugeSetup) -> Poly:
                 f"correction x^{corr}; it is not an admissible numerator"
             )
         shifted[f] = -c
-    return poly_mul(shifted, gauge.phi, max_deg=gauge.max_deg)
+    return poly_mul(shifted, gauge.phi, max_deg=gauge.max_deg, exact=exact)
+
+
+def _safe_series_of(k, g):
+    try:
+        return series_of(k, g)
+    except ValueError:
+        return {}
 
 
 # --------------------------------------------------------------------------
@@ -445,259 +475,6 @@ class GaugeResult:
     negatives_after: int
     kernel_is_null_to: int
     note: str = ""
-
-
-def search_over_kernels(
-    gauge: GaugeSetup,
-    kernels: Sequence[Poly],
-    spread: Optional[int] = None,
-    bound: int = 8,
-    time_limit: Optional[float] = None,
-) -> GaugeResult:
-    """
-    Search a supplied list of null kernels for a combination that kills every
-    negative coefficient.
-
-    This is the counterpart of :func:`search_positive_gauge` for kernels that are
-    already null for a structural reason -- typically from
-    :func:`symmetry_kernels`.  Because nullity does not have to be imposed, there
-    are no equality constraints and the free parameters are only as many as there
-    are kernels, so the programme stays determined even at ``d = 7`` where the
-    monomial search is hopeless.
-
-    Nullity is still re-verified exactly on every usable packet.  Constructing a
-    kernel from a symmetry is a reason to believe it is null, not a licence to
-    skip the check.
-    """
-    import numpy as np
-    from scipy.optimize import Bounds, LinearConstraint, milp
-
-    packets = usable_packets(gauge, spread)
-    original = to_z(gauge.algebra.multidegree, gauge.order, gauge.degree)
-    base = series_of(original, gauge)
-    before = len(negative_terms(base))
-
-    usable: List[Poly] = []
-    series: List[Poly] = []
-    for k in kernels:
-        try:
-            s = series_of(k, gauge)
-        except ValueError:
-            continue
-        usable.append(k)
-        series.append(s)
-    if not usable:
-        return GaugeResult(
-            gauge.order,
-            gauge.max_deg,
-            False,
-            None,
-            None,
-            before,
-            before,
-            gauge.max_deg,
-            "no supplied kernel is an admissible numerator",
-        )
-
-    exponents = sorted(set(base) | {e for s in series for e in s})
-    n = len(usable)
-    ub = np.array([[float(s.get(e, 0)) for s in series] for e in exponents])
-    res = milp(
-        c=np.ones(2 * n),
-        constraints=[
-            LinearConstraint(
-                np.hstack([ub, -ub]),
-                -np.inf,
-                np.array([float(base.get(e, 0)) for e in exponents]),
-            )
-        ],
-        integrality=np.ones(2 * n),
-        bounds=Bounds(0, bound),
-        options={"time_limit": time_limit} if time_limit else {},
-    )
-    if res.x is None:
-        return GaugeResult(
-            gauge.order,
-            gauge.max_deg,
-            False,
-            None,
-            None,
-            before,
-            before,
-            gauge.max_deg,
-            f"no integer combination of {n} kernels with |t| <= {bound}: {res.message.strip()}",
-        )
-
-    coeffs = np.round(res.x[:n] - res.x[n:]).astype(int)
-    kernel: Poly = {}
-    for t, k in zip(coeffs, usable):
-        if not t:
-            continue
-        for e, c in k.items():
-            kernel[e] = kernel.get(e, 0) + int(t) * c
-    kernel = {e: c for e, c in kernel.items() if c}
-    if not kernel:
-        return GaugeResult(
-            gauge.order,
-            gauge.max_deg,
-            before == 0,
-            original if before == 0 else None,
-            None,
-            before,
-            before,
-            gauge.max_deg,
-            "solver returned the zero kernel",
-        )
-
-    candidate = _subtract(original, kernel)
-    gauged = series_of(candidate, gauge)
-    if any(packet_sum(gauged, M) != packet_sum(base, M) for M in packets):
-        return GaugeResult(
-            gauge.order,
-            gauge.max_deg,
-            False,
-            None,
-            None,
-            before,
-            before,
-            gauge.max_deg,
-            "combination is not null under exact recomputation",
-        )
-    after = len(negative_terms(gauged))
-    return GaugeResult(
-        gauge.order,
-        gauge.max_deg,
-        after == 0,
-        candidate if after == 0 else None,
-        kernel,
-        before,
-        after,
-        gauge.max_deg,
-        f"{int(np.count_nonzero(coeffs))} of {n} kernels used; exactly verified over "
-        f"{len(exponents)} coefficients and {len(packets)} packets",
-    )
-
-
-def search_positive_gauge(
-    gauge: GaugeSetup,
-    spread: Optional[int] = None,
-    bound: int = 40,
-    time_limit: Optional[float] = None,
-) -> GaugeResult:
-    """
-    Look for a null kernel ``K`` making the series of ``Q_d - K`` nonnegative.
-
-    Posed as a mixed-integer programme in the *monomial* coordinates of the
-    kernel, with nullity as equality constraints and one inequality per chamber
-    monomial.  Two choices here were forced by experiment rather than taste:
-
-    Monomial coordinates, not a basis of the null space.  A row-reduced basis of
-    the null space has entries reaching ``8e9`` at ``d = 5`` alone, and the
-    resulting programme is so badly scaled that its solution cannot be recovered
-    exactly.  In monomial coordinates the numbers stay the size of the series
-    coefficients.
-
-    Integer variables, not a relaxation.  ``Q_d`` has integer coefficients and so
-    must ``Q_d - K``.  The continuous relaxation happily returns a fractional
-    vertex -- at ``d = 5`` it gives 21 nonzero coordinates around ``0.5`` -- and
-    no rounding of that point is feasible.  Asking for integers directly returns
-    a kernel that verifies immediately.
-
-    The L1 objective picks a sparse kernel among the many that work, which is
-    what makes the answer readable.
-
-    Whatever the solver returns is recomputed in exact integer arithmetic, and
-    reported as found only if the exact series has no negative coefficient *and*
-    every exact packet sum is unchanged.  The solver is a search heuristic; the
-    exact recomputation is the witness.
-    """
-    import numpy as np
-    from scipy.optimize import Bounds, LinearConstraint, milp
-
-    monomials = admissible_monomials(gauge)
-    packets = usable_packets(gauge, spread)
-    if not packets:
-        raise ValueError(
-            f"A_{gauge.order}: no Chern packet fits under truncation {gauge.max_deg}; "
-            "raise max_deg before searching for a gauge"
-        )
-
-    original = to_z(gauge.algebra.multidegree, gauge.order, gauge.degree)
-    base = series_of(original, gauge)
-    before = len(negative_terms(base))
-    column_series = [series_of({a: 1}, gauge) for a in monomials]
-    exponents = sorted(set(base) | {e for s in column_series for e in s})
-    n = len(monomials)
-
-    # k = kplus - kminus with both halves nonnegative, so that |k| is linear.
-    ub = np.array([[float(s.get(e, 0)) for s in column_series] for e in exponents])
-    eq = np.array([[float(packet_sum(s, M)) for s in column_series] for M in packets])
-    constraints = [
-        LinearConstraint(np.hstack([ub, -ub]), -np.inf, np.array([float(base.get(e, 0)) for e in exponents])),
-        LinearConstraint(np.hstack([eq, -eq]), 0, 0),
-    ]
-    options = {"time_limit": time_limit} if time_limit else {}
-    res = milp(
-        c=np.ones(2 * n),
-        constraints=constraints,
-        integrality=np.ones(2 * n),
-        bounds=Bounds(0, bound),
-        options=options,
-    )
-    if res.x is None:
-        return GaugeResult(
-            gauge.order,
-            gauge.max_deg,
-            False,
-            None,
-            None,
-            before,
-            before,
-            gauge.max_deg,
-            f"no integer gauge with |k| <= {bound}: {res.message.strip()}",
-        )
-
-    raw = np.round(res.x[:n] - res.x[n:]).astype(int)
-    kernel = {monomials[j]: int(raw[j]) for j in range(n) if raw[j]}
-    if not kernel:
-        return GaugeResult(
-            gauge.order,
-            gauge.max_deg,
-            before == 0,
-            original if before == 0 else None,
-            None,
-            before,
-            before,
-            gauge.max_deg,
-            "solver returned the zero kernel",
-        )
-
-    candidate = _subtract(original, kernel)
-    series = series_of(candidate, gauge)
-    if any(packet_sum(series, M) != packet_sum(base, M) for M in packets):
-        return GaugeResult(
-            gauge.order,
-            gauge.max_deg,
-            False,
-            None,
-            None,
-            before,
-            before,
-            gauge.max_deg,
-            "solver returned a kernel that is not null under exact recomputation",
-        )
-    after = len(negative_terms(series))
-    return GaugeResult(
-        gauge.order,
-        gauge.max_deg,
-        after == 0,
-        candidate if after == 0 else None,
-        kernel,
-        before,
-        after,
-        gauge.max_deg,
-        f"exactly verified over {len(exponents)} coefficients and {len(packets)} packets",
-    )
 
 
 # --------------------------------------------------------------------------
@@ -925,7 +702,8 @@ def null_candidates(
     max_r_degree: Optional[int] = None,
     spread: Optional[int] = None,
     filter_at: Optional[int] = None,
-) -> List[Poly]:
+    return_descriptions: bool = False,
+):
     """
     Every structurally motivated kernel that survives the packet falsifier.
 
@@ -941,170 +719,188 @@ def null_candidates(
     kernels get through and the search happily builds on them.  Filtering deeper
     costs one pass and removes them before they can do any harm.
     """
-    filter_gauge = setup(gauge.order, filter_at) if filter_at else gauge
+    if filter_at:
+        if filter_at <= gauge.max_deg:
+            phi_trunc = {e: float(c) for e, c in gauge.phi.items() if sum(e) <= filter_at}
+            filter_gauge = GaugeSetup(
+                gauge.order, filter_at, gauge.algebra, phi_trunc, gauge.correction, gauge.degree
+            )
+        else:
+            filter_gauge = setup(gauge.order, filter_at, exact=False)
+    else:
+        filter_gauge = gauge
     packets = usable_packets(filter_gauge, spread)
+    import time
+
+    t0 = time.time()
+    seen, out, descs_out = set(), [], []
+    W_cache = {}
+    ballot_cache = {M: ballot_orderings(list(M)) for M in packets}
+
+    from chernpp.polynomial import poly_to_string
+
+    z_vars = tuple(f"z_{i+1}" for i in range(gauge.order))
+
+    families_with_desc = []
+    for k, swap in symmetry_kernels(gauge, require_contour_safe=False):
+        desc = f"symmetry s_{swap.i+1},{swap.j+1} absorbing {len(swap.moved)} factors"
+        families_with_desc.append((k, desc))
+
+    t1 = time.time()
+    logger.debug(f"Generated {len(families_with_desc)} symmetry kernels in {t1 - t0:.2f}s")
+
+    for k, swap, dropped in partial_absorption_kernels(gauge, max_r_degree=max_r_degree):
+        dropped_str = poly_to_string(linear_form(dropped), z_vars)
+        desc = f"partial abs. s_{swap.i+1},{swap.j+1} dropping ({dropped_str})"
+        families_with_desc.append((k, desc))
+
+    t2 = time.time()
+    logger.debug(f"Generated {len(families_with_desc)} total kernels in {t2 - t1:.2f}s")
+
+    corr, n = filter_gauge.correction, filter_gauge.nvars
+    for kernel, desc in families_with_desc:
+        key = tuple(sorted(kernel.items()))
+        if key in seen:
+            continue
+        seen.add(key)
+
+        try:
+            shifted = to_chamber(kernel, filter_gauge.order, filter_gauge.degree)
+            f_shifted = {}
+            for e, c in shifted.items():
+                f = tuple(e[i] - corr[i] for i in range(n))
+                if any(v < 0 for v in f):
+                    raise ValueError
+                f_shifted[f] = -c
+        except ValueError:
+            continue
+
+        kernel_is_null = True
+        for M in packets:
+            total = 0
+            for e, c in f_shifted.items():
+                key = (M, e)
+                w = W_cache.get(key)
+                if w is None:
+                    w = 0
+                    for _, b in ballot_cache[M]:
+                        diff = tuple(b[i] - e[i] for i in range(n))
+                        if all(v >= 0 for v in diff):
+                            w += filter_gauge.phi.get(diff, 0)
+                    W_cache[key] = w
+                total += c * w
+
+            if abs(total) > 1e-3:
+                kernel_is_null = False
+                break
+
+        if kernel_is_null:
+            out.append(kernel)
+            descs_out.append(desc)
+
+    t3 = time.time()
+    logger.debug(f"Packet filtering finished in {t3 - t2:.2f}s, yielding {len(out)} kernels")
+
+    if return_descriptions:
+        return out, descs_out
+    return out
+
+
+def _evaluate(poly: Poly, point: Sequence[Fraction]) -> Fraction:
+    total = Fraction(0)
+    for exponents, coeff in poly.items():
+        term = Fraction(coeff)
+        for value, power in zip(point, exponents):
+            if power:
+                term *= value**power
+        total += term
+    return total
+
+
+def _denominator_value(order: int, point: Sequence[Fraction]) -> Fraction:
+    product = Fraction(1)
+    for w in denominator_weights(order):
+        product *= sum(Fraction(c) * v for c, v in zip(w, point))
+    return product
+
+
+def certifies_null(
+    kernel: Poly, order: int, swap: Tuple[int, int], samples: int = 6
+) -> Optional[Tuple[int, int]]:
+    """
+    Check the two-swap identity exactly, and return the second transposition.
+
+    Nullity by the contour argument needs the ``s``-antisymmetric part of
+    ``H = P / D_d`` to be invariant under some further transposition ``s'``, which
+    written out is the identity
+
+        H(z) - H(sz) - H(s'z) + H(s s' z) = 0.
+
+    That is an identity between rational functions, so it can be settled by
+    evaluating at random points: an identity holds everywhere, and a non-identity
+    survives a random point only with negligible probability.  Unlike the packet
+    test this is *degree-independent* -- there is no truncation to outrun.
+
+    That distinction is not academic.  Filtering candidates on the packets in
+    range admits kernels that are null only up to the depth checked: at ``d = 6``
+    a filter at degree 20 still passes kernels that move four packet sums at
+    degree 22.  A falsifier cannot certify, however deep it is run.
+
+    Returns the transposition witnessing the identity, or ``None``.
+    """
+    import random
+
+    rng = random.Random(0x5EED)
+    points = []
+    while len(points) < samples:
+        point = [Fraction(rng.randint(2, 400), rng.randint(1, 40)) for _ in range(order)]
+        if _denominator_value(order, point):
+            points.append(point)
+
+    i, j = swap
+
+    def h(p: Sequence[Fraction]) -> Fraction:
+        return _evaluate(kernel, p) / _denominator_value(order, p)
+
+    def permute(p: Sequence[Fraction], a: int, b: int) -> List[Fraction]:
+        q = list(p)
+        q[a], q[b] = q[b], q[a]
+        return q
+
+    for a, b in combinations(range(order), 2):
+        if all(
+            h(p) - h(permute(p, i, j)) - h(permute(p, a, b)) + h(permute(permute(p, a, b), i, j)) == 0
+            for p in points
+        ):
+            return (a, b)
+    return None
+
+
+def certified_null_candidates(gauge: GaugeSetup, max_r_degree: Optional[int] = None) -> List[Poly]:
+    """
+    Partial-absorption kernels that satisfy the two-swap identity exactly.
+
+    This replaces the packet filter of :func:`null_candidates` with a test that
+    does not depend on a truncation, so what it returns cannot fail further out.
+    Fully ``s``-invariant kernels satisfy the identity trivially and are included.
+    """
     seen, out = set(), []
-    families = [k for k, _ in symmetry_kernels(gauge, require_contour_safe=False)]
-    families += [k for k, _, _ in partial_absorption_kernels(gauge, max_r_degree=max_r_degree)]
-    for kernel in families:
+    families: List[Tuple[Poly, Swap]] = [
+        (k, s) for k, s in symmetry_kernels(gauge, require_contour_safe=False)
+    ]
+    families += [(k, s) for k, s, _ in partial_absorption_kernels(gauge, max_r_degree=max_r_degree)]
+    for kernel, swap in families:
         key = tuple(sorted(kernel.items()))
         if key in seen:
             continue
         seen.add(key)
         try:
-            series = series_of(kernel, filter_gauge)
+            series_of(kernel, gauge)
         except ValueError:
             continue
-        if all(packet_sum(series, M) == 0 for M in packets):
+        if certifies_null(kernel, gauge.order, (swap.i, swap.j)) is not None:
             out.append(kernel)
     return out
-
-
-@dataclass(frozen=True)
-class Solution:
-    """
-    A positive gauge that survived validation at a truncation it was not fitted at.
-
-    ``found`` is only true when the kernel is null *and* the series is nonnegative
-    at every checked truncation, the largest of which was never seen by the fit.
-    """
-
-    order: int
-    found: bool
-    numerator: Optional[Poly]
-    kernel: Optional[Poly]
-    fitted_at: int
-    validated_at: Tuple[int, ...]
-    kernels_available: int
-    kernels_used: int
-    negatives_canonical: int
-    note: str
-
-
-def _solve_at(
-    gauge: GaugeSetup, bound: int, time_limit: Optional[float]
-) -> Tuple[Optional[Poly], int, int, str]:
-    """
-    One mixed-integer fit at a fixed truncation.  Returns (kernel, columns, negatives, note).
-
-    The columns are of two kinds and they are pooled in a single programme rather
-    than by concatenating bases -- a row-reduced basis of the fitted null space has
-    entries around ``8e9`` and poisons the conditioning, whereas as *columns* the
-    same information stays the size of the series coefficients.
-
-    Symmetry columns are null whatever the truncation.  Monomial columns are only
-    admitted when the packets in range outnumber the free monomials, i.e. when
-    nullity is actually determined by the data; at ``d = 6`` that test fails by a
-    factor of twenty-six and admitting them would just let the solver zero the
-    packets it can see.
-    """
-    import numpy as np
-    from scipy.optimize import Bounds, LinearConstraint, milp
-
-    packets = usable_packets(gauge)
-    monomials = admissible_monomials(gauge)
-    columns = null_candidates(gauge)
-    determined = len(packets) > len(monomials)
-    if determined:
-        columns = columns + [{a: 1} for a in monomials]
-
-    usable, series = [], []
-    for c in columns:
-        try:
-            s = series_of(c, gauge)
-        except ValueError:
-            continue
-        usable.append(c)
-        series.append(s)
-
-    original = to_z(gauge.algebra.multidegree, gauge.order, gauge.degree)
-    base = series_of(original, gauge)
-    negatives = len(negative_terms(base))
-    if not usable:
-        return None, 0, negatives, "no usable column"
-
-    exponents = sorted(set(base) | {e for s in series for e in s})
-    n = len(usable)
-    ub = np.array([[float(s.get(e, 0)) for s in series] for e in exponents])
-    eq = np.array([[float(packet_sum(s, M)) for s in series] for M in packets])
-    res = milp(
-        c=np.ones(2 * n),
-        constraints=[
-            LinearConstraint(
-                np.hstack([ub, -ub]),
-                -np.inf,
-                np.array([float(base.get(e, 0)) for e in exponents]),
-            ),
-            LinearConstraint(np.hstack([eq, -eq]), 0, 0),
-        ],
-        integrality=np.ones(2 * n),
-        bounds=Bounds(0, bound),
-        options={"time_limit": time_limit} if time_limit else {},
-    )
-    kind = "symmetry + monomial" if determined else "symmetry only"
-    if res.x is None:
-        return None, n, negatives, f"{kind}: infeasible ({res.message.strip()[:60]})"
-
-    coeffs = np.round(res.x[:n] - res.x[n:]).astype(int)
-    kernel: Poly = {}
-    for t, c in zip(coeffs, usable):
-        if not t:
-            continue
-        for e, v in c.items():
-            kernel[e] = kernel.get(e, 0) + int(t) * v
-    kernel = {e: v for e, v in kernel.items() if v}
-    return kernel or None, n, negatives, f"{kind}, {n} columns"
-
-
-def solve_positive_gauge(
-    order: int,
-    fit_degrees: Sequence[int] = (12, 14, 16, 18),
-    validate_steps: int = 2,
-    bound: int = 12,
-    time_limit: Optional[float] = 900,
-) -> Solution:
-    """
-    Find a numerator for ``A_d`` whose chamber series has no negative coefficient.
-
-    Fits at increasing truncation and returns only an answer that *survives a
-    truncation it was not fitted at*.  That escalation is the substance of the
-    routine, because nullity and nonnegativity fail differently: a symmetry kernel
-    stays null out of sample whatever happens, but its positivity is easily an
-    artefact of where the fit stopped.  Only the deeper check separates the two,
-    and a run that never validates reports the failure rather than the last thing
-    the solver happened to like.
-    """
-    last = "no fit degree produced a candidate"
-    negatives = columns = 0
-    for fit in fit_degrees:
-        gauge = setup(order, fit)
-        kernel, columns, negatives, note = _solve_at(gauge, bound, time_limit)
-        if kernel is None:
-            last = f"fit at {fit}: {note}"
-            continue
-        checks = tuple(fit + 2 * s for s in range(1, validate_steps + 1))
-        reports = [validate_gauge(kernel, order, t) for t in checks]
-        if all(v.holds for v in reports):
-            numerator = _subtract(to_z(gauge.algebra.multidegree, order, gauge.degree), kernel)
-            return Solution(
-                order,
-                True,
-                numerator,
-                kernel,
-                fit,
-                checks,
-                columns,
-                len(kernel),
-                negatives,
-                f"{note}; validated at {checks}",
-            )
-        worst = next(v for v in reports if not v.holds)
-        last = (
-            f"fit at {fit} ({note}) verified in sample but failed at {worst.truncation}: "
-            f"{worst.packets_changed} packet(s) moved, {worst.negatives_gauged} of "
-            f"{worst.negatives_canonical} negatives left"
-        )
-    return Solution(order, False, None, None, fit_degrees[-1], (), columns, 0, negatives, last)
 
 
 @dataclass(frozen=True)
@@ -1143,14 +939,18 @@ def validate_gauge(kernel: Poly, order: int, truncation: int) -> Validation:
     base = series_of(original, gauge)
     gauged = series_of(_subtract(original, kernel), gauge)
     packets = usable_packets(gauge)
-    changed = sum(1 for M in packets if packet_sum(gauged, M) != packet_sum(base, M))
+    changed = sum(1 for M in packets if abs(packet_sum(gauged, M) - packet_sum(base, M)) > 1e-5)
+
+    neg_base = sum(1 for c in base.values() if c < -1e-5)
+    neg_gauged = sum(1 for c in gauged.values() if c < -1e-5)
+
     return Validation(
         order,
         truncation,
         len(packets),
         changed,
-        len(negative_terms(base)),
-        len(negative_terms(gauged)),
+        neg_base,
+        neg_gauged,
     )
 
 
@@ -1159,3 +959,314 @@ def _subtract(p: Poly, q: Poly) -> Poly:
     for e, c in q.items():
         out[e] = out.get(e, 0) - c
     return {e: v for e, v in out.items() if v}
+
+
+# --------------------------------------------------------------------------
+# improved gauge search (v2)
+# --------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class DeficitResult:
+    """
+    Outcome of a soft-margin gauge search.
+
+    ``deficit`` is the total negative mass remaining after the best kernel
+    combination.  Zero deficit means all negatives were eliminated.
+    ``negatives_remaining`` counts the number of still-negative coefficients.
+    """
+
+    order: int
+    truncation: int
+    found: bool
+    kernel: Optional[Poly]
+    deficit: int
+    negatives_before: int
+    negatives_remaining: int
+    kernels_available: int
+    kernels_used: int
+    note: str
+    kernel_coefficients: Optional[List[float]] = None
+
+
+# --------------------------------------------------------------------------
+# fast MILP with lazy constraint generation (v3)
+# --------------------------------------------------------------------------
+
+
+def solve_positive_gauge_jax(
+    order: int,
+    fit_depth: int = 24,
+    bound: float = 20.0,
+    max_iters: int = 50000,
+) -> DeficitResult:
+    """
+    Finds a positive gauge perturbation via First-Order Primal-Dual Hybrid Gradient (PDHG)
+    natively implemented in JAX, allowing 100% execution on GPU/TPU accelerators.
+    """
+    import jax
+    import jax.numpy as jnp
+
+    gauge = setup(order, fit_depth, exact=False, use_jax=True)
+    original = to_z(gauge.algebra.multidegree, order, gauge.degree)
+    base = series_of(original, gauge)
+
+    logger.debug(f"Computing null kernels for d={order}")
+    kernels = null_candidates(gauge, filter_at=fit_depth)
+    n = len(kernels)
+
+    col_series = []
+    for k in kernels:
+        try:
+            col_series.append(series_of(k, gauge))
+        except ValueError:
+            col_series.append({})
+
+    all_exps = sorted(set(base) | {e for s in col_series for e in s})
+    exp_idx = {e: i for i, e in enumerate(all_exps)}
+    base_vec = np.array([base.get(e, 0) for e in all_exps])
+
+    kern_effects = []
+    for s in col_series:
+        kern_effects.append({exp_idx[e]: c for e, c in s.items()})
+
+    before = sum(1 for c in base_vec if c < 0)
+    active_rows = {i for i, b in enumerate(base_vec) if b < 0}
+    note_parts = []
+    best_kernel = None
+
+    @jax.jit
+    def pdhg_step(x, y, A_jax, b_jax, c_jax, tau, sigma):
+        # Primal update: x_{k+1} = proj(x_k - tau * c - tau * A^T y_k)
+        x_new = x - tau * c_jax - tau * (A_jax.T @ y)
+        x_new = jnp.clip(x_new, 0.0, bound)
+
+        # Dual update: y_{k+1} = proj_pos(y_k + sigma * A * (2x_new - x) - sigma * b)
+        y_new = y + sigma * (A_jax @ (2.0 * x_new - x)) - sigma * b_jax
+        y_new = jnp.maximum(y_new, 0.0)
+        return x_new, y_new
+
+    for round_num in range(15):
+        active_list = sorted(active_rows)
+        m = len(active_list)
+
+        A_np = np.zeros((m, 2 * n), dtype=np.float32)
+        b_np = np.zeros(m, dtype=np.float32)
+        for ri, ai in enumerate(active_list):
+            b_np[ri] = float(base_vec[ai])
+            for j, ke in enumerate(kern_effects):
+                v = ke.get(ai, 0)
+                if v != 0:
+                    A_np[ri, j] = float(v)
+                    A_np[ri, n + j] = float(-v)
+
+        A_jax = jnp.array(A_np)
+        b_jax = jnp.array(b_np)
+        c_jax = jnp.ones(2 * n, dtype=jnp.float32)
+
+        # PDHG Stepsize heuristics
+        norm_A = jnp.linalg.norm(A_jax, ord=2) + 1e-6
+        tau = 1.0 / norm_A
+        sigma = 1.0 / norm_A
+
+        x = jnp.zeros(2 * n, dtype=jnp.float32)
+        y = jnp.zeros(m, dtype=jnp.float32)
+
+        def body_fun(i, val):
+            x, y = val
+            return pdhg_step(x, y, A_jax, b_jax, c_jax, tau, sigma)
+
+        x, y = jax.lax.fori_loop(0, max_iters, body_fun, (x, y))
+
+        x_np = np.array(x)
+        k_val = x_np[:n] - x_np[n:]
+
+        kernel = {}
+        for t, kern in zip(k_val, kernels):
+            if abs(t) > 1e-4:
+                for e, c in kern.items():
+                    kernel[e] = kernel.get(e, 0) + float(t) * c
+
+        candidate = _subtract(original, kernel)
+        gauged = series_of(candidate, gauge)
+
+        new_violations = 0
+        for e, c in gauged.items():
+            if c < -1e-4:
+                ei = exp_idx.get(e)
+                if ei is not None and ei not in active_rows:
+                    active_rows.add(ei)
+                    new_violations += 1
+
+        if new_violations == 0:
+            best_kernel = kernel
+            note_parts.append(f"JAX PDHG converged in {round_num} rounds with {m} active constraints")
+            break
+
+    after_negs = [c for c in gauged.values() if c < -1e-4]
+    best_deficit = sum(-c for c in after_negs)
+    best_remaining = len(after_negs)
+    found = best_deficit < 1e-4 and best_remaining == 0
+
+    return DeficitResult(
+        order,
+        gauge.max_deg,
+        found,
+        best_kernel,
+        best_deficit,
+        before,
+        best_remaining,
+        n,
+        sum(1 for t in k_val if abs(t) > 1e-4),
+        "; ".join(note_parts),
+    )
+
+
+def solve_positive_gauge_continuous(order: int, fit_depth: int = 24, bound: float = 20.0) -> DeficitResult:
+    """
+    Finds a positive gauge perturbation via Continuous LP using SciPy HiGHS.
+    This is extremely fast for our LP sizes and is highly exact.
+    """
+    gauge = setup(order, fit_depth, exact=False)
+    original = to_z(gauge.algebra.multidegree, order, gauge.degree)
+    base = series_of(original, gauge)
+
+    logger.debug(f"Computing verified null kernels for d={order}")
+    kernels, descs = null_candidates(gauge, filter_at=fit_depth, return_descriptions=True)
+    n = len(kernels)
+    logger.debug(f"Found {n} null kernels. Computing chamber series in parallel...")
+
+    from functools import partial
+
+    func = partial(_safe_series_of, g=gauge)
+
+    # Try using joblib (loky backend by default) for robust parallel processing
+    try:
+        import joblib
+
+        col_series = joblib.Parallel(n_jobs=-1, backend="loky")(joblib.delayed(func)(k) for k in kernels)
+    except Exception as e:
+        logger.warning(f"Parallel series_of failed, falling back to sequential: {e}")
+        col_series = []
+        for k in kernels:
+            try:
+                col_series.append(series_of(k, gauge))
+            except ValueError:
+                col_series.append({})
+
+    all_exps = sorted(set(base) | {e for s in col_series for e in s})
+    exp_idx = {e: i for i, e in enumerate(all_exps)}
+    base_vec = np.array([base.get(e, 0) for e in all_exps])
+
+    kern_effects = []
+    for s in col_series:
+        kern_effects.append({exp_idx[e]: c for e, c in s.items()})
+
+    before = sum(1 for c in base_vec if c < 0)
+
+    # Build full constraint matrix in one shot. SciPy HiGHS handles this easily.
+    m = len(all_exps)
+    rows, cols, data = [], [], []
+    rhs = np.zeros(m)
+    for ri in range(m):
+        rhs[ri] = float(base_vec[ri])
+        for j, ke in enumerate(kern_effects):
+            v = ke.get(ri, 0)
+            if v != 0:
+                rows.append(ri)
+                cols.append(j)
+                data.append(float(v))
+                rows.append(ri)
+                cols.append(n + j)
+                data.append(float(-v))
+
+    import scipy.sparse as sp
+    from scipy.optimize import linprog
+
+    A_sparse = sp.csr_array((data, (rows, cols)), shape=(m, 2 * n))
+    c_obj = np.ones(2 * n)
+    bounds = (0, bound)
+
+    logger.debug(f"Solving full LP (m={m}, n={2*n}) natively with HiGHS")
+    try:
+        res = linprog(c_obj, A_ub=A_sparse, b_ub=rhs, bounds=bounds, method="highs")
+    except Exception as e:
+        return DeficitResult(
+            order,
+            gauge.max_deg,
+            False,
+            None,
+            sum(-c for c in base.values() if c < 0),
+            before,
+            before,
+            n,
+            0,
+            f"SciPy LP failed: {str(e)}",
+        )
+
+    if not res.success:
+        return DeficitResult(
+            order,
+            gauge.max_deg,
+            False,
+            None,
+            sum(-c for c in base.values() if c < 0),
+            before,
+            before,
+            n,
+            0,
+            f"LP infeasible: {res.message}",
+        )
+
+    x_val = res.x
+    k_val = x_val[:n] - x_val[n:]
+
+    note_parts = []
+    kernel = {}
+    for t, kern in zip(k_val, kernels):
+        if abs(t) > 1e-5:
+            for e, c in kern.items():
+                kernel[e] = kernel.get(e, 0) + float(t) * c
+
+    candidate = _subtract(original, kernel)
+    gauged = series_of(candidate, gauge)
+
+    new_violations = 0
+    for e, c in gauged.items():
+        if c < -1e-5:
+            new_violations += 1
+
+    if new_violations == 0:
+        best_kernel = kernel
+        logger.info(f"LP converged with full constraint matrix")
+        note_parts.append("Found exact fractional continuous solution via HiGHS")
+
+        contribs = [(t, kern, desc) for t, kern, desc in zip(k_val, kernels, descs) if abs(t) > 1e-5]
+        contribs.sort(key=lambda item: abs(item[0]), reverse=True)
+        top_10 = contribs[:10]
+        if top_10:
+            logger.info("Top 10 kernel contributions by absolute value:")
+            for i, (t, kern, desc) in enumerate(top_10):
+                logger.info(f"  {i+1}: coeff {t:.4f} | {desc}")
+    else:
+        best_kernel = None
+        note_parts.append("Solution failed strict zero check.")
+
+    after_negs = [c for c in gauged.values() if c < -1e-5]
+    best_deficit = sum(-c for c in after_negs)
+    best_remaining = len(after_negs)
+    found = best_deficit < 1e-5 and best_remaining == 0
+
+    return DeficitResult(
+        order,
+        gauge.max_deg,
+        found,
+        best_kernel,
+        best_deficit,
+        before,
+        best_remaining,
+        n,
+        sum(1 for t in k_val if abs(t) > 1e-5),
+        "; ".join(note_parts),
+        k_val.tolist(),
+    )

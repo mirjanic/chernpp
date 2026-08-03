@@ -4,9 +4,9 @@ Render the report's data tables from the artifacts.
 The counts in these tables move whenever the pipeline changes -- a variable
 reordering alters the component count, a rebuild alters the term counts -- and a
 table transcribed by hand into the LaTeX drifts silently.  This writes them, and
-`papers/chernpp_report.tex` inputs the result.
+`report/chernpp_report.tex` inputs the result.
 
-    python tools/render_tables.py papers/tables
+    python tools/render_tables.py report/tables
 """
 
 import argparse
