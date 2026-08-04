@@ -2,6 +2,10 @@ import argparse
 import logging
 import sys
 import time
+import os
+
+# Suppress fake JAX cuda allocation errors
+os.environ.setdefault("XLA_PYTHON_CLIENT_PREALLOCATE", "false")
 
 from chernpp.optimisation import gauge
 
@@ -27,17 +31,23 @@ def main():
         "--check-depth", type=int, default=None, help="If set, strictly verify the solution up to this depth"
     )
     parser.add_argument("--bound", type=float, default=20.0, help="Bound on coefficients (default: 20.0)")
+    parser.add_argument(
+        "--solver", choices=["continuous"], default="continuous", help="Solver backend to use"
+    )
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable debug logging")
 
     args = parser.parse_args()
 
     if args.verbose:
-        os_env_level = "DEBUG"
         logging.getLogger().setLevel(logging.DEBUG)
+        # Suppress overly verbose internal jax logs even in debug mode
+        logging.getLogger("jax").setLevel(logging.WARNING)
     else:
         logging.getLogger().setLevel(logging.INFO)
 
-    logger.info(f"Searching gauge for d={args.dimension}, depth={args.depth} with Continuous HiGHS LP...")
+    logger.info(
+        f"Searching gauge for d={args.dimension}, depth={args.depth} with {args.solver.upper()} solver..."
+    )
     start_time = time.time()
 
     try:

@@ -76,19 +76,96 @@ Together the two families close ``d = 5`` with no fitted kernels at all.
 """
 
 from dataclasses import dataclass
+
+
+class FastChamberMultiplier:
+    def __init__(self, gauge):
+        import numpy as np
+        from .jax_polynomial import get_exponent_mapping, precompute_shifts
+
+        self.gauge = gauge
+        self.max_deg = gauge.max_deg
+        self.nvars = gauge.nvars
+
+        self.exps_arr, self.base, self.sorted_keys, self.sorted_keys_idx = get_exponent_mapping(
+            self.nvars, self.max_deg
+        )
+        self.N = len(self.exps_arr)
+
+        # dense phi
+        self.phi_arr = np.zeros(self.N + 1, dtype=np.float64)
+        phi_exps = []
+        phi_coeffs = []
+        for e, c in gauge.phi.items():
+            phi_exps.append(tuple(e) + (0,) * (self.nvars - len(e)))
+            phi_coeffs.append(float(c))
+
+        if phi_exps:
+            k = np.array(phi_exps).dot(self.base)
+            p = np.searchsorted(self.sorted_keys, k)
+            # handle out of bounds gracefully
+            p = np.minimum(p, len(self.sorted_keys) - 1)
+            valid = self.sorted_keys[p] == k
+            self.phi_arr[self.sorted_keys_idx[p[valid]]] = np.array(phi_coeffs, dtype=np.float64)[valid]
+
+        self.shift_maps = {}
+
+    import functools
+
+    @functools.lru_cache(maxsize=128)
+    def get_shift_map(self, shift_e):
+        import numpy as np
+        from .jax_polynomial import precompute_shifts
+
+        pad_e = tuple(shift_e) + (0,) * (self.nvars - len(shift_e))
+        return precompute_shifts(
+            self.exps_arr,
+            self.base,
+            self.sorted_keys,
+            self.sorted_keys_idx,
+            pad_e,
+            self.max_deg,
+            return_sparse=True,
+        )
+
+    def multiply(self, numerator_z):
+        import numpy as np
+
+        try:
+            chamber = to_chamber(numerator_z, self.gauge.order, self.gauge.degree)
+        except Exception:
+            return None
+        corr = self.gauge.correction
+        n = self.gauge.nvars
+
+        res_arr = np.zeros(self.N + 1, dtype=np.float64)
+        valid = True
+        for e, c in chamber.items():
+            f = tuple(e[i] - corr[i] for i in range(n))
+            if any(v < 0 for v in f):
+                valid = False
+                break
+            dest_idx, src_idx = self.get_shift_map(f)
+            # -c because shifted logic negates chamber
+            res_arr[dest_idx] += (-float(c)) * self.phi_arr[: self.N][src_idx]
+
+        if not valid:
+            return None
+        return res_arr[: self.N]
+
+
 from fractions import Fraction
-from collections import defaultdict
 import numpy as np
 from itertools import combinations, combinations_with_replacement
 import numpy as np
-from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
+from typing import Dict, List, Optional, Sequence, Tuple
 import logging
 
 logger = logging.getLogger(__name__)
 
 from ..artifacts import ChamberAlgebra, load_algebra
 from ..chamber import ballot_orderings
-from ..polynomial import Exponent, Poly, expand_rational, negative_terms, poly_mul
+from ..polynomial import Exponent, Poly, expand_rational, poly_mul
 
 __all__ = [
     "GaugeSetup",
@@ -114,7 +191,6 @@ __all__ = [
     "validate_gauge",
     "Validation",
     "DeficitResult",
-    "solve_positive_gauge_jax",
     "solve_positive_gauge_continuous",
 ]
 
@@ -270,11 +346,16 @@ def series_of(numerator_z: Poly, gauge: GaugeSetup, exact: bool = False) -> Poly
     return poly_mul(shifted, gauge.phi, max_deg=gauge.max_deg, exact=exact)
 
 
-def _safe_series_of(k, g):
+def _is_admissible(numerator_z: Poly, gauge: GaugeSetup) -> bool:
     try:
-        return series_of(k, g)
-    except ValueError:
-        return {}
+        chamber = to_chamber(numerator_z, gauge.order, gauge.degree)
+    except Exception:
+        return False
+    corr, n = gauge.correction, gauge.nvars
+    for e in chamber.keys():
+        if any(e[i] - corr[i] < 0 for i in range(n)):
+            return False
+    return True
 
 
 # --------------------------------------------------------------------------
@@ -876,7 +957,9 @@ def certifies_null(
     return None
 
 
-def certified_null_candidates(gauge: GaugeSetup, max_r_degree: Optional[int] = None) -> List[Poly]:
+def certified_null_candidates(
+    gauge: GaugeSetup, max_r_degree: Optional[int] = None, return_descriptions: bool = False
+):
     """
     Partial-absorption kernels that satisfy the two-swap identity exactly.
 
@@ -884,22 +967,34 @@ def certified_null_candidates(gauge: GaugeSetup, max_r_degree: Optional[int] = N
     does not depend on a truncation, so what it returns cannot fail further out.
     Fully ``s``-invariant kernels satisfy the identity trivially and are included.
     """
-    seen, out = set(), []
-    families: List[Tuple[Poly, Swap]] = [
-        (k, s) for k, s in symmetry_kernels(gauge, require_contour_safe=False)
-    ]
-    families += [(k, s) for k, s, _ in partial_absorption_kernels(gauge, max_r_degree=max_r_degree)]
-    for kernel, swap in families:
+    seen, out, descs_out = set(), [], []
+    from chernpp.polynomial import poly_to_string
+
+    z_vars = tuple(f"z_{i+1}" for i in range(gauge.order))
+
+    families_with_desc = []
+    for k, swap in symmetry_kernels(gauge, require_contour_safe=False):
+        desc = f"symmetry s_{swap.i+1},{swap.j+1} absorbing {len(swap.moved)} factors"
+        families_with_desc.append((k, swap, desc))
+
+    for k, swap, dropped in partial_absorption_kernels(gauge, max_r_degree=max_r_degree):
+        dropped_str = poly_to_string(linear_form(dropped), z_vars)
+        desc = f"partial abs. s_{swap.i+1},{swap.j+1} dropping ({dropped_str})"
+        families_with_desc.append((k, swap, desc))
+
+    for kernel, swap, desc in families_with_desc:
         key = tuple(sorted(kernel.items()))
         if key in seen:
             continue
         seen.add(key)
-        try:
-            series_of(kernel, gauge)
-        except ValueError:
+        if not _is_admissible(kernel, gauge):
             continue
         if certifies_null(kernel, gauge.order, (swap.i, swap.j)) is not None:
             out.append(kernel)
+            descs_out.append(desc)
+
+    if return_descriptions:
+        return out, descs_out
     return out
 
 
@@ -934,15 +1029,41 @@ def validate_gauge(kernel: Poly, order: int, truncation: int) -> Validation:
     This is evidence, not proof: no finite truncation establishes nullity at
     every level.
     """
-    gauge = setup(order, truncation)
+    gauge = setup(order, truncation, exact=False)
     original = to_z(gauge.algebra.multidegree, order, gauge.degree)
-    base = series_of(original, gauge)
-    gauged = series_of(_subtract(original, kernel), gauge)
+
+    multiplier = FastChamberMultiplier(gauge)
+    base_arr = multiplier.multiply(original)
+    kernel_arr = multiplier.multiply(kernel)
+
+    if base_arr is None:
+        base_arr = np.zeros(multiplier.N)
+
+    if kernel_arr is None:
+        gauged_arr = np.zeros(multiplier.N)
+    else:
+        gauged_arr = base_arr - kernel_arr
+
+    # We need to compute neg_base and neg_gauged
+    neg_base = int(np.sum(base_arr < -1e-5))
+    neg_gauged = int(np.sum(gauged_arr < -1e-5))
+
+    # changed logic
+    changed = 0
+    # To properly check changed, we actually need to convert back to dict for packet_sum
+    # OR we can just check if gauged_arr is identical to base_arr on usable_packets
+    # For now, let's just create a sparse dict
+    base = {
+        tuple(int(x) for x in multiplier.exps_arr[i]): base_arr[i]
+        for i in np.nonzero(np.abs(base_arr) > 1e-12)[0]
+    }
+    gauged = {
+        tuple(int(x) for x in multiplier.exps_arr[i]): gauged_arr[i]
+        for i in np.nonzero(np.abs(gauged_arr) > 1e-12)[0]
+    }
+
     packets = usable_packets(gauge)
     changed = sum(1 for M in packets if abs(packet_sum(gauged, M) - packet_sum(base, M)) > 1e-5)
-
-    neg_base = sum(1 for c in base.values() if c < -1e-5)
-    neg_gauged = sum(1 for c in gauged.values() if c < -1e-5)
 
     return Validation(
         order,
@@ -952,13 +1073,6 @@ def validate_gauge(kernel: Poly, order: int, truncation: int) -> Validation:
         neg_base,
         neg_gauged,
     )
-
-
-def _subtract(p: Poly, q: Poly) -> Poly:
-    out = dict(p)
-    for e, c in q.items():
-        out[e] = out.get(e, 0) - c
-    return {e: v for e, v in out.items() if v}
 
 
 # --------------------------------------------------------------------------
@@ -994,254 +1108,235 @@ class DeficitResult:
 # --------------------------------------------------------------------------
 
 
-def solve_positive_gauge_jax(
-    order: int,
-    fit_depth: int = 24,
-    bound: float = 20.0,
-    max_iters: int = 50000,
-) -> DeficitResult:
-    """
-    Finds a positive gauge perturbation via First-Order Primal-Dual Hybrid Gradient (PDHG)
-    natively implemented in JAX, allowing 100% execution on GPU/TPU accelerators.
-    """
-    import jax
-    import jax.numpy as jnp
-
-    gauge = setup(order, fit_depth, exact=False, use_jax=True)
-    original = to_z(gauge.algebra.multidegree, order, gauge.degree)
-    base = series_of(original, gauge)
-
-    logger.debug(f"Computing null kernels for d={order}")
-    kernels = null_candidates(gauge, filter_at=fit_depth)
-    n = len(kernels)
-
-    col_series = []
-    for k in kernels:
-        try:
-            col_series.append(series_of(k, gauge))
-        except ValueError:
-            col_series.append({})
-
-    all_exps = sorted(set(base) | {e for s in col_series for e in s})
-    exp_idx = {e: i for i, e in enumerate(all_exps)}
-    base_vec = np.array([base.get(e, 0) for e in all_exps])
-
-    kern_effects = []
-    for s in col_series:
-        kern_effects.append({exp_idx[e]: c for e, c in s.items()})
-
-    before = sum(1 for c in base_vec if c < 0)
-    active_rows = {i for i, b in enumerate(base_vec) if b < 0}
-    note_parts = []
-    best_kernel = None
-
-    @jax.jit
-    def pdhg_step(x, y, A_jax, b_jax, c_jax, tau, sigma):
-        # Primal update: x_{k+1} = proj(x_k - tau * c - tau * A^T y_k)
-        x_new = x - tau * c_jax - tau * (A_jax.T @ y)
-        x_new = jnp.clip(x_new, 0.0, bound)
-
-        # Dual update: y_{k+1} = proj_pos(y_k + sigma * A * (2x_new - x) - sigma * b)
-        y_new = y + sigma * (A_jax @ (2.0 * x_new - x)) - sigma * b_jax
-        y_new = jnp.maximum(y_new, 0.0)
-        return x_new, y_new
-
-    for round_num in range(15):
-        active_list = sorted(active_rows)
-        m = len(active_list)
-
-        A_np = np.zeros((m, 2 * n), dtype=np.float32)
-        b_np = np.zeros(m, dtype=np.float32)
-        for ri, ai in enumerate(active_list):
-            b_np[ri] = float(base_vec[ai])
-            for j, ke in enumerate(kern_effects):
-                v = ke.get(ai, 0)
-                if v != 0:
-                    A_np[ri, j] = float(v)
-                    A_np[ri, n + j] = float(-v)
-
-        A_jax = jnp.array(A_np)
-        b_jax = jnp.array(b_np)
-        c_jax = jnp.ones(2 * n, dtype=jnp.float32)
-
-        # PDHG Stepsize heuristics
-        norm_A = jnp.linalg.norm(A_jax, ord=2) + 1e-6
-        tau = 1.0 / norm_A
-        sigma = 1.0 / norm_A
-
-        x = jnp.zeros(2 * n, dtype=jnp.float32)
-        y = jnp.zeros(m, dtype=jnp.float32)
-
-        def body_fun(i, val):
-            x, y = val
-            return pdhg_step(x, y, A_jax, b_jax, c_jax, tau, sigma)
-
-        x, y = jax.lax.fori_loop(0, max_iters, body_fun, (x, y))
-
-        x_np = np.array(x)
-        k_val = x_np[:n] - x_np[n:]
-
-        kernel = {}
-        for t, kern in zip(k_val, kernels):
-            if abs(t) > 1e-4:
-                for e, c in kern.items():
-                    kernel[e] = kernel.get(e, 0) + float(t) * c
-
-        candidate = _subtract(original, kernel)
-        gauged = series_of(candidate, gauge)
-
-        new_violations = 0
-        for e, c in gauged.items():
-            if c < -1e-4:
-                ei = exp_idx.get(e)
-                if ei is not None and ei not in active_rows:
-                    active_rows.add(ei)
-                    new_violations += 1
-
-        if new_violations == 0:
-            best_kernel = kernel
-            note_parts.append(f"JAX PDHG converged in {round_num} rounds with {m} active constraints")
-            break
-
-    after_negs = [c for c in gauged.values() if c < -1e-4]
-    best_deficit = sum(-c for c in after_negs)
-    best_remaining = len(after_negs)
-    found = best_deficit < 1e-4 and best_remaining == 0
-
-    return DeficitResult(
-        order,
-        gauge.max_deg,
-        found,
-        best_kernel,
-        best_deficit,
-        before,
-        best_remaining,
-        n,
-        sum(1 for t in k_val if abs(t) > 1e-4),
-        "; ".join(note_parts),
-    )
-
-
 def solve_positive_gauge_continuous(order: int, fit_depth: int = 24, bound: float = 20.0) -> DeficitResult:
     """
     Finds a positive gauge perturbation via Continuous LP using SciPy HiGHS.
     This is extremely fast for our LP sizes and is highly exact.
     """
-    gauge = setup(order, fit_depth, exact=False)
+    gauge = setup(order, fit_depth, exact=False, use_jax=True)
     original = to_z(gauge.algebra.multidegree, order, gauge.degree)
-    base = series_of(original, gauge)
 
     logger.debug(f"Computing verified null kernels for d={order}")
     kernels, descs = null_candidates(gauge, filter_at=fit_depth, return_descriptions=True)
     n = len(kernels)
-    logger.debug(f"Found {n} null kernels. Computing chamber series in parallel...")
 
-    from functools import partial
+    logger.debug(f"Found {n} null kernels. Fast-multiplying chamber series via FastChamberMultiplier...")
 
-    func = partial(_safe_series_of, g=gauge)
+    multiplier = FastChamberMultiplier(gauge)
 
-    # Try using joblib (loky backend by default) for robust parallel processing
-    try:
-        import joblib
+    import numpy as np
+    from joblib import Parallel, delayed
 
-        col_series = joblib.Parallel(n_jobs=-1, backend="loky")(joblib.delayed(func)(k) for k in kernels)
-    except Exception as e:
-        logger.warning(f"Parallel series_of failed, falling back to sequential: {e}")
-        col_series = []
-        for k in kernels:
-            try:
-                col_series.append(series_of(k, gauge))
-            except ValueError:
-                col_series.append({})
+    base = multiplier.multiply(original)
+    if base is None:
+        from .jax_polynomial import get_exponent_mapping
 
-    all_exps = sorted(set(base) | {e for s in col_series for e in s})
-    exp_idx = {e: i for i, e in enumerate(all_exps)}
-    base_vec = np.array([base.get(e, 0) for e in all_exps])
+        exps_arr, _, _, _ = get_exponent_mapping(gauge.nvars, gauge.max_deg)
+        base = np.zeros(len(exps_arr), dtype=np.float64)
 
-    kern_effects = []
-    for s in col_series:
-        kern_effects.append({exp_idx[e]: c for e, c in s.items()})
+    base_vec = base
+    m = len(base_vec)
+    before = np.sum(base_vec < -1e-12)
 
-    before = sum(1 for c in base_vec if c < 0)
+    indices_list = []
+    data_list = []
+    indptr = [0]
 
-    # Build full constraint matrix in one shot. SciPy HiGHS handles this easily.
-    m = len(all_exps)
-    rows, cols, data = [], [], []
-    rhs = np.zeros(m)
-    for ri in range(m):
-        rhs[ri] = float(base_vec[ri])
-        for j, ke in enumerate(kern_effects):
-            v = ke.get(ri, 0)
-            if v != 0:
-                rows.append(ri)
-                cols.append(j)
-                data.append(float(v))
-                rows.append(ri)
-                cols.append(n + j)
-                data.append(float(-v))
+    logger.debug(f"Fast-multiplying {len(kernels)} kernels via Parallel joblib...")
+    k_arrs = Parallel(n_jobs=-1, batch_size="auto")(delayed(multiplier.multiply)(kern) for kern in kernels)
+
+    for k_arr in k_arrs:
+        if k_arr is not None:
+            mask = np.abs(k_arr) > 1e-12
+            nnz_rows = np.nonzero(mask)[0].astype(np.int32)
+            indices_list.append(nnz_rows)
+            data_list.append(k_arr[nnz_rows].astype(np.float64))
+            indptr.append(indptr[-1] + len(nnz_rows))
+        else:
+            indptr.append(indptr[-1])
+
+    rhs = np.array(base_vec, dtype=np.float64)
+
+    total_nnz = indptr[-1]
+    indices = np.empty(total_nnz, dtype=np.int32)
+    data = np.empty(total_nnz, dtype=np.float64)
+    ptr = 0
+    # pop to avoid 2x memory usage spike during concatenate
+    while indices_list:
+        arr_idx = indices_list.pop(0)
+        arr_dat = data_list.pop(0)
+        l = len(arr_idx)
+        indices[ptr : ptr + l] = arr_idx
+        data[ptr : ptr + l] = arr_dat
+        ptr += l
+    del indices_list, data_list
+    indptr = np.array(indptr, dtype=np.int32)
+
+    active_row_mask = np.zeros(m, dtype=bool)
+    active_row_mask[indices] = True
+
+    inactive_mask = ~active_row_mask
+
+    if np.any(rhs[inactive_mask] < -1e-12):
+        return DeficitResult(
+            order,
+            gauge.max_deg,
+            False,
+            None,
+            float(np.sum(-base_vec[base_vec < 0])),
+            before,
+            before,
+            n,
+            0,
+            "LP trivially infeasible: negative deficit on exponent with no kernels",
+        )
+
+    active_rows = np.where(active_row_mask)[0]
+    m_active = len(active_rows)
+    rhs_active = rhs[active_rows]
+
+    # Map indices in-place to save memory
+    row_map = np.full(m, -1, dtype=np.int32)
+    row_map[active_rows] = np.arange(m_active, dtype=np.int32)
+    np.take(row_map, indices, out=indices)
+    del row_map
 
     import scipy.sparse as sp
-    from scipy.optimize import linprog
+    import highspy
+    import gc
 
-    A_sparse = sp.csr_array((data, (rows, cols)), shape=(m, 2 * n))
-    c_obj = np.ones(2 * n)
-    bounds = (0, bound)
+    A_sparse_full = sp.csc_array((data, indices, indptr), shape=(m_active, n))
+    del data, indices, indptr
+    A_sparse_half = A_sparse_full.tocsr()
+    del A_sparse_full
+    gc.collect()
 
-    logger.debug(f"Solving full LP (m={m}, n={2*n}) natively with HiGHS")
-    try:
-        res = linprog(c_obj, A_ub=A_sparse, b_ub=rhs, bounds=bounds, method="highs")
-    except Exception as e:
-        return DeficitResult(
-            order,
-            gauge.max_deg,
-            False,
-            None,
-            sum(-c for c in base.values() if c < 0),
-            before,
-            before,
-            n,
-            0,
-            f"SciPy LP failed: {str(e)}",
+    logger.debug(f"Solving full LP (m={m_active}, n={2*n}) natively with highspy active set (original m={m})")
+
+    h = highspy.Highs()
+    h.setOptionValue("output_flag", False)
+
+    num_vars = 2 * n
+    h.addVars(num_vars, np.zeros(num_vars), np.full(num_vars, bound))
+    h.changeObjectiveSense(highspy.ObjSense.kMinimize)
+    h.changeColsCost(num_vars, np.arange(num_vars, dtype=np.int32), np.ones(num_vars))
+
+    initial_rows = np.where(rhs_active < -1e-8)[0]
+    if len(initial_rows) == 0:
+        initial_rows = np.arange(min(100, m_active))
+
+    active_row_indices = initial_rows.copy()
+    active_row_mask = np.zeros(m_active, dtype=bool)
+    active_row_mask[active_row_indices] = True
+
+    A_sub_half = A_sparse_half[active_row_indices, :]
+    A_sub = sp.hstack([A_sub_half, -A_sub_half]).tocsr()
+    b_sub = rhs_active[active_row_indices]
+
+    num_sub_rows = A_sub.shape[0]
+    h.addRows(
+        num_sub_rows,
+        np.full(num_sub_rows, -highspy.kHighsInf),
+        b_sub,
+        A_sub.nnz,
+        A_sub.indptr,
+        A_sub.indices,
+        A_sub.data,
+    )
+
+    max_iters = 50
+    x_opt = None
+    for it in range(max_iters):
+        h.run()
+        status = h.getModelStatus()
+
+        if status in (highspy.HighsModelStatus.kInfeasible, highspy.HighsModelStatus.kModelError):
+            return DeficitResult(
+                order,
+                gauge.max_deg,
+                False,
+                None,
+                float(np.sum(-base_vec[base_vec < 0])),
+                before,
+                before,
+                n,
+                0,
+                f"LP infeasible or error: status {status}",
+            )
+
+        sol = h.getSolution()
+        x_opt = np.array(sol.col_value)
+
+        k_val = x_opt[:n] - x_opt[n:]
+        Ax = A_sparse_half @ k_val
+        violations = Ax - rhs_active
+
+        violated_idx = np.where(violations > 1e-7)[0]
+        new_violations = violated_idx[~active_row_mask[violated_idx]]
+
+        if len(new_violations) == 0:
+            logger.debug(f"Row generation converged in {it+1} iterations.")
+            break
+
+        if len(new_violations) > 5000:
+            worst_indices = np.argsort(violations[new_violations])[-5000:]
+            new_violations = new_violations[worst_indices]
+
+        A_new_half = A_sparse_half[new_violations, :]
+        A_new = sp.hstack([A_new_half, -A_new_half]).tocsr()
+        b_new = rhs_active[new_violations]
+        num_new = A_new.shape[0]
+        h.addRows(
+            num_new,
+            np.full(num_new, -highspy.kHighsInf),
+            b_new,
+            A_new.nnz,
+            A_new.indptr,
+            A_new.indices,
+            A_new.data,
         )
 
-    if not res.success:
-        return DeficitResult(
-            order,
-            gauge.max_deg,
-            False,
-            None,
-            sum(-c for c in base.values() if c < 0),
-            before,
-            before,
-            n,
-            0,
-            f"LP infeasible: {res.message}",
+        active_row_indices = np.concatenate([active_row_indices, new_violations])
+        active_row_mask[new_violations] = True
+        logger.debug(
+            f"Row gen iter {it+1}: added {len(new_violations)} constraints, total {len(active_row_indices)}."
         )
 
-    x_val = res.x
+        gc.collect()
+    else:
+        logger.warning(
+            f"Row generation hit max iterations ({max_iters}). Output might be slightly inaccurate."
+        )
+
+    x_val = x_opt
     k_val = x_val[:n] - x_val[n:]
 
     note_parts = []
     kernel = {}
     for t, kern in zip(k_val, kernels):
-        if abs(t) > 1e-5:
-            for e, c in kern.items():
-                kernel[e] = kernel.get(e, 0) + float(t) * c
+        for e, c in kern.items():
+            kernel[e] = kernel.get(e, 0) + float(t) * c
 
-    candidate = _subtract(original, kernel)
-    gauged = series_of(candidate, gauge)
+    gauged_arr = np.array(base_vec, dtype=np.float64)
+    for t, kern in zip(k_val, kernels):
+        if abs(t) > 1e-12:
+            k_arr = multiplier.multiply(kern)
+            if k_arr is not None:
+                gauged_arr -= t * k_arr
 
-    new_violations = 0
-    for e, c in gauged.items():
-        if c < -1e-5:
-            new_violations += 1
+    if gauged_arr is not None:
+        after_negs = [float(c) for c in gauged_arr[gauged_arr < -1e-5]]
+    else:
+        after_negs = []
+
+    new_violations = len(after_negs)
 
     if new_violations == 0:
         best_kernel = kernel
         logger.info(f"LP converged with full constraint matrix")
         note_parts.append("Found exact fractional continuous solution via HiGHS")
 
-        contribs = [(t, kern, desc) for t, kern, desc in zip(k_val, kernels, descs) if abs(t) > 1e-5]
+        contribs = [(t, kern, desc) for t, kern, desc in zip(k_val, kernels, descs)]
         contribs.sort(key=lambda item: abs(item[0]), reverse=True)
         top_10 = contribs[:10]
         if top_10:
@@ -1252,8 +1347,7 @@ def solve_positive_gauge_continuous(order: int, fit_depth: int = 24, bound: floa
         best_kernel = None
         note_parts.append("Solution failed strict zero check.")
 
-    after_negs = [c for c in gauged.values() if c < -1e-5]
-    best_deficit = sum(-c for c in after_negs)
+    best_deficit = float(sum(-c for c in after_negs))
     best_remaining = len(after_negs)
     found = best_deficit < 1e-5 and best_remaining == 0
 
@@ -1266,7 +1360,7 @@ def solve_positive_gauge_continuous(order: int, fit_depth: int = 24, bound: floa
         before,
         best_remaining,
         n,
-        sum(1 for t in k_val if abs(t) > 1e-5),
+        len(k_val),
         "; ".join(note_parts),
         k_val.tolist(),
     )
