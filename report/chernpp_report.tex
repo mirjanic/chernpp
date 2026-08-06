@@ -47,7 +47,7 @@
 \begin{abstract}
 We report on a machine-checked study of the positivity conjectures for Morin
 singularities. This report highlights the major numerical results produced by the \textbf{Chern++} infrastructure. First, we compute the equivariant multidegree $\Qd_d$ for $d \le 7$ from the explicit orbit equations of B\'erczi--Szenes \S7.3. 
-Second, Rim\'anyi's conjecture is mathematically verified for $A_6$ by extracting a strictly positive continuous gauge bounding the entire 20,000-dimensional polynomial constraint boundary.
+Second, we exploit the fact that the numerator is determined only up to a residue-null kernel. At $d = 5$ this settles the conjecture: an explicit gauge is verified in exact rational arithmetic to leave no negative coefficient and to move no Chern packet. At $d = 6$ the same construction suppresses every negative coefficient to a substantial finite depth but does not survive beyond it, so $A_6$ remains open.
 Finally, we analyze the $A_7$ Thom polynomial, demonstrating that while Rim\'anyi's overarching conjecture survives, the previously established reduction machinery (such as the $\tau$-pairing) breaks down completely at $d=7$. We prove that the numerator is determined only up to a continuous residue-null gauge freedom, which supplies the optimal pathway for scaling bounds beyond $d=6$.
 
 Notation follows Rim\'anyi's original positivity formulation \cite{Rim01} and subsequent computational derivations. B\'erczi and Szenes \cite{BS12} provide the baseline orbit formulations. Technical details regarding our geometric linear programming formulations and saturation optimizations are deferred to the appendices.
@@ -246,9 +246,38 @@ Because $K_4, K_5,$ and $K_6$ natively share the factor $(z_1 + z_4 - z_5)$, the
 
 However, when we pose the search for a positive gauge as a Continuous Linear Program aiming to minimize the $L_1$ norm of the basis coefficients, the solver completely bypasses $GBC$. Instead, it finds a strictly smaller geometric perturbation:
 \[
-  P_5 = -0.3 K_1 + 0.1 K_6
+  P_5 = -\tfrac{3}{10} K_1 + \tfrac{1}{10} K_6
 \]
-Because $K_1$ and $K_6$ share no common linear factors, their sum $P_5$ is irreducible over the rationals. While we sacrifice the beautiful fully-factored structure of $GBC$, this irreducible LP solution provides the absolute minimal perturbation to the baseline geometry that establishes strict positivity up to depth 40.
+Because $K_1$ and $K_6$ share no common linear factors, $P_5$ does not factor, and we lose the
+fully-factored structure of $GBC$ in exchange for a smaller perturbation of the baseline geometry.
+
+The fractional coefficients cost nothing in rigour, and it is worth being clear why. Nullity is a
+\emph{linear} condition and the $K_i$ are null by an algebraic identity, so \emph{any} rational
+combination of them is exactly null and the Thom polynomial is unchanged exactly; a rational
+numerator is a perfectly good representative. What does need checking is positivity, and that we
+check exactly rather than to a tolerance.
+
+\begin{proposition}
+Recomputed in exact rational arithmetic, $\Qd_5 - P_5$ has coefficients with denominators
+dividing $10$, moves no Chern packet, and has no negative coefficient:
+
+\smallskip
+\begin{tabular}{@{}rrrr@{}}
+\toprule
+depth & packets & packets moved & negatives (canonical $\to$ gauged) \\
+\midrule
+$16$ & $48$  & $0$ & $13 \to 0$ \\
+$20$ & $84$  & $0$ & $19 \to 0$ \\
+$24$ & $118$ & $0$ & $26 \to 0$ \\
+\bottomrule
+\end{tabular}
+\end{proposition}
+
+Comparisons here are exact equalities, not tolerances: a packet sum is an integer that must
+vanish, and a drift of $10^{-13}$ in one is a moved packet rather than a rounding detail.
+Note also that $P_5$ is not load-bearing for $d = 5$. That case already rests on $GBC$, an
+\emph{integer} kernel whose nullity and whose companion's positivity are proved at every degree
+in [S]; $P_5$ is a minimality refinement sitting on top of a settled result.
 
 \subsection{Scaling to \texorpdfstring{$d = 6$}{d = 6}}
 
@@ -260,7 +289,7 @@ By systematically saturating these symmetry constraints, we generate exactly $65
 
 \subsection{Finding a Positive Gauge for \texorpdfstring{$d = 6$}{d = 6}}
 
-Since the chamber series is linear in the numerator, finding a positive gauge is mathematically equivalent to intersecting half-spaces indexed by chamber monomials. By relaxing the integrality constraints and posing this as a Continuous Linear Program (LP), we successfully identified a boundary face that resolves all negative coefficients up to depth 35.
+Since the chamber series is linear in the numerator, finding a positive gauge is mathematically equivalent to intersecting half-spaces indexed by chamber monomials. By relaxing the integrality constraints and posing this as a Continuous Linear Program (LP), we identify a boundary face that resolves every negative coefficient up to a finite depth, quantified in the proposition below.
 
 The cancellation relies on a highly structured geometric combination of symmetry kernels. The top 10 most influential kernels identified by the optimal gauge are:
 \begin{table}[ht]
@@ -303,15 +332,18 @@ What the computations suggest about proof strategy:
   conjecture survives, so the machinery is specific to small $d$ even though the statement is not.
   The prefix-positivity stepping stone fails one order earlier still.
 \item Since \S\ref{sec:gauge} shows the numerator is free up to a residue-null kernel,
-  the question worth asking is which representative needs the weakest certificates, or
-  is strictly positive on its own. For $d = 5$ and $d = 6$, we can mathematically 
-  construct fully positive gauges, proving the core positivity conjecture without 
-  need for intermediary certificate structures.
+  the question worth asking is which representative needs the weakest certificate, or is
+  nonnegative on its own. At $d = 5$ one is, and no certificate is needed. At $d = 6$ the
+  construction gets close but does not close: it removes every negative coefficient up to a
+  finite depth and then fails, so it is evidence rather than a proof.
 \item The continuous LP relaxation is the correct algorithmic vehicle for exploring deep 
   truncations. Integrality constraints choke at matrix sizes beyond 10,000 bounds, 
   whereas the relaxed LP identifies the fully optimal boundary in fractions of a second.
-  Future studies on $d \ge 7$ should rely exclusively on extracting exact rational boundaries
-  from continuous convex formulations, which mathematically settle the conjecture up to $d=6$.
+  Future work at $d \ge 7$ should extract exact rational boundaries from the continuous
+  formulation rather than fight integrality. Note what this does and does not deliver: a
+  feasible point at depth $T$ is a finite verification, and only an \emph{infeasible} LP at
+  some $T$ settles anything at every degree, since truncation is an exact projection of the
+  feasible set.
 \item Since the $\tau$-orbit is not the right unit of cancellation, the open question is what is.
   Table~\ref{tab:a7cancel} is suggestive: the negative mass is small, bounded and spread over few
   orderings, while the positive mass is large and concentrated in one.  A bound on the negative

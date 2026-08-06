@@ -110,21 +110,20 @@ class TestPositiveGaugeAtA5(unittest.TestCase):
         self.assertEqual(self.result.negatives_remaining, 0)
 
     def test_the_kernel_preserves_every_packet_in_range(self):
-        base = gauge.series_of(gauge.to_z(self.g.algebra.multidegree, 5, self.g.degree), self.g)
-        original = gauge.to_z(self.g.algebra.multidegree, 5, self.g.degree)
-        candidate = gauge._subtract(original, self.result.kernel)
-        gauged = gauge.series_of(candidate, self.g)
-        for M in gauge.usable_packets(self.g):
-            self.assertAlmostEqual(gauge.packet_sum(gauged, M), gauge.packet_sum(base, M), places=5)
+        # Delegated to validate_gauge, which compares packet sums exactly.  A
+        # packet sum is an integer; "133.00000000000017" is a moved packet, not
+        # a rounding detail to be waved through with a tolerance.
+        v = gauge.validate_gauge(self.result.kernel, 5, self.g.max_deg)
+        self.assertEqual(v.packets_changed, 0)
+        self.assertGreater(v.packets, 0)
 
     def test_the_kernel_holds_out_of_sample(self):
         # Fitted at truncation 16; these truncations bring in packets and
         # coefficients the search never saw.  Overfitting shows up here.
         for truncation in (18, 20):
             v = gauge.validate_gauge(self.result.kernel, 5, truncation)
-            # Floating point might cause tiny drift in packet sums
-            # but we just care it doesn't fundamentally break
-            self.assertTrue(v.holds)
+            self.assertEqual(v.packets_changed, 0, f"packet sums moved at {truncation}")
+            self.assertEqual(v.negatives_gauged, 0, f"negatives reappeared at {truncation}")
             self.assertGreater(v.negatives_canonical, 0)
             self.assertTrue(v.holds)
 
@@ -245,13 +244,9 @@ class TestSolvePositiveGauge(unittest.TestCase):
 
     def test_the_returned_numerator_is_nonnegative_and_null(self):
         g = gauge.setup(5, 16)
-        base = gauge.series_of(gauge.to_z(g.algebra.multidegree, 5, g.degree), g)
-        original = gauge.to_z(g.algebra.multidegree, 5, g.degree)
-        candidate = gauge._subtract(original, self.solution.kernel)
-        gauged = gauge.series_of(candidate, g)
-        self.assertEqual(negative_terms(gauged), {})
-        for M in gauge.usable_packets(g):
-            self.assertAlmostEqual(gauge.packet_sum(gauged, M), gauge.packet_sum(base, M), places=5)
+        v = gauge.validate_gauge(self.solution.kernel, 5, g.max_deg)
+        self.assertEqual(v.packets_changed, 0)
+        self.assertEqual(v.negatives_gauged, 0)
 
     def test_the_published_kernel_is_a_valid_gauge(self):
         # G * B * C with B = 2z1 - z2, C = z1 + z4 - z5, G = 2z1 + z2 - z5.

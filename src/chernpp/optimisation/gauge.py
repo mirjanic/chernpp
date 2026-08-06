@@ -90,6 +90,8 @@ class FastChamberMultiplier:
         self.exps_arr, self.base, self.sorted_keys, self.sorted_keys_idx = get_exponent_mapping(
             self.nvars, self.max_deg
         )
+        self.degrees = self.exps_arr.sum(axis=1)
+        self.flat_keys = self.exps_arr.astype(np.int64).dot(self.base.astype(np.int64))
         self.N = len(self.exps_arr)
 
         # dense phi
@@ -108,32 +110,63 @@ class FastChamberMultiplier:
             valid = self.sorted_keys[p] == k
             self.phi_arr[self.sorted_keys_idx[p[valid]]] = np.array(phi_coeffs, dtype=np.float64)[valid]
 
+        self.b = self.max_deg + 1
+        max_key = int(self.b**self.nvars)
+        self.direct_lookup = None
+        if max_key < 5 * 10**8:
+            import logging
+
+            logging.getLogger(__name__).debug(
+                f"Allocating {max_key * 4 / 10**6:.1f} MB direct lookup array for fast shifts"
+            )
+            self.direct_lookup = np.full(max_key, -1, dtype=np.int32)
+            self.direct_lookup[self.sorted_keys] = self.sorted_keys_idx
+
         self.shift_maps = {}
 
-    import functools
-
-    @functools.lru_cache(maxsize=128)
     def get_shift_map(self, shift_e):
+        # Cached per instance rather than with lru_cache on the method: that
+        # keys on ``self`` and keeps every multiplier it has ever seen alive.
         import numpy as np
-        from .jax_polynomial import precompute_shifts
 
+        cached = self.shift_maps.get(shift_e)
+        if cached is not None:
+            return cached
         pad_e = tuple(shift_e) + (0,) * (self.nvars - len(shift_e))
-        return precompute_shifts(
-            self.exps_arr,
-            self.base,
-            self.sorted_keys,
-            self.sorted_keys_idx,
-            pad_e,
-            self.max_deg,
-            return_sparse=True,
-        )
+        shift_arr = np.array(pad_e, dtype=np.int64)
+
+        deg_mask = self.degrees + shift_arr.sum() <= self.max_deg
+        shift_key = shift_arr.dot(self.base.astype(np.int64))
+
+        valid_keys = self.flat_keys[deg_mask] + shift_key
+
+        if self.direct_lookup is not None:
+            original_indices = self.direct_lookup[valid_keys]
+            valid_idx = original_indices != -1
+            original_indices = original_indices[valid_idx]
+            src_indices = np.where(deg_mask)[0][valid_idx]
+            out = (original_indices.astype(np.int32, copy=False), src_indices.astype(np.int32, copy=False))
+            self.shift_maps[shift_e] = out
+            return out
+        else:
+            pos = np.searchsorted(self.sorted_keys, valid_keys)
+            valid_idx = pos < len(self.sorted_keys)
+            valid_idx[valid_idx] = self.sorted_keys[pos[valid_idx]] == valid_keys[valid_idx]
+
+            original_indices = self.sorted_keys_idx[pos[valid_idx]]
+            src_indices = np.where(deg_mask)[0][valid_idx]
+            out = (original_indices.astype(np.int32, copy=False), src_indices.astype(np.int32, copy=False))
+            self.shift_maps[shift_e] = out
+            return out
 
     def multiply(self, numerator_z):
         import numpy as np
 
+        # Inadmissibility is the one expected failure and is reported as None;
+        # anything else is a bug and must not be turned into a quiet wrong answer.
         try:
             chamber = to_chamber(numerator_z, self.gauge.order, self.gauge.degree)
-        except Exception:
+        except ValueError:
             return None
         corr = self.gauge.correction
         n = self.gauge.nvars
@@ -155,7 +188,6 @@ class FastChamberMultiplier:
 
 
 from fractions import Fraction
-import numpy as np
 from itertools import combinations, combinations_with_replacement
 import numpy as np
 from typing import Dict, List, Optional, Sequence, Tuple
@@ -349,7 +381,7 @@ def series_of(numerator_z: Poly, gauge: GaugeSetup, exact: bool = False) -> Poly
 def _is_admissible(numerator_z: Poly, gauge: GaugeSetup) -> bool:
     try:
         chamber = to_chamber(numerator_z, gauge.order, gauge.degree)
-    except Exception:
+    except ValueError:
         return False
     corr, n = gauge.correction, gauge.nvars
     for e in chamber.keys():
@@ -416,9 +448,73 @@ def usable_packets(gauge: GaugeSetup, spread: Optional[int] = None) -> List[Tupl
     return out
 
 
-def packet_sum(series: Poly, multiset: Sequence[int]) -> int:
-    """Sum of the series over the ballot orderings of one multiset.  No truncation check."""
+def packet_sum(series: Poly, multiset: Sequence[int]):
+    """
+    Sum of the series over the ballot orderings of one multiset.  No truncation check.
+
+    Exact whenever the series is: the return type follows the coefficients, so an
+    integer series gives an integer and a rational one a ``Fraction``.
+    """
     return sum(series.get(b, 0) for _, b in ballot_orderings(list(multiset)))
+
+
+#: Above this magnitude float64 stops representing integers exactly, and every
+#: comparison built on it silently becomes a guess.
+FLOAT_INT_CEILING = 2**53
+
+
+def _guard_float_exactness(values, context: str) -> None:
+    """
+    Refuse to draw exact conclusions from floats that may have lost integer precision.
+
+    The chamber coefficients are integers, and float64 holds integers exactly below
+    ``2**53``.  Within that range ``== 0`` on a float is a genuine equality test, not
+    a tolerance, which is what lets the fast path stay both fast and exact.  Past it
+    the arithmetic degrades silently, so this raises rather than letting a rounded
+    packet sum pass for a vanishing one -- the same posture as the ``int64`` overflow
+    guard in the Chern evaluator.
+    """
+    if len(values) == 0:
+        return
+    worst = float(np.max(np.abs(np.asarray(values, dtype=np.float64))))
+    if worst >= FLOAT_INT_CEILING:
+        raise OverflowError(
+            f"{context}: coefficient magnitude {worst:.3e} reaches the float64 integer "
+            f"ceiling {float(FLOAT_INT_CEILING):.3e}; exact comparisons are no longer "
+            "valid here, so recompute in exact arithmetic instead of trusting this"
+        )
+
+
+def _as_exact(poly: Poly, what: str) -> Dict[Exponent, Fraction]:
+    """
+    Coefficients as exact rationals, refusing floats that are not whole numbers.
+
+    A float that is not an integer carries no record of the rational it came from,
+    and guessing one with ``limit_denominator`` would silently substitute a
+    different kernel for the one being checked.  Callers holding a fractional
+    solution should carry it as ``Fraction`` from the point it was produced.
+    """
+    out: Dict[Exponent, Fraction] = {}
+    for e, c in poly.items():
+        if isinstance(c, float):
+            if not c.is_integer():
+                raise ValueError(
+                    f"{what}: coefficient {c!r} is a non-integer float, so this check "
+                    "cannot be made exact; carry the solution as Fraction instead"
+                )
+            c = int(c)
+        value = Fraction(c)
+        if value:
+            out[e] = value
+    return out
+
+
+def _subtract(p: Poly, q: Poly) -> Poly:
+    """``p - q``, dropping cancelled terms."""
+    out = dict(p)
+    for e, c in q.items():
+        out[e] = out.get(e, 0) - c
+    return {e: v for e, v in out.items() if v}
 
 
 @dataclass(frozen=True)
@@ -856,6 +952,9 @@ def null_candidates(
         except ValueError:
             continue
 
+        _guard_float_exactness(
+            list(filter_gauge.phi.values()), f"A_{filter_gauge.order} Phi at depth {filter_at}"
+        )
         kernel_is_null = True
         for M in packets:
             total = 0
@@ -871,7 +970,12 @@ def null_candidates(
                     W_cache[key] = w
                 total += c * w
 
-            if abs(total) > 1e-3:
+            # A packet sum is an integer that must vanish exactly.  Everything
+            # here is integral and guarded below the float64 integer ceiling, so
+            # this is a genuine equality rather than a tolerance -- a kernel that
+            # shifts a packet by one unit is not null, however small one unit
+            # looks beside coefficients of size 1e6.
+            if total != 0:
                 kernel_is_null = False
                 break
 
@@ -1027,57 +1131,86 @@ def validate_gauge(kernel: Poly, order: int, truncation: int) -> Validation:
     one that does not was fitted to noise.
 
     This is evidence, not proof: no finite truncation establishes nullity at
-    every level.
+    every level.  What it is not is approximate.  Packet sums are quantities that
+    must vanish *exactly*, and a kernel that shifts one by a single unit is not
+    null however small that unit looks beside coefficients of size ``1e6``.  Both
+    branches below therefore compare exactly; they differ only in how they can
+    afford to.
     """
-    gauge = setup(order, truncation, exact=False)
-    original = to_z(gauge.algebra.multidegree, order, gauge.degree)
+    exact_kernel = _as_exact(kernel, "kernel passed to validate_gauge")
+    integral = all(v.denominator == 1 for v in exact_kernel.values())
 
-    multiplier = FastChamberMultiplier(gauge)
-    base_arr = multiplier.multiply(original)
-    kernel_arr = multiplier.multiply(kernel)
-
-    if base_arr is None:
-        base_arr = np.zeros(multiplier.N)
-
-    if kernel_arr is None:
-        gauged_arr = np.zeros(multiplier.N)
-    else:
+    if integral:
+        # Every coefficient in sight is an integer, and float64 holds those
+        # exactly below the guarded ceiling, so the fast path loses nothing.
+        gauge = setup(order, truncation, exact=False)
+        original = to_z(gauge.algebra.multidegree, order, gauge.degree)
+        multiplier = FastChamberMultiplier(gauge)
+        base_arr = multiplier.multiply(original)
+        kernel_arr = multiplier.multiply({e: int(v) for e, v in exact_kernel.items()})
+        if base_arr is None:
+            raise ValueError(f"A_{order}: the canonical numerator is not admissible")
+        if kernel_arr is None:
+            raise ValueError(f"A_{order}: the kernel is not an admissible numerator")
         gauged_arr = base_arr - kernel_arr
+        _guard_float_exactness(base_arr, f"A_{order} canonical series at depth {truncation}")
+        _guard_float_exactness(gauged_arr, f"A_{order} gauged series at depth {truncation}")
 
-    # We need to compute neg_base and neg_gauged
-    neg_base = int(np.sum(base_arr < -1e-5))
-    neg_gauged = int(np.sum(gauged_arr < -1e-5))
-
-    # changed logic
-    changed = 0
-    # To properly check changed, we actually need to convert back to dict for packet_sum
-    # OR we can just check if gauged_arr is identical to base_arr on usable_packets
-    # For now, let's just create a sparse dict
-    base = {
-        tuple(int(x) for x in multiplier.exps_arr[i]): base_arr[i]
-        for i in np.nonzero(np.abs(base_arr) > 1e-12)[0]
-    }
-    gauged = {
-        tuple(int(x) for x in multiplier.exps_arr[i]): gauged_arr[i]
-        for i in np.nonzero(np.abs(gauged_arr) > 1e-12)[0]
-    }
+        neg_base = int(np.sum(base_arr < 0))
+        neg_gauged = int(np.sum(gauged_arr < 0))
+        exps = multiplier.exps_arr
+        base = {tuple(int(x) for x in exps[i]): int(base_arr[i]) for i in np.nonzero(base_arr)[0]}
+        gauged = {tuple(int(x) for x in exps[i]): int(gauged_arr[i]) for i in np.nonzero(gauged_arr)[0]}
+    else:
+        # A fractional gauge cannot be checked in floats at all, so pay for exact
+        # rational arithmetic rather than reporting a rounded verdict.
+        gauge = setup(order, truncation, exact=True)
+        original = to_z(gauge.algebra.multidegree, order, gauge.degree)
+        base = series_of(original, gauge, exact=True)
+        gauged = series_of(_subtract(original, exact_kernel), gauge, exact=True)
+        neg_base = sum(1 for c in base.values() if c < 0)
+        neg_gauged = sum(1 for c in gauged.values() if c < 0)
 
     packets = usable_packets(gauge)
-    changed = sum(1 for M in packets if abs(packet_sum(gauged, M) - packet_sum(base, M)) > 1e-5)
+    changed = sum(1 for M in packets if packet_sum(gauged, M) != packet_sum(base, M))
 
-    return Validation(
-        order,
-        truncation,
-        len(packets),
-        changed,
-        neg_base,
-        neg_gauged,
-    )
+    return Validation(order, truncation, len(packets), changed, neg_base, neg_gauged)
 
 
 # --------------------------------------------------------------------------
 # improved gauge search (v2)
 # --------------------------------------------------------------------------
+
+
+def _rationalise_kernel(
+    coefficients: Sequence[float], kernels: Sequence[Poly], max_denominator: int = 10**6
+) -> Optional[Poly]:
+    """
+    Recover the LP's fractional solution as exact rationals, or admit defeat.
+
+    The constraint matrix has integer entries, so every vertex of the feasible
+    polyhedron is rational -- but its denominators divide integer subdeterminants
+    and can be large, and a float coordinate carries no record of which rational
+    produced it.  We therefore accept a candidate only if it reproduces the float
+    to within its own representation error, and return ``None`` otherwise rather
+    than substituting a nearby kernel for the one the solver actually found.
+
+    ``None`` is not a failure of the search: it says the solution needs exact
+    vertex extraction from the active constraint set, which this does not attempt.
+    """
+    exact: Dict[Exponent, Fraction] = {}
+    for value, kernel in zip(coefficients, kernels):
+        t = float(value)
+        if abs(t) <= 1e-12:
+            continue
+        approx = Fraction(t).limit_denominator(max_denominator)
+        # Accept only if the rational is the float, to float precision.  A vertex
+        # with a genuinely ugly denominator fails here, which is the point.
+        if abs(float(approx) - t) > 1e-9 * max(1.0, abs(t)):
+            return None
+        for e, c in kernel.items():
+            exact[e] = exact.get(e, Fraction(0)) + approx * Fraction(c)
+    return {e: c for e, c in exact.items() if c} or None
 
 
 @dataclass(frozen=True)
@@ -1125,7 +1258,6 @@ def solve_positive_gauge_continuous(order: int, fit_depth: int = 24, bound: floa
     multiplier = FastChamberMultiplier(gauge)
 
     import numpy as np
-    from joblib import Parallel, delayed
 
     base = multiplier.multiply(original)
     if base is None:
@@ -1142,10 +1274,8 @@ def solve_positive_gauge_continuous(order: int, fit_depth: int = 24, bound: floa
     data_list = []
     indptr = [0]
 
-    logger.debug(f"Fast-multiplying {len(kernels)} kernels via Parallel joblib...")
-    k_arrs = Parallel(n_jobs=-1, batch_size="auto")(delayed(multiplier.multiply)(kern) for kern in kernels)
-
-    for k_arr in k_arrs:
+    for k in range(len(kernels)):
+        k_arr = multiplier.multiply(kernels[k])
         if k_arr is not None:
             mask = np.abs(k_arr) > 1e-12
             nnz_rows = np.nonzero(mask)[0].astype(np.int32)
@@ -1215,6 +1345,7 @@ def solve_positive_gauge_continuous(order: int, fit_depth: int = 24, bound: floa
 
     h = highspy.Highs()
     h.setOptionValue("output_flag", False)
+    h.setOptionValue("primal_feasibility_tolerance", 1e-9)
 
     num_vars = 2 * n
     h.addVars(num_vars, np.zeros(num_vars), np.full(num_vars, bound))
@@ -1275,7 +1406,11 @@ def solve_positive_gauge_continuous(order: int, fit_depth: int = 24, bound: floa
         new_violations = violated_idx[~active_row_mask[violated_idx]]
 
         if len(new_violations) == 0:
-            logger.debug(f"Row generation converged in {it+1} iterations.")
+            active_violations = violations[active_row_mask]
+            max_active_violation = np.max(active_violations) if len(active_violations) > 0 else 0
+            logger.debug(
+                f"Row generation converged in {it+1} iterations. Max active violation: {max_active_violation}"
+            )
             break
 
         if len(new_violations) > 5000:
@@ -1332,9 +1467,34 @@ def solve_positive_gauge_continuous(order: int, fit_depth: int = 24, bound: floa
     new_violations = len(after_negs)
 
     if new_violations == 0:
-        best_kernel = kernel
-        logger.info(f"LP converged with full constraint matrix")
-        note_parts.append("Found exact fractional continuous solution via HiGHS")
+        # The float solve is a search heuristic; it is not the witness.  Rebuild
+        # the kernel over the rationals and recompute the gauged series exactly,
+        # because the LP returns fractional coefficients and no tolerance on a
+        # rational coefficient can tell a small negative from a zero.
+        exact_kernel = _rationalise_kernel(k_val, kernels)
+        if exact_kernel is None:
+            best_kernel = None
+            note_parts.append(
+                "LP solution could not be recovered as exact rationals; reporting "
+                "unverified rather than trusting the float solve"
+            )
+        else:
+            check = validate_gauge(exact_kernel, order, gauge.max_deg)
+            if check.packets_changed == 0 and check.negatives_gauged == 0:
+                best_kernel = exact_kernel
+                note_parts.append(
+                    f"verified exactly at depth {gauge.max_deg}: "
+                    f"{check.packets} packet sums unchanged, no negative coefficient"
+                )
+            else:
+                best_kernel = None
+                after_negs = [-1.0] * max(check.negatives_gauged, 1)
+                note_parts.append(
+                    f"float solve looked clean but exact recomputation disagrees: "
+                    f"{check.packets_changed} packet sum(s) moved, "
+                    f"{check.negatives_gauged} negative coefficient(s)"
+                )
+        logger.info("LP converged with full constraint matrix")
 
         contribs = [(t, kern, desc) for t, kern, desc in zip(k_val, kernels, descs)]
         contribs.sort(key=lambda item: abs(item[0]), reverse=True)
@@ -1345,11 +1505,19 @@ def solve_positive_gauge_continuous(order: int, fit_depth: int = 24, bound: floa
                 logger.info(f"  {i+1}: coeff {t:.4f} | {desc}")
     else:
         best_kernel = None
-        note_parts.append("Solution failed strict zero check.")
+        min_val = np.min(gauged_arr) if gauged_arr is not None else 0
+        note_parts.append(f"Solution failed strict zero check. Worst negative: {min_val:.2e}")
+        if gauged_arr is not None:
+            worst = np.sort(gauged_arr[gauged_arr < -1e-5])[:10]
+            worst_str = ", ".join(f"{v:.2e}" for v in worst)
+            note_parts.append(f"Largest violations: [{worst_str}]")
 
     best_deficit = float(sum(-c for c in after_negs))
     best_remaining = len(after_negs)
-    found = best_deficit < 1e-5 and best_remaining == 0
+    # ``found`` means exactly recomputed and verified, never merely within a
+    # tolerance of the float solve.  best_kernel is only set above once the
+    # rational recomputation has agreed.
+    found = best_kernel is not None
 
     return DeficitResult(
         order,
