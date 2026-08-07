@@ -281,45 +281,96 @@ in [S]; $P_5$ is a minimality refinement sitting on top of a settled result.
 
 \subsection{Scaling to \texorpdfstring{$d = 6$}{d = 6}}
 
-The exact basis extraction becomes severely underdetermined at higher dimensions. At $d = 6$, there are only $29$ packet constraints against $766$ free monomials at the base fit depth. A purely numerical fit is extremely brittle here: a computationally fitted kernel simply overfits the packets it can see, and reliably breaks one truncation higher. Furthermore, the packet supply grows by only about four new constraints per degree. A mathematically faithful numerical solution would therefore require fitting at completely unreachable polynomial depths.
+Fitting kernels to the packets in range does not survive the move to $d = 6$. There are $29$
+packet constraints against $766$ free monomials at the base fit depth, so a fitted kernel
+zeroes the packets it can see and breaks one truncation higher; the packet supply grows by
+about four constraints per degree, so no reachable truncation repairs it.
 
-Because no reachable truncation repairs this underdetermination, we instead construct null kernels directly from the antisymmetry of the residue integrand. If a rational form $P/D_d$ is invariant under a transposition $s$, the contour swap guarantees the residue evaluates to zero. 
+We therefore construct kernels instead of fitting them, from the antisymmetry of the residue
+integrand. Full invariance of $P/D_d$ under one transposition yields $65$ contour-exchangeable
+kernels, or $243$ if every transposition is admitted; partial absorption raises the pool to
+$2297$. That larger family is a shape rather than a theorem, so each candidate is put through
+the packet falsifier, which at depth $20$ leaves $410$. These are $410$ distinct polynomials
+satisfying $17$ linear relations, so they span a space of dimension $393$; the redundancy is in
+the parameterisation, not in the truncation, and the series rank plateaus at the same $393$
+from depth $24$ onwards.
 
-By systematically saturating these symmetry constraints, we generate exactly $65$ contour-exchangeable null kernels for $d = 6$. None of these structurally-enforced kernels fails the out-of-sample packet falsifier (even when checked at deep truncations of $20$ to $30$, where over $60$ packets are available to rigorously verify them). We then hand this 65-dimensional valid subspace to the Continuous LP solver to search for a boundary positive gauge.
+\subsection{The search at \texorpdfstring{$d = 6$}{d = 6}, and what would settle it}
 
-\subsection{Finding a Positive Gauge for \texorpdfstring{$d = 6$}{d = 6}}
+Since the chamber series is linear in the numerator, a positive gauge is a point of
+\[
+  \mathrm{Feas}(T) \;=\; \{\, t : \text{every coefficient of } \Qd_6 - \textstyle\sum_i t_i K_i
+  \text{ of degree} \le T \text{ is} \ge 0 \,\}.
+\]
+The kernel coefficients are a \emph{fixed} finite set of variables, so raising $T$ adds
+constraints and never variables: the $\mathrm{Feas}(T)$ are nested decreasing. Two consequences
+matter. A feasible point at any finite $T$ is only a finite verification. But
+$\mathrm{Feas}(T) = \emptyset$ at a single $T$ rules out a positive gauge in this span at
+\emph{every} degree, because a constraint of total degree $T$ involves only coefficients of
+degree $\le T$, so truncating is an exact projection of the feasible set rather than an
+approximation of it.
 
-Since the chamber series is linear in the numerator, finding a positive gauge is mathematically equivalent to intersecting half-spaces indexed by chamber monomials. By relaxing the integrality constraints and posing this as a Continuous Linear Program (LP), we identify a boundary face that resolves every negative coefficient up to a finite depth, quantified in the proposition below.
+The complementary condition is boundedness. If $\mathrm{Feas}(T)$ is non-empty and bounded, the
+$\mathrm{Feas}(T')$ for $T' \ge T$ are nested non-empty compacts, so their intersection is
+non-empty and a positive gauge exists. Boundedness is decided by the recession cone
+$C(T) = \{d : A_T d \le 0\}$, which is trivial exactly when, by Stiemke's lemma, there is
+$y > 0$ with $A_T^{\mathsf T} y = 0$ --- one linear programme.
 
-The cancellation relies on a highly structured geometric combination of symmetry kernels. The top 10 most influential kernels identified by the optimal gauge are:
 \begin{table}[ht]
 \centering
-\caption{The top 10 most influential symmetry kernels identified by the optimal fractional gauge for $d=6$.}
-\label{tab:d6_kernels}
+\caption{Both settlement conditions at $d = 6$, on the $393$-dimensional kernel span.}
+\label{tab:d6sweep}
 \small
-\begin{tabularx}{\textwidth}{@{}rLcc@{}}
+\begin{tabularx}{\textwidth}{@{}rrLLr@{}}
 \toprule
- Weight & Geometric Structure & Terms & Max $|c|$ \\
+ $T$ & constraints & $\mathrm{Feas}(T)$ & recession cone $C(T)$ & time \\
 \midrule
- $-0.3488$ & symmetry $s_{5,6}$ absorbing 3 factors & 18 & 2 \\
- $-0.3451$ & symmetry $s_{1,2}$ absorbing 5 factors & 58 & 4 \\
- $-0.3365$ & partial abs.\ $s_{4,6}$ dropping $(-z_6 + z_3 + z_2)$ & 76 & 8 \\
- $-0.2815$ & symmetry $s_{2,3}$ absorbing 4 factors & 30 & 4 \\
- $-0.2645$ & symmetry $s_{1,2}$ absorbing 5 factors & 58 & 4 \\
- $0.2438$ & symmetry $s_{2,3}$ absorbing 4 factors & 30 & 4 \\
- $0.2223$ & symmetry $s_{1,2}$ absorbing 5 factors & 58 & 4 \\
- $0.2057$ & partial abs.\ $s_{4,6}$ dropping $(-z_6 + z_3 + z_2)$ & 76 & 8 \\
- $0.1873$ & symmetry $s_{2,3}$ absorbing 4 factors & 30 & 4 \\
- $0.1672$ & symmetry $s_{2,3}$ absorbing 4 factors & 30 & 4 \\
+ $24$ & $67{,}952$  & non-empty & non-trivial & $58$ s \\
+ $28$ & $140{,}402$ & non-empty & non-trivial & $150$ s \\
+ $32$ & $266{,}538$ & non-empty & non-trivial & $364$ s \\
+ $36$ & $472{,}764$ & non-empty & non-trivial & $676$ s \\
+ $40$ & $793{,}228$ & non-empty & non-trivial & $1542$ s \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
+Neither condition triggers up to depth $40$. That rules nothing out in either direction: the
+feasible set is a non-empty unbounded polyhedron throughout.
+
+\subsection{The question is decidable at finite depth}
+
+What makes this worth continuing is that the sweep cannot run forever without answering.
+
 \begin{proposition}
-At depth 45, this explicitly-constructed fractional gauge eliminates every negative coefficient in the chamber series. However, analytically verifying the same exact gauge at depth 46 reveals that 20 negative coefficients reappear. Thus, while the geometric construction successfully suppresses initial negativity, it is mathematically insufficient to certify asymptotic positivity at $d=6$.
+Assume the $K_i$ are residue-null and linearly independent. Then $C(T) = \{0\}$ for some finite
+$T$, and consequently exactly one of the following occurs at finite depth: either
+$\mathrm{Feas}(T)$ becomes empty, so no positive gauge exists in the span at any degree; or
+$C(T)$ becomes trivial while $\mathrm{Feas}(T)$ is non-empty, so a positive gauge exists and
+$A_6$ Chern positivity follows.
 \end{proposition}
 
-Technical details on the LP relaxation, exact rational extraction, and the geometric breakdown of integer bounding are deferred to Appendix~\ref{app:computational}.
+\begin{proof}
+First $C(\infty) = \{0\}$. Let $d \in C(\infty)$ and put $K = \sum_i d_i K_i$, so $K$ is null and
+its chamber series is coefficientwise non-positive in every degree. Every chamber monomial
+$\beta$ lies in exactly one packet, namely that of the multiset of $\alpha(\beta)$, and every
+packet sum of a null kernel vanishes; a sum of non-positive numbers equal to zero has every term
+zero, so the series vanishes identically. Multiplication by $\Phi$ is injective in the power
+series ring, so $K = 0$, and independence gives $d = 0$.
+
+Now suppose $C(T) \ne \{0\}$ for all $T$ and choose unit vectors $u_T \in C(T)$. The unit sphere
+is compact, so some subsequence converges to a unit vector $u$. For $T' \ge T$ we have
+$u_{T'} \in C(T') \subseteq C(T)$, and $C(T)$ is closed, so $u \in C(T)$ for every $T$. Then
+$u \in \bigcap_T C(T) = \{0\}$, contradicting $\|u\| = 1$. Hence $C(T^*) = \{0\}$ for some finite
+$T^*$, and the dichotomy follows from the nesting of $\mathrm{Feas}$.
+\end{proof}
+
+The hypothesis is where the care is needed. The argument uses vanishing packet sums, so it
+requires the $K_i$ to be \emph{genuinely} null, and the $410$ were selected by the packet
+falsifier, which can refute nullity but never certify it --- at $d = 6$ a filter run at depth
+$20$ still passes kernels that move four packet sums at depth $22$. Certifying the span by the
+degree-independent two-swap identity is therefore a prerequisite to either conclusion, not a
+refinement of it. Table~\ref{tab:d6sweep} locates roughly where $T^*$ lies; it does not
+establish either branch.
 
 \section{Assessment}
 \label{sec:assessment}
@@ -333,17 +384,15 @@ What the computations suggest about proof strategy:
   The prefix-positivity stepping stone fails one order earlier still.
 \item Since \S\ref{sec:gauge} shows the numerator is free up to a residue-null kernel,
   the question worth asking is which representative needs the weakest certificate, or is
-  nonnegative on its own. At $d = 5$ one is, and no certificate is needed. At $d = 6$ the
-  construction gets close but does not close: it removes every negative coefficient up to a
-  finite depth and then fails, so it is evidence rather than a proof.
-\item The continuous LP relaxation is the correct algorithmic vehicle for exploring deep 
-  truncations. Integrality constraints choke at matrix sizes beyond 10,000 bounds, 
-  whereas the relaxed LP identifies the fully optimal boundary in fractions of a second.
-  Future work at $d \ge 7$ should extract exact rational boundaries from the continuous
-  formulation rather than fight integrality. Note what this does and does not deliver: a
-  feasible point at depth $T$ is a finite verification, and only an \emph{infeasible} LP at
-  some $T$ settles anything at every degree, since truncation is an exact projection of the
-  feasible set.
+  nonnegative on its own. At $d = 5$ one is, and no certificate is needed at all. At $d = 6$ the
+  question is open but no longer open-ended: it reduces to a dichotomy that must resolve at
+  finite depth, and neither branch has triggered by depth $40$.
+\item The continuous relaxation is the right algorithmic vehicle. Integrality chokes on
+  matrices past a few thousand rows, while the relaxed programme reaches $793{,}228$ constraints
+  in twenty-six minutes. Fractional coefficients cost nothing in rigour, because nullity is
+  linear and the kernels are null by an algebraic identity, so any rational combination of them
+  is exactly null. What does need care is positivity, which must be recomputed in exact
+  arithmetic rather than read off the solver at a tolerance.
 \item Since the $\tau$-orbit is not the right unit of cancellation, the open question is what is.
   Table~\ref{tab:a7cancel} is suggestive: the negative mass is small, bounded and spread over few
   orderings, while the positive mass is large and concentrated in one.  A bound on the negative
@@ -374,12 +423,26 @@ walkthrough is \texttt{src/examples.ipynb}, executed with its outputs.
 \subsection{Scaling Saturation to \texorpdfstring{$d = 7$}{d = 7}}
 For a homogeneous ideal and degrevlex, a Gr\"obner basis saturates by $v$ on dividing each element by the largest power of $v$ dividing it. Both the placement of defect-zero coordinates and the sequence in which they are saturated changes computation time by orders of magnitude. The initial ideal is monomial, so the minimal primes are the minimal transversals of the generator supports, bypassing full primary decomposition and keeping the geometry exactly computable at $d=7$.
 
-\subsection{Continuous LP over Exact Rationals}
-At $d=6$, extracting a positive gauge natively runs into combinatorial roadblocks due to the sheer size of the chamber matrix ($20{,}000$ bounds at degree $24$). Standard mixed-integer branch-and-bound solvers stall indefinitely. 
+\subsection{The continuous relaxation, and the cost of exactness}
+At $d = 6$ a mixed-integer formulation stalls: branch-and-bound does not finish on the chamber
+matrix at usable depths. The relaxation does, and scales --- the full boundary at depth $40$ is
+$793{,}228$ constraints on $393$ variables and solves in about twenty-six minutes with HiGHS,
+against $58$ seconds at depth $24$, growing by roughly a factor $2.2$ per four degrees.
 
-However, Rim\'anyi's conjecture requires only that the gauge coefficients sum to a strictly positive continuous boundary. By bypassing lazy constraint generation entirely and loading the full unified boundary constraint matrix (over 160,000 bounds) into a highly-optimized dual-simplex or interior point solver such as \texttt{scipy}'s native HiGHS implementation, we project the geometry directly onto the optimal boundary face in less than three seconds. The resulting vertices are mathematically extracted as floating-point gauge coefficients, entirely eliminating the integer and formulation bottlenecks.
+The solver returns floating-point vertices. That is adequate for search and inadequate for a
+claim, so acceptance rationalises the solution and recomputes the gauged series exactly before
+reporting success. Recovery is deliberately partial: the constraint matrix is integral, so
+vertices are rational, but their denominators divide integer subdeterminants and can be large,
+and a float carries no record of which rational produced it. A candidate is accepted only if it
+reproduces the float to its own precision, and otherwise the run reports failure rather than
+substituting a nearby kernel for the one the solver found. Exact vertex extraction from the
+active constraint set would remove that gap and is not attempted here.
 
-
+One measurement guides where exactness is cheap. Every quantity in the packet filter is an
+integer of magnitude at most about $10^{7}$, and float64 represents integers exactly below
+$2^{53}$, so equality comparisons on the fast path are genuine rather than tolerances; a guard
+raises if any magnitude approaches that ceiling. Only fractional gauges force rational
+arithmetic, at a cost of some $25$ to $65$ times the float path.
 
 \section{Numerical data}
 \label{app:data}
