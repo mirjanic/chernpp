@@ -54,5 +54,56 @@ class TestDThree(unittest.TestCase):
             self.assertEqual(table[m], sectors.ballot_count(m))
 
 
+class TestDFour(unittest.TestCase):
+    """The explicit positive product formula for F_4 (report/ballot.tex, Lemma 4)."""
+
+    def test_numerator_factorises(self):
+        from chernpp.polynomial import poly_mul
+
+        def one_minus(p):
+            out = {(0, 0, 0): 1}
+            for k, v in p.items():
+                out[k] = out.get(k, 0) - v
+            return out
+
+        factors = [
+            {(1, 0, 0): 1},
+            {(0, 1, 0): 1},
+            {(1, 1, 0): 1},
+            {(0, 0, 1): 1},
+            {(0, 1, 1): 1},
+            {(1, 1, 1): 1},
+            {(0, 1, 1): 1, (1, 1, 1): 2},
+        ]
+        prod = {(0, 0, 0): 1}
+        for f in factors:
+            prod = poly_mul(prod, one_minus(f))
+        self.assertEqual({k: v for k, v in prod.items() if v}, dict(load_algebra(4).numerator))
+
+    def test_block_decomposition_is_an_identity(self):
+        # (1-a)(1-s)(1-s-2as) = a^2 s (1-2s) + (1-2a)(1-s-as)/2 + (1-s-as)(1-2s)/2
+        from fractions import Fraction
+
+        from chernpp.polynomial import poly_add, poly_mul
+
+        def lin(*terms):
+            return {k: Fraction(v) for k, v in terms}
+
+        lhs = poly_mul(
+            poly_mul(lin(((0, 0), 1), ((1, 0), -1)), lin(((0, 0), 1), ((0, 1), -1))),
+            lin(((0, 0), 1), ((0, 1), -1), ((1, 1), -2)),
+        )
+        u = lin(((0, 0), 1), ((0, 1), -1), ((1, 1), -1))
+        rhs = poly_add(
+            poly_add(
+                poly_mul(lin(((2, 1), 1)), lin(((0, 0), 1), ((0, 1), -2))),
+                poly_mul(lin(((0, 0), Fraction(1, 2))), poly_mul(lin(((0, 0), 1), ((1, 0), -2)), u)),
+            ),
+            poly_mul(lin(((0, 0), Fraction(1, 2))), poly_mul(u, lin(((0, 0), 1), ((0, 1), -2)))),
+        )
+        clean = lambda p: {k: v for k, v in p.items() if v}
+        self.assertEqual(clean(lhs), clean(rhs))
+
+
 if __name__ == "__main__":
     unittest.main()
