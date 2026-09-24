@@ -13,7 +13,7 @@ The target is Rimányi's conjecture: every Chern coefficient `C(M)` of the Morin
 | **The ballot conjecture.** `C(M) ≥ b(M)` (the number of ballot orderings), with equality iff `max M ≤ 1`. It implies Rimányi. | **Proved for d ≤ 4.** Verified on every exact table with d ≤ 7 (A_7 to ℓ = 5, every d = 7 packet with max M ≤ 7, A_6 to ℓ = 12). | `ballot.pdf` §§3–4; `chernpp/ballot.py`; tier 15 |
 | **Plane sector.** `C(M) = b(M)` (a Kreweras number) when `max M ≤ 1`. | Proved for all d, given two geometric inputs that are stated in full | `ballot.pdf` §2 |
 | **Explicit positive product formula for `F_4`.** A one-line proof of strong positivity at d = 4. | Proved | `ballot.pdf`, Lemma 4 |
-| **Zero insertion.** `C − b` is a nonnegative binomial combination in the number of zeros. | Verified on 4,925 bases | `ballot.pdf` §5 |
+| **Zero insertion.** `C − b` is a nonnegative binomial combination in the number of zeros. | Verified on 10,620 bases | `ballot.pdf` §5 |
 | **Dominance.** `N(M) ≤ κ_d A_dom`, with κ = 1/6, 1/6, 8/21. | Verified | `morin_d7.pdf` |
 | **The corank filtration.** `ρ ≥ corank`, and `ρ = corank` is refuted. `C_2` is simplicial only in degree n ≤ 5. | Proved (refutation by exact certificates) | `morin_d7.pdf` §1 |
 
