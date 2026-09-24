@@ -450,13 +450,77 @@ def _farkas(
     if res.status != 0:
         return None
     y = {rows[i]: Fraction(v).limit_denominator(10**6) for i, v in enumerate(res.x) if abs(v) > 1e-12}
-    # exact verification
+    if _is_farkas(y, target, columns):
+        return y
+    # Rounding did not verify.  Re-solve a bounded version whose optimum is a
+    # vertex, and recover that vertex exactly from its tight constraints.
+    return _farkas_vertex(target, columns, rows, t, G if columns else np.zeros((0, n)))
+
+
+def _is_farkas(y: Dict[Partition, Fraction], target: SchurPoly, columns: List[SchurPoly]) -> bool:
     if sum(y.get(k, 0) * v for k, v in target.items()) >= 0:
+        return False
+    return all(sum(y.get(k, 0) * v for k, v in col.items()) >= 0 for col in columns)
+
+
+def _farkas_vertex(target, columns, rows, t, G) -> Optional[Dict[Partition, Fraction]]:
+    """
+    Minimise <y, target> over {G y >= 0, -1 <= y <= 1} with the dual simplex, so the
+    optimum is a vertex; read off its tight constraints and solve them exactly.
+    The float solution only selects which constraints are tight -- the returned
+    vector is an exact rational solution, and it is verified before it is returned.
+    """
+    import numpy as np
+    from scipy.optimize import linprog
+
+    n = len(rows)
+    res = linprog(
+        t,
+        A_ub=-G if len(G) else None,
+        b_ub=np.zeros(len(G)) if len(G) else None,
+        bounds=[(-1, 1)] * n,
+        method="highs-ds",
+    )
+    if res.status != 0 or res.fun >= -1e-9:
         return None
-    for col in columns:
-        if sum(y.get(k, 0) * v for k, v in col.items()) < 0:
-            return None
-    return y
+    x = res.x
+    scale = max(1.0, float(np.abs(G).max()) if len(G) else 1.0)
+    equations: List[Tuple[List[Fraction], Fraction]] = []
+    for j in range(len(G)):
+        if abs(float(G[j] @ x)) <= 1e-9 * scale * n:
+            equations.append(([Fraction(int(round(v))) for v in G[j]], Fraction(0)))
+    for i in range(n):
+        if abs(x[i] - 1) <= 1e-9:
+            equations.append(([Fraction(int(k == i)) for k in range(n)], Fraction(1)))
+        elif abs(x[i] + 1) <= 1e-9:
+            equations.append(([Fraction(int(k == i)) for k in range(n)], Fraction(-1)))
+    exact = _solve_square(equations, n)
+    if exact is None:
+        return None
+    y = {rows[i]: v for i, v in enumerate(exact) if v != 0}
+    return y if _is_farkas(y, target, columns) else None
+
+
+def _solve_square(equations, n) -> Optional[List[Fraction]]:
+    """Unique solution of a consistent system of rank ``n`` (extra rows must agree), else None."""
+    matrix = [row[:] + [rhs] for row, rhs in equations]
+    pivots, r = [], 0
+    for c in range(n):
+        p = next((i for i in range(r, len(matrix)) if matrix[i][c] != 0), None)
+        if p is None:
+            return None  # not a vertex: rank deficient
+        matrix[r], matrix[p] = matrix[p], matrix[r]
+        inv = 1 / matrix[r][c]
+        matrix[r] = [v * inv for v in matrix[r]]
+        for i in range(len(matrix)):
+            if i != r and matrix[i][c] != 0:
+                f = matrix[i][c]
+                matrix[i] = [a - f * b for a, b in zip(matrix[i], matrix[r])]
+        pivots.append(c)
+        r += 1
+    if any(matrix[i][n] != 0 for i in range(r, len(matrix))):
+        return None
+    return [matrix[i][n] for i in range(n)]
 
 
 # --------------------------------------------------------------------------

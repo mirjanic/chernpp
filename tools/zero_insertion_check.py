@@ -19,6 +19,9 @@ def tables():
     for d in (6, 7):
         data = json.loads((RESULTS / f"morin_a{d}.json").read_text())
         out[d] = {tuple(m): c for m, c in data["packet_values"]}
+    for path in sorted(RESULTS.glob("deep_*.json")):
+        data = json.loads(path.read_text())
+        out.setdefault(data["d"], {}).update({tuple(m): c for m, c in data["packet_values"]})
     return out
 
 

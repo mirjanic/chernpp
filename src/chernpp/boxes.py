@@ -363,16 +363,31 @@ def _packet_index(box: Box):
 def _grouped(
     values: np.ndarray, inverse: np.ndarray, ngroups: int, modulus: Optional[int] = None
 ) -> np.ndarray:
-    order = np.argsort(inverse, kind="stable")
-    flat = values.reshape(-1)[order]
-    sorted_inv = inverse[order]
-    starts = np.searchsorted(sorted_inv, np.arange(ngroups))
-    present = np.zeros(ngroups, dtype=bool)
-    present[sorted_inv] = True
-    out = np.zeros(ngroups, dtype=np.int64)
-    if flat.size:
-        sums = np.add.reduceat(flat, np.minimum(starts, flat.size - 1))
+    """
+    Exact per-group sums of ``values`` (nonnegative int64 below 2^31 when ``modulus``
+    is given, e.g. residues).  ``bincount`` accumulates in float64, so each value is
+    split into 11-bit limbs: a limb sum over at most 2^30 cells stays below 2^41,
+    far inside the exactly-representable range.  Refuses inputs it cannot sum
+    exactly rather than rounding.
+    """
+    flat = values.reshape(-1)
+    if flat.size == 0:
+        return np.zeros(ngroups, dtype=np.int64)
+    if flat.min() < 0 or flat.max() >= 2**33 or flat.size >= 2**30:
+        # outside the limb path's exactness guarantee: fall back to sorted reduction
+        order = np.argsort(inverse, kind="stable")
+        sorted_inv = inverse[order]
+        starts = np.searchsorted(sorted_inv, np.arange(ngroups))
+        present = np.zeros(ngroups, dtype=bool)
+        present[sorted_inv] = True
+        sums = np.add.reduceat(flat[order], np.minimum(starts, flat.size - 1))
         out = np.where(present, sums, 0)
+        return out % modulus if modulus else out
+    out = np.zeros(ngroups, dtype=np.int64)
+    for shift in (0, 11, 22):
+        limb = ((flat >> shift) & 0x7FF).astype(np.float64)
+        part = np.bincount(inverse, weights=limb, minlength=ngroups)
+        out += np.rint(part).astype(np.int64) << shift
     return out % modulus if modulus else out
 
 
