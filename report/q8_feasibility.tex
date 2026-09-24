@@ -1,0 +1,122 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=2.6cm]{geometry}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[colorlinks,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+\newcommand{\Qd}{\mathcal{Q}}
+\DeclareMathOperator{\Tp}{Tp}
+\theoremstyle{plain}
+\newtheorem{observation}{Observation}
+
+\title{\textbf{Toward $\Qd_8$: a feasibility study}}
+\author{Chern++}
+\date{September 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The Morin Thom polynomials are computed from a single polynomial $\Qd_d$, the equivariant
+multidegree of a Borel orbit closure. $\Qd_d$ is known for $d \le 7$, and $d = 8$ is out of reach
+of Gr\"obner-basis methods. A formula for $\Qd_8$ would test the conjectures of
+\texttt{report/ballot.pdf} at $d = 8$. We test the natural resolution candidate, the rank-one
+nonassociative tower, which has an explicit product formula for its point class. It agrees
+with $\Qd_4$ but differs from $\Qd_d$ in the residue-relevant sense for $d = 5, 6, 7$. Its error
+is a product of linear forms at $d = 5$ and then becomes irreducible: a sextic times a linear form
+at $d = 6$, and an irreducible polynomial of degree $13$ at $d = 7$. So this route does not
+reach $\Qd_8$, and no other resolution is presently in hand.
+\end{abstract}
+
+\section{Setting}
+
+Let $N_d \subset \mathrm{Hom}(\mathbb{C}^d, \mathrm{Sym}^2\mathbb{C}^d)$ be spanned by the coordinates
+$q^{mr}_l$ with $1 \le m \le r$ and $m + r \le l \le d$. The coordinate $q^{mr}_l$ has torus weight
+$z_m + z_r - z_l$. The reference point $\varepsilon$ has $q^{mr}_l = 1$ exactly when $m + r = l$: it
+is the multiplication table of $t\mathbb{C}[t]/(t^{d+1})$ in the basis $t, \dots, t^d$. The
+upper-triangular Borel subgroup $B_d \subset GL_d$ acts on $N_d$. Then
+\[
+  \Qd_d = [\overline{B_d \cdot \varepsilon}] \in \mathbb{Z}[z_1, \dots, z_d],
+\]
+the equivariant multidegree of the orbit closure. It is homogeneous of degree
+$\dim N_d - \binom d2 = 1, 3, 7, 13, 22$ for $d = 4, \dots, 8$. By the B\'erczi--Szenes residue formula
+it determines $\Tp_{A_d}$ at every relative dimension. It matters only modulo the
+\emph{residue-null} polynomials, those that do not change any Chern coefficient. In this project
+$\Qd_4, \dots, \Qd_7$ are computed by Gr\"obner bases (SageMath/Singular) and stored as artifacts.
+The cost of the analogous $d = 8$ computation was estimated at $\sim 10^{11}$ times that of $d = 7$.
+
+\section{The candidate: the nonassociative tower}
+
+A resolution of the orbit closure would give $\Qd_d$ by equivariant localisation. The natural
+candidate is the tower of \emph{rank-one nonassociative} structures, built level by level. Its
+point class is an explicit product of weights:
+\[
+  P^\star_d = \prod_{k=4}^{d} \ \prod_{\substack{2 \le i \le j \\ i + j \le k}} (z_1 + z_{i-1} + z_j - z_k).
+\]
+The number of factors is $1, 3, 7, 13, 22$ for $d = 4, \dots, 8$, matching $\deg \Qd_d$. This class and
+the observation that it recovers $\Qd_4$ are due to an unrefereed external
+report~\cite{FS}. Everything below is recomputed here from the formula above and the stored
+$\Qd_d$.
+
+\begin{observation}[verified]\label{obs}
+\begin{enumerate}[nosep]
+\item $P^\star_4 = \Qd_4$.
+\item $\Qd_d - P^\star_d$ is not residue-null for $d = 5, 6, 7$. Replacing $\Qd_d$ by $P^\star_d$
+  changes $21$ of the $32$ testable packet sums at $d = 5$, $11$ of $13$ at $d = 6$, and $1$ of $3$ at
+  $d = 7$, on the truncations tested.
+\item The differences factor over $\mathbb{Q}$ as follows:
+  \begin{itemize}[nosep]
+  \item at $d = 5$, $\Qd_5 - P^\star_5 = (2z_1 - z_2)(z_1 + z_3 - z_4)(2z_1 + z_2 - z_5)$;
+  \item at $d = 6$, a linear form $(2z_1 - z_2)$ times an irreducible sextic ($395$ terms in all);
+  \item at $d = 7$, an irreducible polynomial of degree $13$ ($14{,}552$ terms).
+  \end{itemize}
+\end{enumerate}
+\end{observation}
+
+\paragraph{Reading.} $P^\star_d$ is the class of a variety that contains the orbit closure and,
+from $d = 5$, has extra components. So the tower is not birational onto
+$\overline{B_d\varepsilon}$. At $d = 5$ the defect is a single product of linear forms. That is
+consistent with one extra linear component, and it suggests writing $\Qd_d$ as $P^\star_d$ minus
+component classes. From $d = 6$ the defect has an irreducible factor of high degree, which rules
+out a correction by a few linear components. At $d = 7$ nothing factors at all. The defect grows
+roughly like $\Qd_d$ itself, so the tower does not reduce the problem.
+
+\section{What a route to $\Qd_8$ would need}
+
+\begin{itemize}[nosep]
+\item \textbf{A genuinely birational smooth model of $\overline{B_d\varepsilon}$}, compatible
+  with the torus, with isolated fixed points. Localisation would then give $\Qd_d$ as a sum over
+  fixed points. The tower above fails this. The saturated associativity scheme has the right
+  image but is singular.
+\item \textbf{Or a characterisation of $\Qd_d$ modulo the residue-null kernel only.} Only the
+  packet class of $\Qd_d$ enters the Thom polynomial. Several constraints already pin that class
+  down partially:
+  \begin{itemize}[nosep]
+  \item the degree;
+  \item the normalisation;
+  \item stabilisation, $[z_d^{e(d)}]\Qd_d = \pm \Qd_{d-1}$ with $e(d) = \lfloor d^2/4 \rfloor - d + 1$
+    (verified for $d \le 7$);
+  \item the plane-sector theorem, which fixes every packet with $\max M \le 1$ (given its two
+    stated geometric inputs);
+  \item Rim\'anyi's published $\Tp_{A_8}$ at $\ell = 0$.
+  \end{itemize}
+  Whether these determine the packet class of $\Qd_8$ is open. Counting constraints against the
+  dimension of the space of admissible numerators is the natural next computation.
+\end{itemize}
+
+\paragraph{Decision.} Following the gate in \texttt{report/research\_plan.md}, the $\Qd_8$ computation
+is not attempted. The d = 8 question that matters most, $\kappa_8 < 1$ in the dominance conjecture
+and the ballot inequality at $d = 8$, stays open.
+
+\paragraph{Reproducing.} The comparison uses \texttt{chernpp.optimisation.gauge.validate\_gauge} on
+the kernel $\Qd_d - P^\star_d$, and Singular's \texttt{factorize} on the difference.
+
+\begin{thebibliography}{9}
+\bibitem{FS} Rim\'anyi positivity: findings summary (29 July 2026), unrefereed, \S8.2. Cited for the tower and the formula for $P^\star_d$ only; every claim above is recomputed.
+\end{thebibliography}
+\end{document}

@@ -56,21 +56,17 @@ Charge 2 (`max M = 2`) is where the conjecture now lives. Geometrically it is th
 2. **Geometric side.** Treat `C_{n,2} ⊂ C_{n,3}` as the zero scheme of a section of the tautological bundle E. Aim for "(planar count) + (nonnegative correction)".
 3. **Zero-insertion polynomiality.** Try to prove it, and test the degree guess `Σ_{a>0} a + #{a<0}` on the deeper A_6 data.
 
-## Workstream C: 𝒬₈ feasibility (scoped, gated)
+## Workstream C: 𝒬₈ feasibility — gate failed, recorded
 
-1. Choose a smooth tower mapping birationally onto the orbit closure `O_d`, and restate it self-contained. As a negative control, understand why the rank-one nonassociative tower fails.
-2. Compute `𝒬_d` by equivariant localisation (`src/multidegree/localisation.py`, no Sage).
-3. **Gates:**
-   - reproduce 𝒬₄ and 𝒬₅ exactly;
-   - then 𝒬₆ and 𝒬₇;
-   - extrapolate the cost to d = 8.
-4. Only if every gate passes: run 𝒬₈ overnight and validate it against:
-   - degree 22;
-   - `[z_8^9]𝒬_8 = −𝒬_7`;
-   - Rimányi's `Tp_{A_8}` at ℓ = 0.
+`report/q8_feasibility.pdf` is self-contained. The natural resolution candidate is the rank-one nonassociative tower, with explicit point class `P*_d`. Findings:
+- It equals 𝒬₄ exactly.
+- For d = 5, 6, 7 it is **not** residue-null equivalent to 𝒬_d: it changes 21 of 32, 11 of 13, and 1 of 3 packet sums.
+- The defect is a product of three linear forms at d = 5, a linear form times an irreducible sextic at d = 6, and an irreducible polynomial of degree 13 at d = 7. So it cannot be fixed by subtracting a few linear components.
+- Reproduce with `tools/tower_class.py`.
 
-   Then test the ballot and dominance conjectures at d = 8.
-5. Otherwise write a self-contained obstruction note.
+Decision: no 𝒬₈ run.
+
+Open follow-up: do the known constraints determine the *packet class* of 𝒬₈? These are the degree, the normalisation, stabilisation, the plane-sector theorem, and Rimányi's `Tp_{A_8}` at ℓ = 0. Answering this is a constraint count against the admissible numerator space.
 
 ## Workstream D: long runs (overnight)
 
