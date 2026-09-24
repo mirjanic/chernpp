@@ -10,10 +10,11 @@ The target is Rimányi's conjecture: every Chern coefficient `C(M)` of the Morin
 
 | Statement | Status | Where |
 |---|---|---|
-| **The ballot conjecture.** `C(M) ≥ b(M)` (the number of ballot orderings), with equality iff `max M ≤ 1`. It implies Rimányi. | **Proved for d ≤ 4.** Verified on every exact table with d ≤ 7 (A_7 to ℓ = 5, every d = 7 packet with max M ≤ 7, A_6 to ℓ = 12). | `ballot.pdf` §§3–4; `chernpp/ballot.py`; tier 15 |
+| **The ballot conjecture.** `C(M) ≥ b(M)` (the number of ballot orderings), with equality iff `max M ≤ 1`. It implies Rimányi. | **Proved for d ≤ 5.** Verified on every exact table with d ≤ 7 (A_7 to ℓ = 5, every d = 7 packet with max M ≤ 7, A_6 to ℓ = 12). | `ballot.pdf` §§3–5; `chernpp/ballot.py`; tier 15 |
 | **Plane sector.** `C(M) = b(M)` (a Kreweras number) when `max M ≤ 1`. | Proved for all d, given two geometric inputs that are stated in full | `ballot.pdf` §2 |
 | **Explicit positive product formula for `F_4`.** A one-line proof of strong positivity at d = 4. | Proved | `ballot.pdf`, Lemma 4 |
-| **Zero insertion.** `C − b` is a nonnegative binomial combination in the number of zeros. | Verified on 10,620 bases | `ballot.pdf` §5 |
+| **Contour-free swap lemma; `GBC` is residue-null; `F_5^{GDJ} ≥ 0`.** Rimányi at d = 5 from one gauge. | Proved (hypotheses are exact finite checks) | `ballot.pdf` §5; `ballot.verify_d5` |
+| **Zero insertion.** `C − b` is a nonnegative binomial combination in the number of zeros. | Verified on 10,620 bases | `ballot.pdf` §6 |
 | **Dominance.** `N(M) ≤ κ_d A_dom`, with κ = 1/6, 1/6, 8/21. | Verified | `morin_d7.pdf` |
 | **The corank filtration.** `ρ ≥ corank`, and `ρ = corank` is refuted; `ρ − corank` reaches 3 (`B_{5,4}`). `C_2` is simplicial only in degree n ≤ 5. | Proved (refutation by exact certificates) | `morin_d7.pdf` §1 |
 
@@ -39,15 +40,14 @@ The target is Rimányi's conjecture: every Chern coefficient `C(M)` of the Morin
   1. The explicit positive product formula gives `F_4 ≥ N` = the number of the 64 product supports that contain a cell.
   2. A packet-preserving bijection moves the zero set of `F_4` onto a target set T. This gives a comparison series with packet sums `b(M)`.
   3. `N ≥ w + 1_D` reduces to three Presburger-set inclusions, decided exactly by isl.
-- **d = 5: partial result, then gate.**
-  - **Achieved.**
-    - The GBC-gauged numerator factors completely.
-    - The one remaining six-factor block has an exact certificate with 17 parts.
-    - So the gauged `F_5` has an explicit nonnegative expression (`results/d5_block_certificate.json`, `ballot.verify_d5_block`, tier 15).
-  - **Blocking the d = 5 ballot theorem.**
-    - The certificate's weights are fractional. No integer certificate of that shape exists with parts of degree ≤ 10: the integer program is infeasible while its LP relaxation is feasible. So the support-counting step does not transfer.
-    - GBC's nullity is proved only in the external report.
-  - **Possible continuations.** A weighted Step 3 (Presburger counting with weights), an integer certificate of higher degree, or a self-contained proof of GBC's nullity.
+- **d = 5: done** (`ballot.pdf` §5, `chernpp.ballot.verify_d5`, tier 15, ~20 s). The zero-set transport of d = 4 was not needed: the endgame is the *dominant cell*.
+  1. `Q₅ = GDJ + GBC`, and `GBC` is residue-null by a contour-free swap lemma (formal counterpart of the contour exchange in the external summary; hypotheses are exact checks).
+  2. `F_5^{GDJ} = 𝒞 · ∏_{i≤6}(1 + V_i)` with the eleven-term decomposition of `𝒞`, so `F_5^{GDJ} ≥ 0`. The other pairing of the block has the exact 17-part order-5 certificate found upstream (`results/d5_block_certificate.json`, `ballot.verify_d5_block`); orders ≤ 4 are infeasible.
+  3. `C(M) ≥ F_5^{GDJ}(β_max(M)) ≥ 2⁷ > 5! ≥ b(M)` for `max M ≥ 10`: an isl inclusion on the decreasing cone, using explicit `2^k` / binomial lower bounds of the atomic factors (checked against the true series).
+  4. The 2611 packets with `max M ≤ 9`: exact table.
+  - Both blockers recorded upstream are removed. Fractional certificate weights do not matter, because the dominant-cell endgame never counts supports; it uses the integer decomposition of `𝒞`. And GBC's nullity is now proved here, not imported.
+  - The same method re-proves d = 4 (threshold 9). The d = 4 write-up's step-2 bijection, which the text referred to but never defined, is now explicit and checked by isl.
+- **d = 6: the reduction is clear.** A residue-null kernel `K` with a manifestly nonnegative product form for `F(𝒬₆ − K)` would finish d = 6 the same way. At d = 5, growth on the decreasing cone comes almost entirely from the Lemma-1 ratios. So the target is a *factorising* gauge: `𝒬₆ − K` a product of linear forms whose chamber factors pair off by Lemma 1. This is D4, retargeted.
 
 ## Workstream B: the structure of charge 2 (exploratory, time-boxed)
 
@@ -87,7 +87,7 @@ Open follow-up: do the known constraints determine the *packet class* of 𝒬₈
 | D2. A_6 level box L = 13 | **Done.** `Tp_{A_6}` to ℓ = 12: 62,239 coefficients, minimum 1. |
 | D3. Finish the corank survey | **Stopped at 94 of 128 tables**, merged into `results/corank_survey.json`. The exact vertex-Farkas fallback settled the three previously undecided tables. New: `ρ(B_{5,4}) = 5` at ℓ = 2, so `ρ − corank` reaches 3. The remaining 34 tables (codimension 20–26) need column generation. |
 | Ballot and zero-insertion re-checks on the deep tables | **Done.** 133,104 packet checks and 10,620 bases, no violation (`results/ballot_conjecture.json`, `results/zero_insertion.json`). |
-| D4. d = 6 gauge search with the ballot target | Queued. Waits on the Workstream A tooling. |
+| D4. d = 6 factorising-gauge search (the only missing input for the ballot proof at d = 6) | Tooling exists (`ballot.py` atoms, growth cover, swap-lemma checks). Search design in progress. |
 
 ## Writing
 
@@ -100,13 +100,12 @@ Rules: every document self-contained; statements labelled **proved**, **verified
 
 ## Order and cut line
 
-1. Finish A at d = 5, or hit its gate.
-2. Then B.1.
-3. Then C.1–C.3.
-4. Then either C.4 or the obstruction note.
-5. D4 runs overnight once A's tooling exists.
+1. ~~Finish A at d = 5, or hit its gate.~~ **Done** (the ballot theorem holds for d ≤ 5).
+2. ~~B.1~~: the naive charge-2 Jucys–Murphy (content-functional) calculus is **ruled out**. What remains of B needs a larger algebra; it is exploratory and time-boxed.
+3. ~~C.1–C.3~~: the Q₈ feasibility **gate failed** and is recorded (`q8_feasibility.pdf`). No Q₈ run. The open follow-up is a constraint count for the packet class of Q₈.
+4. **D4 is now the main line**: a residue-null kernel at d = 6 whose gauged series has a manifestly nonnegative product form. It is the only missing input for the ballot theorem at d = 6. Its candidate kernels must be *certified* null (swap lemma), not only packet-filtered.
 
-Cut, in this order: B.3, then D4, then C beyond gate 3. A (d ≤ 4, done) and D1–D3 are protected.
+Cut, in this order: B, then the Q₈ constraint count. A (d ≤ 5, done), D1–D3 and D4 are protected.
 
 ## Verification
 

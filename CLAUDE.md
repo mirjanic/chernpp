@@ -24,8 +24,12 @@ From the main checkout the `PYTHONPATH` prefix is unnecessary. Full suite is ~24
   `tests/data/published_thom_polynomials.json` are LFS objects. Without them
   `load_algebra` fails on a confusing *parse* error, not a missing-file one. Verify with
   `file src/chernpp/data/a7_algebra.npz` → should say `Zip archive`, not `ASCII text`.
-- **SageMath is not installed here** and is not needed. It regenerates the `.npz`
-  artifacts, which are tracked. Don't try to run `multidegree/` without it.
+- **SageMath is not needed** for anything downstream: it regenerates the `.npz` artifacts,
+  which are tracked. Cloud sessions do not have it. On the local workstation Sage 10.9 lives
+  in the conda env `~/miniforge3/envs/sage` (with Singular, GAP, and — added for this project —
+  normaliz/PyNormaliz, LattE `count`, 4ti2). `tools/c2_cone.py` needs `normaliz` on `PATH`:
+  prefix `PATH=$HOME/miniforge3/envs/sage/bin:$PATH`. The chernpp venv needs `islpy` for the
+  ballot proofs (tier 15 skips without it).
 - black runs at commit time via pre-commit; the hook is already installed in the shared
   `.git`. `src/examples.ipynb` is deliberately excluded and formatted by hand.
 
@@ -204,7 +208,9 @@ certificate ($I_{2,4}$), and what predicts $\rho$ is open.
 **The strongest current conjecture is the ballot bound** (`sectors.py`; standalone note
 `report/ballot.tex`): $C(M) \ge b(M)$, the number of ballot orderings, with equality exactly on $\max M \le 1$.
 On that sector it is a theorem, given two geometric inputs stated in full in the note, and the
-whole conjecture is **proved for d ≤ 4** (d = 4 via an explicit positive product formula for F_4 and
+whole conjecture is **proved for d ≤ 5** (d = 5 in `ballot.verify_d5`: gauge GBC, a contour-free swap
+lemma for its nullity, the nonnegative GDJ product form, and a dominant-cell isl bound for charge ≥ 10
+plus an exact table below; d = 4 via an explicit positive product formula for F_4 and
 exact Presburger inclusions in `ballot.py`; needs `islpy`, installed with `uv pip install islpy`). It implies Rimányi and holds on
 every exact packet at $d \le 7$. A proof must show that the curvilinear locus in $\mathbb{C}^{p+1}$
 only adds to the planar count — that is where the open problem now lives.

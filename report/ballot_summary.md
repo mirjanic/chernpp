@@ -46,7 +46,7 @@ Equivalently, `F_d − ∏(1−x_j)^{−1}` has nonnegative packet sums, and the
   - every d = 7 packet of charge ≤ 7.
 - Off the plane sector `C/b ≥ 2`, with minima 2, 2, 9/4, 12/5, 79/30, 58/21 for d = 2..7.
 
-**Theorem (d ≤ 4), unconditional.** The ballot conjecture holds for d ≤ 4, with equality exactly on the plane sector and `C ≥ b + 1` off it.
+**Theorem (d ≤ 5), unconditional.** The ballot conjecture holds for d ≤ 5, with equality exactly on the plane sector and `C ≥ b + 1` off it.
 - **Main input:** `F_3 = (1−x)(1−y)(1−xy)/((1−2x)(1−2xy)(1−y−xy))` factors into three ratios of the form `1 + v/(1−u−v)`.
 - **Dominated series:** that product dominates `Z_3 = 1 + x/((1−x)(1−y)) + xy/(1−xy)`.
   - The packet sums of `Z_3` are exactly `b(M)`.
@@ -56,11 +56,18 @@ Equivalently, `F_d − ∏(1−x_j)^{−1}` has nonnegative packet sums, and the
 **The d = 4 case.**
 - **Explicit formula.** `F_4 = (½/(1−2x₁) + ½/(1−2s) + x₁²s/((1−2x₁)(1−s−t)))` × four Lemma-1 ratios, with `s = x₂x₃` and `t = x₁x₂x₃`. This is a new one-line proof of strong positivity at d = 4.
 - **Proof strategy.** `F_4` dominates the number of the 64 product supports containing each cell. That count dominates the weight of a comparison series `Z_4` whose packet sums are `b(M)`, plus one unit at every decreasing cell with `β₁ ≥ 2`.
+- **The bijection.** The zero set of `F_4` is moved onto `T` by an explicit four-piece rearrangement of words (`chernpp.ballot.BIJECTION_D4`); isl checks that the pieces partition the zero set, are injective, and have images partitioning `T`.
 - **Verification.** The last step is three inclusions of Presburger sets, decided exactly by isl (`chernpp.ballot.verify_d4`).
 
-**Toward d = 5.**
-- **Achieved.** With the residue-null kernel `K = (2z₁+z₂−z₅)(2z₁−z₂)(z₁+z₄−z₅)`, the gauged numerator factors completely. The gauged series then has an explicit nonnegative expression: six Lemma-1 ratios times one block with an exact 17-part certificate.
-- **Still missing.** The certificate is fractional, and no integer certificate of that shape exists up to degree 10, so the d = 4 counting argument does not yet transfer.
+**The d = 5 case: the dominant cell.** The canonical `F_5` has negative coefficients, so the proof changes the numerator first.
+1. **A residue-null kernel.** `Q₅ = GDJ + GBC`. `GBC` has zero packet sums, by a *contour-free swap lemma*. If `R = N/∏L` is invariant under `s = (i i+1)` and no denominator form with top variable `z_{i+1}` involves `z_i`, then the chamber expansion of `R` is `s`-invariant. So `V·R` is `s`-antisymmetric and its orbit sums vanish. Two swaps (`s₄`, then `s₁`) kill `GBC`. The hypotheses are finite exact checks.
+2. **A nonnegative representative.** `F_5^{GDJ} = 𝒞 · ∏_{i≤6}(1 + V_i)`, with six Lemma-1 ratios and an eleven-term Stanley decomposition of the block `𝒞`. The decomposition is from the external findings summary, restated and checked exactly. The other pairing of the factors gives a second block with an exact 17-part order-5 certificate (`results/d5_block_certificate.json`); its weights are fractional, and no integer certificate of that shape exists up to degree 10, which is why the d = 4 support-counting argument does not transfer. The dominant-cell endgame below never counts supports, so fractional weights do not matter.
+3. **One coefficient beats `b(M)`.** `C(M) ≥ F_5^{GDJ}(β_max(M))`. Every atomic factor has an explicit coefficient (`2^k`, or a binomial `≥ 2^{min}`), so "some product term is `≥ 2⁷`" is a Presburger set. isl shows it contains the whole decreasing cone with `β₁ ≥ 10`. Since `2⁷ = 128 > 5! ≥ b(M)`, every packet of charge ≥ 10 is done.
+4. **Finite table.** The 2611 packets with `max M ≤ 9` are checked from the exact charge box.
+
+The same argument re-proves d = 4 (threshold 9, bound `2⁵ > 4!`). Both run in `chernpp.ballot.verify_d5` / `verify_d4_dominant` (tier 15, about 20 s).
+
+**What this says about d = 6, 7.** At fixed `d` the ballot conjecture follows from a residue-null kernel whose gauged series has a manifestly nonnegative product form. Growth along the decreasing cone then does the rest, and at d = 5 it comes almost entirely from the Lemma-1 ratios. So the only missing ingredient at d = 6 is a nonnegative gauge.
 
 **Refinement (zero insertion).** For zero-free `M₀`, the Newton coefficients in `z` of both `C(M₀ ⊔ 0^z)` and `C − b` are ≥ 0. This holds on all 10,620 bases with d ≤ 7.
 

@@ -30,3 +30,6 @@ dist/
 results/*.shard*
 *.fdb_latexmk
 *.fls
+
+# local long-run lanes: scripts, logs and intermediate outputs (results are copied to results/)
+/runs/

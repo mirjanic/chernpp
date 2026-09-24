@@ -159,7 +159,7 @@ class TestDFourBallot(unittest.TestCase):
 
 
 class TestDFiveGauged(unittest.TestCase):
-    """The GBC-gauged d = 5 chamber series (report/ballot.tex, "Toward d = 5")."""
+    """The GBC-gauged d = 5 chamber series: complete factorisation, and the second block's certificate."""
 
     def test_gauged_numerator_factors_completely(self):
         from chernpp.optimisation import gauge
@@ -215,6 +215,156 @@ class TestDFiveGauged(unittest.TestCase):
         from chernpp.ballot import verify_d5_block
 
         self.assertTrue(verify_d5_block())
+
+
+@unittest.skipUnless(HAVE_ISL, "islpy is needed for the exact set inclusions")
+class TestDFourBijection(unittest.TestCase):
+    """Step 2 at d = 4: the explicit word-preserving bijection from the zero set onto T."""
+
+    def test_a_broken_piece_is_detected(self):
+        # Negative control: the checks must be able to fail.
+        from chernpp import ballot
+
+        good = ballot.BIJECTION_D4
+        try:
+            broken = list(good)
+            broken[0] = (broken[0][0], (2, 0, 1, 3))
+            ballot.BIJECTION_D4 = tuple(broken)
+            self.assertFalse(all(ballot.verify_d4_bijection().values()))
+        finally:
+            ballot.BIJECTION_D4 = good
+
+    def test_z4_packet_sums_are_ballot_counts(self):
+        # Z_4 = P_4 - 1_Z + 1_T on a box, grouped into complete packets.
+        import islpy as isl
+
+        from chernpp.ballot import TARGETS, ZERO_SET
+
+        K = 18
+        box = boxes.Box(4, (K, K, K), "cube")
+        Z4 = np.ones(box.shape, dtype=np.int64)
+        for text, delta in ((ZERO_SET, -1), (TARGETS, 1)):
+            s = isl.Set(text).intersect(isl.Set(f"{{ [a,b,c] : 0 <= a,b,c <= {K} }}"))
+            pts = []
+            s.foreach_point(
+                lambda p: pts.append(
+                    tuple(p.get_coordinate_val(isl.dim_type.set, k).to_python() for k in range(3))
+                )
+            )
+            for c in pts:
+                Z4[c] += delta
+        for m, v in boxes.chern_table(Z4, box).items():
+            self.assertEqual(v, sectors.ballot_count(m), m)
+
+
+@unittest.skipUnless(HAVE_ISL, "islpy is needed for the exact set inclusions")
+class TestDominantCell(unittest.TestCase):
+    """d = 4 again, and d = 5: C(M) >= F(beta_max(M)) >= 2^E > d! >= b(M) for large charge."""
+
+    def test_d4_by_the_dominant_cell(self):
+        from chernpp.ballot import verify_d4_dominant
+
+        for name, ok in verify_d4_dominant().items():
+            with self.subTest(check=name):
+                self.assertTrue(ok)
+
+    def test_d5(self):
+        from chernpp.ballot import verify_d5
+
+        for name, ok in verify_d5().items():
+            with self.subTest(check=name):
+                self.assertTrue(ok)
+
+    def test_d5_alternative_block_certificate(self):
+        from chernpp.ballot import d5_alternative_block
+
+        for name, ok in d5_alternative_block().items():
+            with self.subTest(check=name):
+                self.assertTrue(ok)
+
+    def test_the_growth_bound_needs_its_threshold(self):
+        # Negative control: below the threshold the isl cover leaves cells over.
+        from chernpp import ballot
+
+        cells = ("a", "b", "c", "e")
+        region = ballot.decreasing_cone(5, cells, 6)
+        rest, _ = ballot.growth_cover(ballot.D5_BLOCK_TERMS, ballot.D5_FACTORS, region, 7, cells)
+        self.assertFalse(rest.is_empty())
+
+
+class TestAtoms(unittest.TestCase):
+    """Every atom's claimed support and 2^E bound, against the true series on a box."""
+
+    @staticmethod
+    def truth():
+        from chernpp.polynomial import expand_rational
+
+        def m(*es):
+            return tuple(sum(e[i] for e in es) for i in range(len(es[0])))
+
+        a1, a2, a3 = (1, 0, 0), (0, 1, 0), (0, 0, 1)
+        s4, t4 = m(a2, a3), m(a1, a2, a3)
+        x1, x2, x3, x4 = (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)
+        b, r = x2, m(x3, x4)
+        p, q = m(x1, b, r), m(b, r)
+        A, S, P, Q = {x1: 2}, {m(x1, b): 2}, {p: 2}, {q: 2}
+        U, V = {r: 1, p: 1}, {r: 1, q: 1}
+        one4, one5 = (0, 0, 0), (0, 0, 0, 0)
+        d4 = {
+            "1": ({one4: 1}, []),
+            "X": ({a1: 1}, [{a1: 2}]),
+            "S": ({s4: 1}, [{s4: 2}]),
+            "Y": ({m(a1, a1, s4): 1}, [{a1: 2}, {s4: 1, t4: 1}]),
+            "V1": ({m(a1, a2): 1}, [{m(a1, a2): 2}]),
+            "V2": ({m(a1, a2): 1}, [{a2: 1, m(a1, a2): 1}]),
+            "V3": ({t4: 1}, [{t4: 2}]),
+            "V4": ({t4: 1}, [{a3: 1, t4: 1}]),
+        }
+        d5 = {
+            "1": ({one5: 1}, []),
+            "x/A": ({x1: 1}, [A]),
+            "xb/S": ({m(x1, b): 1}, [S]),
+            "x2b/AS": ({m(x1, x1, b): 1}, [A, S]),
+            "br/Q": ({q: 1}, [Q]),
+            "br2/Q": ({m(q, r): 1}, [Q]),
+            "xb2r/SQ": ({m(x1, b, b, r): 1}, [S, Q]),
+            "x2br/AU": ({m(x1, x1, b, r): 1}, [A, U]),
+            "x3b2r/ASU": ({m(x1, x1, x1, b, b, r): 1}, [A, S, U]),
+            "x2b3r2/SQU": ({m(x1, x1, b, b, b, r, r): 1}, [S, Q, U]),
+            "xb2r3/PV": ({m(x1, b, b, r, r, r): 1}, [P, V]),
+            "br3/QV": ({m(b, r, r, r): 1}, [Q, V]),
+            "V1": ({m(x1, x2): 1}, [{x2: 1, m(x1, x2): 1}]),
+            "V2": ({m(x1, x2, x3): 1}, [{m(x2, x3): 1, m(x1, x2, x3): 1}]),
+            "V3": ({m(x1, x2, x3): 1}, [{x3: 1, m(x1, x2, x3): 1}]),
+            "V4": ({p: 1}, [{x4: 1, p: 1}]),
+            "V5": ({q: 1}, [{p: 1, q: 1}]),
+            "V6": ({m(x1, x2, x3): 1}, [{m(x1, x2, x3): 2}]),
+        }
+        return (
+            (4, d4, {**ballot_mod().D4_BASE, **ballot_mod().D4_FACTORS}),
+            (5, d5, {**ballot_mod().D5_BLOCK_TERMS, **ballot_mod().D5_FACTORS}),
+        )
+
+    def test_atoms_match_their_series(self):
+        from chernpp.ballot import atom_series
+        from chernpp.polynomial import expand_rational
+
+        K = 9  # cells with every coordinate <= K
+        for d, true, atoms in self.truth():
+            for name, atom in atoms.items():
+                num, dens = true[name]
+                series = expand_rational(num, dens, (d - 1) * K)
+                claimed = {c: v for c, v in atom_series(atom, d - 1, 2 * K).items() if max(c) <= K}
+                support = {c: v for c, v in series.items() if max(c) <= K and v}
+                with self.subTest(d=d, atom=name):
+                    self.assertEqual(set(claimed), set(support))
+                    self.assertTrue(all(support[c] >= claimed[c] for c in claimed))
+
+
+def ballot_mod():
+    from chernpp import ballot
+
+    return ballot
 
 
 if __name__ == "__main__":

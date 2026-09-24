@@ -15,6 +15,7 @@
 \theoremstyle{plain}
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
 \newtheorem{corollary}[theorem]{Corollary}
 \newtheorem{conjecture}[theorem]{Conjecture}
 \newtheorem{observation}[theorem]{Observation}
@@ -36,9 +37,12 @@ multisets $M$ of $d$ integers. Let $b(M)$ be the number of orderings of $M$ whos
 sums are nonnegative. We prove, given two geometric inputs that we state precisely, that
 $C(M) = b(M)$ whenever $\max M \le 1$. On that sector $b(M)$ is a Kreweras number. We conjecture that
 $C(M) \ge b(M)$ for every $M$, with equality exactly on that sector. This implies Rim\'anyi's
-positivity conjecture. We prove it, with its equality case, for $d \le 4$. The case $d = 4$ rests
+positivity conjecture. We prove it, with its equality case, for $d \le 5$. The case $d = 4$ rests
 on a new explicit positive product formula for the chamber series together with exact integer-set
-inclusions. The conjecture also holds on every exact coefficient we can compute: all $d \le 7$ on large boxes, including $\Tp_{A_7}$ to $\ell = 5$, $\Tp_{A_6}$ to $\ell = 12$ and every packet of
+inclusions. The case $d = 5$ uses a residue-null change of numerator, shown null by a contour-free
+swap lemma. After it the chamber series is nonnegative, and one coefficient per packet already
+exceeds the ballot count once the charge is at least $10$; the rest is a finite exact
+computation. The conjecture also holds on every exact coefficient we can compute: all $d \le 7$ on large boxes, including $\Tp_{A_7}$ to $\ell = 5$, $\Tp_{A_6}$ to $\ell = 12$ and every packet of
 charge $\le 7$ at $d = 7$.
 \end{abstract}
 
@@ -403,15 +407,30 @@ positive exactly on a Minkowski sum of these supports. Hence $F_4(\beta) \ge N(\
 of those $64$ supports that contain $\beta$.
 
 \emph{Step 2: the comparison series.} The zero set of $F_4$ is
-$\{a = 0,\ b \ne c\} \cup \{b = 0 < a, c\}$. The injective map in the text, extended by
-$(0,0,c,-c) \mapsto (c,0,0,-c)$ and $(0,b,-b,0) \mapsto (b,0,-b,0)$, carries the ballot words landing
-there bijectively onto the words landing on
+$\{a = 0,\ b \ne c\} \cup \{b = 0 < a, c\}$. Let
 \[
-  T = \{b = c \ge 1 \le a\} \cup \{a = b \ge 1,\ c = 0\} \cup \{b = a + c,\ a, c \ge 1\},
+  T = \{b = c \ge 1 \le a\} \cup \{a = b \ge 1,\ c = 0\} \cup \{b = a + c,\ a, c \ge 1\}.
 \]
-and every step permutes the entries of $\alpha$. So $Z_4 = P_4 - 1_{\text{zero set}} + 1_T$, where
-$P_4 = \prod_j (1-x_j)^{-1}$, has packet sums exactly $b(M)$. Its coefficient is
-$w = 1_{W_1} + 1_T$, where $W_1$ is the complement of the zero set.
+The following map $\phi$ rearranges the word $\alpha = (a, b-a, c-b, -c)$ of a cell of the zero set.
+It is defined in four pieces:
+\begin{center}\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+cells of the zero set & word $\mapsto$ rearranged word & image \\
+\midrule
+$b = 0$, $a, c \ge 1$ & $(a, -a, c, -c) \mapsto (a, c, -a, -c)$ & $\{b = a + c\}$ \\
+$a = 0$, $b, c \ge 1$, $b \ne c$ & $(0, u, v, w) \mapsto (u, v, 0, w)$ & $\{b = c\}$, $a \ne b$ \\
+$a = b = 0$, $c \ge 1$ & $(0, 0, c, -c) \mapsto (c, 0, 0, -c)$ & $\{a = b = c\}$ \\
+$a = c = 0$, $b \ge 1$ & $(0, b, -b, 0) \mapsto (b, 0, -b, 0)$ & $\{a = b,\ c = 0\}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Every piece permutes the entries of $\alpha$, so $\phi$ preserves the packet, and its images are
+ballot. The pieces partition the zero set, each piece is injective, and their images partition $T$.
+All of this is decided exactly by isl (\texttt{chernpp.ballot.verify\_d4\_bijection}). So
+$Z_4 = P_4 - 1_{\text{zero set}} + 1_T$, where $P_4 = \prod_j (1-x_j)^{-1}$, has packet sums
+exactly $b(M)$. Its coefficient is $w = 1_{W_1} + 1_T$, where $W_1$ is the complement of the zero
+set.
 
 \emph{Step 3: exact inclusions.} Let $D$ be the set of cells whose word is weakly decreasing with
 $\alpha_1 \ge 2$. Every packet with $\max M \ge 2$ has its decreasing ordering in $D$. The
@@ -425,51 +444,212 @@ Summing over a packet: $C(M) \ge \sum N \ge \sum (w + 1_D) = b(M) + [\max M \ge 
 sector at $d = 4$ consists of five packets, where $C = b$ is checked directly.
 \end{proof}
 
-\subsection{Toward $d = 5$}
+At $d = 5$ the zero set of a nonnegative representative is far more intricate (for the
+representative below, $2305$ of the $31104$ interior cells of one box), so we use a different
+endgame: a single coefficient already beats $b(M)$ once the charge is large.
 
-Strong positivity fails for the canonical $F_5$, so the first step needs a different numerator
-with the same packet sums. A polynomial $K$ in $z_1, \dots, z_5$ is \emph{residue-null} if replacing
-the multidegree numerator $\mathcal{Q}_5$ by $\mathcal{Q}_5 - K$ leaves every Chern coefficient
-unchanged. The product
-\[
-  K = (2z_1 + z_2 - z_5)(2z_1 - z_2)(z_1 + z_4 - z_5)
-\]
-is such a kernel. Its nullity is proved in~\cite{FS} by two contour exchanges in the iterated
-residue, and here it is verified exactly: every packet sum is unchanged at truncations $16, 18, 20$
-(tier~9).
+\section{The conjecture for $d = 5$}\label{sec:d5}
 
-\begin{observation}[proved, as an identity of rational functions]
-Write $p = x_3x_4$, $q = x_2x_3x_4$ and $t = x_1x_2x_3x_4$. The chamber numerator of $\mathcal{Q}_5 - K$
-factors completely:
-\[
-  (1-x_1)(1-x_2)(1-x_1x_2)(1-x_3)(1-x_2x_3)(1-2x_2x_3)(1-x_1x_2x_3)
-  (1-x_4)(1-p)(1-q)(1-t)(1-p-2t)(1-q-2t).
-\]
-The factor $(1 - 2x_2x_3)$ cancels a denominator factor. Six of the remaining factors pair with
-six denominator factors into ratios $1 + v/(1-u-v)$. What is left is the block
-\[
-  \frac{(1-x_1)(1-x_1x_2)(1-p)(1-q)(1-p-2t)(1-q-2t)}{(1-2x_1)(1-2x_1x_2)(1-q-t)(1-p-t)(1-2q)(1-p-q)},
-\]
-whose numerator is exactly the product of the numerators of two copies of the $d = 4$ block of
-Lemma~\ref{lem:f4}. An exact certificate writes the block numerator as
-$\sum_S P_S \prod_{r \in S}(1 - f_r) + P_\emptyset$. It has $17$ nonnegative rational parts $P_S$ over
-subsets $S$ of at most five factors, and a nonnegative remainder. Dividing by the block denominator
-exhibits the block as a nonnegative series. Hence the gauged series $F_5^{K}$ has an explicit
-nonnegative expression. The certificate is stored in \texttt{results/d5\_block\_certificate.json} and
-re-verified in exact rationals by \texttt{chernpp.ballot.verify\_d5\_block} (tier~15).
-\end{observation}
+The canonical $F_5$ has negative coefficients, so no argument of the kind above can start from
+it. We first change the numerator of the residue formula by a kernel that does not change any
+packet sum, then show that the new series is nonnegative, and finally let its dominant
+coefficient do the work.
 
-This gives a new, fully factorised route to strong positivity of a residue-equivalent
-representative of $F_5$. It does not yet give Theorem~\ref{thm:d4} at $d = 5$, for two reasons.
+\subsection{Chamber expansions and a swap lemma}
+
+In the coordinates $z_1, \dots, z_d$ of the residue formula (so that $x_j = z_j/z_{j+1}$), write
+$D_d$ for the product of the linear forms of the denominator and $V = \prod_{i<j}(z_j - z_i)$. Each
+factor of $D_d$ has the shape $L = c\,z_k + \lambda(z_1, \dots, z_{k-1})$ with $c \ne 0$; call $z_k$
+its \emph{top variable}. Its inverse has the \emph{chamber expansion}
+\[
+  \operatorname{Exp}(1/L) = (c z_k)^{-1} \sum_{n \ge 0} \bigl(-\lambda/(c z_k)\bigr)^n ,
+\]
+a series in the monomials $z_a/z_b$ with $a < b$. These monomials generate a pointed monoid
+$\Gamma$, so series supported on translates of $\Gamma$ form a ring, and $\operatorname{Exp}$
+extends to a ring homomorphism from polynomials with such factors inverted. For a numerator $P$,
+the chamber series $F(P)$ of the residue formula is, up to one sign that depends only on $d$,
+$\operatorname{Exp}(P\,V/D_d)$, written in the variables $x_j$. There is no monomial factor, since
+$P V / D_d$ has degree $0$. At $d = 5$ this is checked as a polynomial identity for the stored
+$\mathcal Q_5$ (\texttt{chernpp.ballot.d5\_normalisation}). The packet sum of $F(P)$ at $M$ is
+$\pm\sum_{\alpha \in S_d M} [z^\alpha]\operatorname{Exp}(P V/D_d)$. Non-ballot orderings
+contribute $0$, since $F(P)$ is a power series in the $x_j$.
+
+\begin{lemma}[swap]\label{lem:swap}
+Let $s = (i\ i{+}1)$, and let $R = N/\prod_r L_r$ with $N$ a polynomial and each $L_r$ a linear
+form as above. Suppose that $sR = R$ as rational functions, and that $R$ is \emph{$s$-safe}: no
+$L_r$ with top variable $z_{i+1}$ involves $z_i$. Then
+$\sum_{\alpha \in O} [z^\alpha] \operatorname{Exp}(V R) = 0$ for every $S_d$-orbit $O$ of exponents.
+\end{lemma}
+
+\begin{proof}
+Let $\Gamma_s \subset \Gamma$ be the monoid generated by the $z_a/z_b$ with $a < b$ and
+$(a, b) \ne (i, i+1)$. The transposition $s$ permutes these generators, so it acts by ring
+automorphisms on series supported on translates of $\Gamma_s$. If $L$ is safe, then
+$\operatorname{Exp}(1/L)$ is such a series, and $s\operatorname{Exp}(1/L) = \operatorname{Exp}(1/sL)$.
+
+To see this, apply $s$ termwise and consider the top variable $z_k$ of $L$.
 \begin{itemize}[nosep]
-\item Step~1 counts supports, which needs each term of the expansion to contribute whole units. The
-  certificate's weights are fractional ($1/12$, $5/18$, \ldots), and no integer certificate of the
-  same shape exists with parts of degree $\le 10$: the integer program is infeasible while its
-  linear relaxation is feasible.
-\item The argument would rest on the nullity of $K$, which is proved only in~\cite{FS}.
+\item $k > i+1$: $sL$ has the same top variable and the lower part $s\lambda$.
+\item $k = i+1$: safety says $L = c z_{i+1} + \lambda(z_1, \dots, z_{i-1})$, and $sL = c z_i + \lambda$
+  has top variable $z_i$.
+\item $k = i$: $sL = c z_{i+1} + \lambda$ has top variable $z_{i+1}$.
+\item $k < i$: $sL = L$.
 \end{itemize}
-A weighted version of Step~3, or an integer certificate of higher degree, would close the first
-gap.
+In every case $sL$ is again safe. Because $\operatorname{Exp}$ is multiplicative,
+$s\operatorname{Exp}(R) = \operatorname{Exp}(sR) = \operatorname{Exp}(R)$. Since $sV = -V$, the
+coefficients $c(\alpha) = [z^\alpha]\operatorname{Exp}(VR)$ satisfy $c(s\alpha) = -c(\alpha)$. An
+orbit $O$ is $s$-stable, so $\sum_O c = \sum_O c\circ s = -\sum_O c$, and the sum vanishes.
+\end{proof}
+
+The lemma is the formal counterpart of exchanging two adjacent contours of the iterated
+residue~\cite{FS}. Safety is the condition that no pole lies between them. In this form the lemma
+needs no analysis, and its hypotheses are finite checks.
+
+\subsection{A residue-null kernel}
+
+Put, as in~\cite[\S4.3]{FS},
+\begin{center}\small
+\begin{tabular}{@{}llll@{}}
+$B = 2z_1 - z_2$, & $F = 2z_1 - z_3$, & $E = z_1 + z_2 - z_3$, & $D = 2z_2 - z_4$, \\
+$M = z_2 + z_3 - z_5$, & $C = z_1 + z_4 - z_5$, & $G = 2z_1 + z_2 - z_5$, & $J = 2z_1 + z_3 - z_5$,
+\end{tabular}
+\end{center}
+and let $P(t) = \prod_{a \in S}(a - t)$ with $S = \{2z_1, z_1 + z_2, 2z_2, z_1 + z_3\}$.
+
+\begin{proposition}\label{prop:gbc}
+$\mathcal Q_5 = GDJ + GBC$, and the kernel $GBC$ is residue-null: $F(GBC)$ has every packet sum
+equal to $0$. Hence $C(M)$ is the packet sum of the chamber series $F_5^{GDJ} := F(GDJ)$.
+\end{proposition}
+
+\begin{proof}
+Three identities are checked exactly (\texttt{chernpp.ballot.d5\_nullity\_checks}): the
+factorisation $\mathcal Q_5 = G(DJ + BC)$, the denominator $D_5 = \pm BFE\,P(z_4)P(z_5)\,M\,C$, and
+$G = F + M$. Hence
+\[
+  \frac{GBC}{D_5} = \frac{BMC}{D_5} + \frac{FBC}{D_5}
+  = \pm\frac{1}{F E\,P(z_4) P(z_5)} \pm H, \qquad H = \frac{1}{E\,P(z_4)P(z_5)\,M(z_5)},
+\]
+where $M(t) = z_2 + z_3 - t$, and we apply Lemma~\ref{lem:swap} three times.
+\begin{itemize}[nosep]
+\item $1/(FE\,P(z_4)P(z_5))$ is invariant under $s_4 = (4\,5)$. Its only factors with top
+  variable $z_5$ are $a - z_5$ with $a \in S$, which do not involve $z_4$.
+\item $H + s_4H = (M(z_4) + M(z_5))/(E\,P(z_4)P(z_5)\,M(z_4)M(z_5))$ is $s_4$-invariant and
+  $s_4$-safe, because $M(z_5)$ does not involve $z_4$.
+\item $H - s_4H = (M(z_4) - M(z_5))/(\cdots) = (z_5 - z_4)/(E\,T(z_4)T(z_5))$, where
+  $T(t) = P(t)M(t) = \prod_{a \in S'}(a - t)$ and $S' = S \cup \{z_2 + z_3\}$. The set $S'$ and the
+  form $E$ are invariant under $s_1 = (1\,2)$, so this term is $s_1$-invariant. No factor has top
+  variable $z_2$, so it is $s_1$-safe.
+\end{itemize}
+The invariances and safety conditions are also checked mechanically. As negative controls, $D_5$
+itself is not $s_4$-safe and $FBC/D_5$ is not $s_4$-invariant.
+\end{proof}
+
+The factorisation of $\mathcal Q_5$ and the two-swap strategy are due to~\cite[\S\S4.3--4.4]{FS},
+which argues with nested contours. The contour-free Lemma~\ref{lem:swap} is ours.
+
+\subsection{The gauged series is nonnegative}
+
+In chamber variables put $p = x_1x_2x_3x_4$, $q = x_2x_3x_4$, $r = x_3x_4$ and
+\[
+  A = 1 - 2x_1,\ S = 1 - 2x_1x_2,\ P = 1 - 2p,\ Q = 1 - 2q,\ U = 1 - r - p,\ V' = 1 - r - q .
+\]
+
+\begin{lemma}\label{lem:f5}
+$F_5^{GDJ} = \mathcal C \cdot \prod_{i=1}^6 (1 + V_i)$, where
+\[
+  1 + V_1 = \frac{1 - x_2}{1 - x_2 - x_1x_2},\quad
+  1 + V_2 = \frac{1 - x_2x_3}{1 - x_2x_3 - x_1x_2x_3},\quad
+  1 + V_3 = \frac{1 - x_3}{1 - x_3 - x_1x_2x_3},
+\]
+\[
+  1 + V_4 = \frac{1 - x_4}{1 - x_4 - p},\quad
+  1 + V_5 = \frac{1 - p}{1 - p - q},\quad
+  1 + V_6 = \frac{1 - x_1x_2x_3}{1 - 2x_1x_2x_3},
+\]
+and
+\[
+\begin{aligned}
+  \mathcal C &= \frac{(1-x_1)(1-x_1x_2)(1-r)(1-q)(1-r-2p)(1-q-2p)}{A\,S\,P\,Q\,U\,V'} \\
+  &= 1 + \frac{x_1}{A} + \frac{x_1x_2}{S} + \frac{x_1^2x_2}{AS} + \frac{x_2r + x_2r^2}{Q}
+    + \frac{x_1x_2^2r}{SQ} + \frac{x_1^2x_2r}{AU} + \frac{x_1^3x_2^2r}{ASU}
+    + \frac{x_1^2x_2^3r^2}{SQU} + \frac{x_1x_2^2r^3}{PV'} + \frac{x_2r^3}{QV'} .
+\end{aligned}
+\]
+In particular $F_5^{GDJ}$ has nonnegative coefficients.
+\end{lemma}
+
+\begin{proof}
+The numerator of $F_5^{GDJ}$ factors into thirteen simple factors. One of them,
+$1 - 2x_2x_3$, cancels a denominator factor. The rest group as displayed. Both identities are
+checked exactly as polynomial identities after clearing denominators
+(\texttt{chernpp.ballot.d5\_positive\_form\_checks}). Each $V_i$ has the form $v/(1-u-v)$ or
+$u/(1-2u)$ with $u, v$ monomials, and every term of $\mathcal C$ is a monomial over products of
+factors $1 - 2m$ and $1 - m - m'$.
+\end{proof}
+
+The eleven-term decomposition of $\mathcal C$ is~\cite[(16)]{FS}.
+
+\begin{remark}[a second block, and why the $d = 4$ argument does not transfer]
+The factors can also be paired the other way: $(1-p)/(1-2p)$ among the ratios, and
+\[
+  \frac{(1-x_1)(1-x_1x_2)(1-r)(1-q)(1-r-2p)(1-q-2p)}{(1-2x_1)(1-2x_1x_2)(1-q-p)(1-r-p)(1-2q)(1-r-q)}
+\]
+as the block. Its numerator is the same as that of $\mathcal C$: the product of the numerators of
+two copies of the $d = 4$ block of Lemma~\ref{lem:f4}. It has an exact certificate
+$\sum_S P_S \prod_{r \in S}(1 - f_r) + P_\emptyset$ with $17$ nonnegative rational parts over subsets of at
+most five factors (\texttt{results/d5\_block\_certificate.json}, re-verified in exact rationals by
+\texttt{chernpp.ballot.verify\_d5\_block}), a second proof that $F_5^{GDJ} \ge 0$. The degree-$3$
+projection of that linear programme is infeasible at every order $\le 4$. This rules out
+certificates of lower order at every degree, modulo the LP solver's infeasibility verdict
+(\texttt{chernpp.ballot.d5\_alternative\_block}).
+
+The certificate's weights are fractional, and no integer certificate of the same shape exists with
+parts of degree $\le 10$: the integer programme is infeasible while its relaxation is not. So Step 1
+of the $d = 4$ argument, which counts supports and needs every term to contribute whole units, does
+not transfer. The endgame below avoids it. It needs only $F_5^{GDJ} \ge 0$ and lower bounds at
+single cells, and those come from the integer decomposition of $\mathcal C$.
+\end{remark}
+
+\subsection{The theorem}
+
+\begin{theorem}\label{thm:d5}
+For every zero-sum multiset $M$ of five integers, $C(M) \ge b(M)$, with equality if and only if
+$\max M \le 1$. Moreover $C(M) \ge b(M) + 1$ whenever $\max M \ge 2$.
+\end{theorem}
+
+\begin{proof}
+By Proposition~\ref{prop:gbc} and Lemma~\ref{lem:f5}, $C(M)$ is a sum of nonnegative coefficients
+of $F_5^{GDJ}$, one per ballot ordering. The decreasing ordering is ballot, so
+$C(M) \ge F_5^{GDJ}(\beta_{\max}(M))$.
+
+\emph{Small charge.} There are finitely many $M$ with $\max M \le 9$, namely $2611$. All of them
+are complete in the charge box $p = 9$. The exact table (\texttt{chernpp.boxes}, reconstructed by
+CRT and checked against a held-back prime) gives $C = b$ on the $7$ plane-sector packets and
+$C \ge b + 1$ on the other $2604$.
+
+\emph{Large charge.} Every factor in Lemma~\ref{lem:f5} is a sum over explicit parameters of
+explicit coefficients. The coefficient of $1/(1-2m)$ at $m^k$ is $2^k$, and the coefficient of
+$1/(1-m-m')$ at $m^{j}m'^{n}$ is $\binom{j+n}{n} \ge 2^{\min(j,n)}$. Expanding
+$\mathcal C \cdot \prod_i(1+V_i)$ gives $12 \cdot 64$ product terms with nonnegative coefficients. The
+coefficient of a product term at $\beta$ is at least the product of the factors' coefficients along
+any one way of writing $\beta$ as a sum of their exponents. So the set of $\beta$ at which some
+product term is $\ge 2^7$ is a Presburger set.
+
+isl decides that it contains every cell of the decreasing cone
+$\{\beta : \alpha_1 \ge \dots \ge \alpha_5,\ \beta_1 \ge 10\}$
+(\texttt{chernpp.ballot.verify\_d5}). Twelve product terms suffice. Eleven of them are products of
+the $V_i$ alone; the twelfth is $\frac{x_1}{A}V_1V_5V_6$. Hence for $\max M \ge 10$,
+$C(M) \ge F_5^{GDJ}(\beta_{\max}(M)) \ge 128 > 5! \ge b(M)$.
+\end{proof}
+
+\begin{remark}
+The same argument re-proves Theorem~\ref{thm:d4} independently of its Steps 2 and 3. By
+Lemma~\ref{lem:f4}, $F_4 \ge 0$, and isl shows $F_4(\beta_{\max}(M)) \ge 2^5 > 4!$ for
+$\max M \ge 9$. The $351$ packets with $\max M \le 8$ are checked from the exact table
+(\texttt{chernpp.ballot.verify\_d4\_dominant}). The atomic coefficient claims behind both
+isl computations are checked against the true series in tier~15. Growth on the decreasing cone
+comes almost entirely from the Lemma-1 ratios, not from the block.
+\end{remark}
 
 \section{Zero insertion}
 
@@ -534,14 +714,26 @@ Two routes suggest themselves.
 The exact tables (\texttt{results/morin\_a\{6,7\}.json}, 20,725 coefficients) are available to test
 either route.
 
+\paragraph{A reduction at fixed $d$.} The proof of Theorem~\ref{thm:d5} isolates what a proof at a
+fixed $d \ge 6$ needs. Suppose a residue-null kernel $K$ is found, with nullity certified as in
+Proposition~\ref{prop:gbc}, and the chamber series of $\mathcal Q_d - K$ has a manifestly
+nonnegative product form. Then $C(M)$ is at least one coefficient of that series, at the
+decreasing cell of $M$. Wherever the product form grows exponentially along the decreasing cone,
+that coefficient exceeds $d! \ge b(M)$, and what remains is a finite table. At $d = 5$ the growth
+comes almost entirely from the Lemma-1 ratios. The only missing ingredient at $d = 6, 7$ is
+therefore a nonnegative gauge. None is known: at $d = 6$ the structural kernel families of
+the project's gauge search suppress every negative coefficient to a finite depth but not
+beyond~\cite{Main}.
+
 \begin{thebibliography}{9}
 \bibitem{BS12} L.~B\'erczi, A.~Szenes, Thom polynomials of Morin singularities, \emph{Ann.\ of Math.}\ 175 (2012) 567--629.
 \bibitem{Rim01} R.~Rim\'anyi, Thom polynomials, symmetries and incidences of singularities, \emph{Invent.\ Math.}\ 143 (2001) 499--521.
-\bibitem{FS} Rim\'anyi positivity: findings summary (29 July 2026), unrefereed, \S5 (Theorem 5.1, Lemma 5.3, Theorem 5.4). Consulted for (I1) and (I3), which are restated here in full, and for the nullity of the $d = 5$ kernel $K$ (\S4), which is used only in the partial $d = 5$ result.
+\bibitem{FS} Rim\'anyi positivity: findings summary (29 July 2026), unrefereed. \S5 (Theorem 5.1, Lemma 5.3, Theorem 5.4) for (I1) and (I3); \S\S4.3--4.5 for the factorisation $\mathcal Q_5 = GDJ + GBC$, the two-swap strategy and the decomposition of $\mathcal C$. Everything used is restated here in full and checked exactly.
 \bibitem{Bri77} J.~Brian\c{c}on, Description de $\mathrm{Hilb}^n\mathbb{C}\{x,y\}$, \emph{Invent.\ Math.}\ 41 (1977) 45--89.
 \bibitem{LS01} M.~Lehn, C.~Sorger, Symmetric groups and the cup product on the cohomology of Hilbert schemes, \emph{Duke Math.\ J.}\ 110 (2001) 345--357.
 \bibitem{Kre72} G.~Kreweras, Sur les partitions non crois\'ees d'un cycle, \emph{Discrete Math.}\ 1 (1972) 333--350.
 \bibitem{Rep} Chern++, \emph{Beyond Morin, and deeper into $A_7$}, \texttt{report/morin\_d7.pdf}.
+\bibitem{Main} Chern++, \emph{Computational results on positivity for Morin Thom polynomials}, \texttt{report/chernpp\_report.pdf}, section ``Gauge freedom in the numerator''.
 \end{thebibliography}
 
 \end{document}
