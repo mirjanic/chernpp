@@ -61,11 +61,14 @@ exact computation) or \emph{conjectured}.
 \ref{prop:i24} & $\Tp_{I_{2,4}}, \Tp_{\mathrm{III}_{2,3}} \notin C_2$: $\rho \ne \operatorname{corank}$ & proved \\
 Table~\ref{tab:rho} & $\rho$ on the registry; $\rho - \operatorname{corank}$ reaches $2$ & verified \\
 \S\ref{sec:data} & $\Tp_{A_7}$ ($\ell \le 5$), $\Tp_{A_6}$ ($\ell \le 8$) exact and positive, $\min C = 1$ & verified \\
-\ref{obs:kreweras} & plane sector: $C(M)$ = Kreweras number, $d \le 7$ & verified \\
+\ref{thm:plane} & plane sector: $C(M) = b(M)$ (ballot words) $=$ Kreweras & proved$^*$ \\
+\ref{conj:ballot} & $C(M) \ge b(M)$, equality iff $\max M \le 1$ (implies Rim\'anyi) & conjectured \\
 \ref{conj:dom} & $N(M) \le \kappa_d\, A_{\beta_{\max}(M)}$ with $\kappa_5 = \kappa_6 = \tfrac16$, $\kappa_7 = \tfrac{8}{21}$ & conjectured \\
 \S\ref{sec:hecke} & 0-Hecke landscape $P_5, P_6$ (stable), $P_7$ (on boxes) & verified \\
 \bottomrule
 \end{tabular}
+
+{\footnotesize $^*$ given Theorem 5.4 of the unrefereed external summary~\cite{FS}.}
 \end{center}
 
 \section{The corank filtration}\label{sec:corank}
@@ -200,18 +203,86 @@ overlap. The $A_7$ box has $49.6$M cells and took seven minutes with four primes
 
 \section{Where positivity is tight}\label{sec:tight}
 
-\begin{observation}[verified, $d \le 7$]\label{obs:kreweras}
-On the plane sector $\max M \le 1$, write $M = (1^{d-b}, 1-s_1, \dots, 1-s_b)$ with $s_i \ge 1$.
-Then
+For a zero-sum multiset $M$ let $b(M)$ be the number of its \emph{ballot orderings}: distinct
+orderings whose proper partial sums are nonnegative. Equivalently, $b(M)$ is the packet sum of the
+pure chain series $\prod_j (1-x_j)^{-1}$, all of whose coefficients are $1$.
+
+\begin{theorem}[plane sector; proved, given {\cite[Thm.~5.4]{FS}}]\label{thm:plane}
+If $\max M \le 1$ then $C(M) = b(M)$. Writing $M = (1^{d-b}, 1-s_1, \dots, 1-s_b)$ with $s_i \ge 1$,
+this is Kreweras' number of noncrossing partitions of $[d]$ with block sizes $s_i$:
 \[
-  C(M) = \frac{d!}{(d-b+1)!\,\prod_i m_i!},
+  C(M) = b(M) = \frac{d!}{(d-b+1)!\,\prod_i m_i!},
 \]
-the number of noncrossing partitions of $[d]$ with block sizes $s_i$ (Kreweras), where $m_i$ is
-the number of blocks of size $i$. This holds for every plane-sector packet at $d \le 7$. The
-external summary~\cite{FS} proves positivity on this sector; the observation identifies the
-values. In particular $C(M) = 1$ on the sector exactly at $M = 0$ and $M = (1^{d-1}, 1-d)$, and
-these are the global minima.
-\end{observation}
+where $m_i$ is the number of blocks of size $i$.
+\end{theorem}
+
+\begin{proof}
+Put $n = d+1$. The external summary~\cite[Thm.~5.4]{FS} identifies $C(M)$, on this sector, with the
+coefficient of an $n$-cycle $\sigma$ in $m_\nu(J_1, \dots, J_n)$. Here the $J_k = \sum_{a<k}(a\,k)$ are the
+Jucys--Murphy elements and $\nu$ is the partition formed by the entries of $1 - M$. Expanding the
+monomial symmetric function, this coefficient counts pairs $(e, w)$. Here $e = (e_1, \dots, e_n)$
+is a rearrangement of $1 - M$ (with $e_1 = 0$, since $J_1 = 0$). And $w$ is a \emph{minimal
+monotone factorisation} of $\sigma$: a product of $n-1$ transpositions $(a_i\,b_i)$, $a_i < b_i$,
+with $b_1 \le \dots \le b_{n-1}$, exactly $e_k$ of them having $b_i = k$. We show that, for
+$\sigma = (x \mapsto x+1)$, each $e$ carries exactly one $w$ when it satisfies the ballot condition
+$D(j) := j - 1 - \sum_{k \le j} e_k \ge 0$ for all $j$, and none otherwise. Reading $\alpha_k = 1 -
+e_{k+1}$ identifies such $e$ with the ballot orderings of $M$, which gives $C(M) = b(M)$.
+
+\emph{Necessity.} The transpositions of a minimal factorisation of an $n$-cycle form a tree on
+$[n]$. Those with $b_i \le j$ form a forest on $[j]$, so there are at most $j-1$ of them.
+
+\emph{Existence and uniqueness,} by induction on $n$. Let the transpositions through $n$ be $(a_1\,n)
+\cdots (a_m\,n)$, with $m = e_n$, and write $C$ for their product. The rest multiplies to
+$F = \sigma C^{-1}$, a permutation of $[n-1]$ with its own minimal monotone factorisation. Since
+$C^{-1} = (n\ a_1\ a_2 \cdots a_m)$, we get $F(x) = x+1$ for $x \notin \{a_i\}$, $F(a_i) = a_{i+1} + 1$,
+$F(a_m) = 1$, and $a_1 = \sigma^{-1}(n) = n-1$. As $FC = \sigma$ is a single cycle and $C$ is an
+$(m+1)$-cycle, each cycle of $F$ contains exactly one $a_i$. Following $x \mapsto x+1$ from
+$a_{i+1}+1$ we must reach $a_i$ before any other $a_j$, so $a_1 > a_2 > \dots > a_m$. Hence $F$ is
+the product of the increasing cycles on the intervals $[1, a_m]$, $[a_m+1, a_{m-1}]$, \dots,
+$[a_2+1, n-1]$. Minimality on each interval forces $D(a_m) = 0$, $D(a_{m-1}) = 1$, \dots, with
+$D > i$ strictly inside the $(i+1)$-st interval. So $a_{m-i}$ is the \emph{last} visit of the walk
+$D$ to level $i$. Since $D$ rises by at most $1$ per step, these last visits exist and are
+increasing whenever $e$ is ballot. The cut points are therefore forced and always available.
+Commuting transpositions on disjoint intervals merge into a unique monotone order, and the
+induction closes.
+
+The last equality is the cycle lemma. Append $-1$ to $-M$; exactly one of the $n$ cyclic rotations
+of any arrangement has all proper partial sums nonnegative, so $b(M) = \frac1n \binom{n}{d-b+1,\,
+m_1, m_2, \dots}$. The count of monotone factorisations by exponent vector is checked exhaustively
+for $n \le 7$ (the totals are the Catalan numbers $1, 2, 5, 14, 42, 132$), and $C(M) = b(M)$ on
+every plane-sector packet at $d \le 7$ (\texttt{chernpp.sectors}, tier 12).
+\end{proof}
+
+So on the plane sector the Morin chamber series behaves exactly like the pure chain series
+$\prod_j (1-x_j)^{-1}$: every negative $A_\beta$ there cancels to leave one unit per ballot word. The
+data say this is the floor everywhere.
+
+\begin{conjecture}[ballot]\label{conj:ballot}
+For every zero-sum $M$, $C(M) \ge b(M)$, with equality exactly when $\max M \le 1$. Equivalently,
+$F_d - \prod_j (1-x_j)^{-1}$ has nonnegative packet sums, vanishing exactly on the plane sector.
+\end{conjecture}
+
+Since the decreasing ordering is always ballot, $b(M) \ge 1$. So Conjecture~\ref{conj:ballot}
+implies Rim\'anyi's conjecture, and it explains why the least Chern coefficient is $1$ and never
+$0$. It holds on every exact coefficient computed, with no violation and no equality off the
+plane sector. That is $22{,}925$ packets for $d = 2, \dots, 7$, including all of $\Tp_{A_7}$ for
+$\ell \le 5$ and $\Tp_{A_6}$ for $\ell \le 8$ (\texttt{results/ballot\_conjecture.json}). Off the
+plane sector the ratio $C(M)/b(M)$ is at least $2$ throughout. Its minimum is $2, 2, \tfrac94,
+\tfrac{12}{5}, \tfrac{79}{30}, \tfrac{58}{21}$ for $d = 2, \dots, 7$, attained on the family
+$(2, 1^{d-4}, -1^{d-2})$ for $d = 5, 7$, with a $0$ in place of one $1$ at $d = 6$. A naive
+refinement, weighting each ballot word by $\prod_{\alpha_i > 0} \alpha_i!$ (exact for $(p, -1^p)$,
+where $C = p!$), fails already at $d = 3$.
+
+\begin{remark}[what a proof must explain]
+In the external summary's geometric model, $C(M) = \int_{C_{n,r}} m_\nu(E)$ over the closure of
+curvilinear length-$n$ subschemes of $\mathbb{C}^r$, with the hyperplane lemma lowering $r$ one step
+at a time. The plane sector is the case where one can descend to $r = 2$, the punctual Hilbert
+scheme of the plane, where the Jucys--Murphy calculus applies. A packet of charge $\max M = p$
+descends only to $r = p+1$. Conjecture~\ref{conj:ballot} says that the extra dimensions only ever
+\emph{add}: the integral over the curvilinear locus in $\mathbb{C}^{p+1}$ is at least the ballot count
+that the plane would give. This is the precise sense in which charge $\ge 2$ is where the open
+problem lives.
+\end{remark}
 
 Off the plane sector the margin is large. The smallest $C(M)$ with $\max M = 2$ is $12, 17, 27$ at
 $d = 5, 6, 7$, and the layer minima grow quickly with the charge (Table~\ref{tab:anatomy}).

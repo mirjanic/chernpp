@@ -40,13 +40,19 @@ Read the Chern class `c_k` as `h_k`. With that convention Pragacz–Weber says e
 
 ## 3. Where positivity is tight
 
-- **Verified, d ≤ 7.** On the plane sector `max M ≤ 1`, `C(M)` is a Kreweras number:
+- **Proved** (given Theorem 5.4 of the unrefereed external summary). On the plane sector `max M ≤ 1`, `C(M) = b(M)`, where `b(M)` is the number of *ballot orderings* of `M`. By the cycle lemma this equals the Kreweras number of noncrossing partitions with the block sizes read from `M`:
 
   ```
-  C(M) = d! / ((d−b+1)! ∏ m_i!)
+  C(M) = b(M) = d! / ((d−b+1)! ∏ m_i!)
   ```
 
-  This counts noncrossing partitions with the block sizes read from `M`. The only values equal to 1 are the global minima.
+  - **The new step.** Every ballot exponent vector has exactly one minimal monotone factorisation of the long cycle, and no other vector has any. The cut points are the last visits of a deficit walk to each level.
+  - **So the Morin series behaves exactly like the pure chain series `∏(1−x_j)^{−1}` on this sector.**
+- **Conjectured (ballot).** `C(M) ≥ b(M)` for every `M`, with equality exactly on the plane sector.
+  - Since `b(M) ≥ 1`, this implies Rimányi's conjecture and explains why min C is 1, never 0.
+  - Verified with no violation on all 22,925 exact packets for d = 2..7 (`results/ballot_conjecture.json`).
+  - Off the plane sector `C(M)/b(M) ≥ 2` throughout.
+  - Geometrically: a charge-p packet lives on the curvilinear locus in `C^{p+1}`, and the conjecture says the extra dimensions only add to the planar count.
 - **Margin outside the plane sector.** For `max M = 2` the minimum is 12, 17 and 27 at d = 5, 6, 7.
 - **Conjectured (dominance).** Write:
   - `N(M)` for the negative mass of a packet;
