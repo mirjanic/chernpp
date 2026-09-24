@@ -35,8 +35,9 @@ multisets $M$ of $d$ integers. Let $b(M)$ be the number of orderings of $M$ whos
 sums are nonnegative. We prove, given two geometric inputs that we state precisely, that
 $C(M) = b(M)$ whenever $\max M \le 1$. On that sector $b(M)$ is a Kreweras number. We conjecture that
 $C(M) \ge b(M)$ for every $M$, with equality exactly on that sector. This implies Rim\'anyi's
-positivity conjecture, and it holds, with its equality case, on every exact coefficient we can
-compute: all $d \le 7$ on large boxes, including $\Tp_{A_7}$ to $\ell = 5$ and every packet of
+positivity conjecture. We prove it, with its equality case, for $d \le 4$. The case $d = 4$ rests
+on a new explicit positive product formula for the chamber series together with exact integer-set
+inclusions. The conjecture also holds on every exact coefficient we can compute: all $d \le 7$ on large boxes, including $\Tp_{A_7}$ to $\ell = 5$ and every packet of
 charge $\le 6$ at $d = 7$.
 \end{abstract}
 
@@ -263,7 +264,7 @@ neighbours.
   $d$~\cite{Rep}.
 \end{itemize}
 
-\section{The conjecture for $d \le 3$}
+\section{The conjecture for $d \le 4$}
 
 At fixed $d$ the plane sector is finite: its entries lie in $[1-d, 1]$. So the equality part of
 Conjecture~\ref{conj:ballot} at fixed $d$ is a finite check. It needs neither
@@ -369,20 +370,63 @@ factors as displayed.
 \end{proof}
 
 This expression was found by a small exact certificate search, and both identities are pinned in
-tier~15. As at $d = 3$, the zero set of $F_4$ is explicit:
-- $\{\beta_1 = 0\}$, except $\beta = 0$ and the cells $(0, k, k)$, where the coefficient is $1$;
-- $\{\beta_2 = 0 < \beta_1, \beta_3\}$.
+tier~15.
 
-Each ballot word landing there has a partner in its packet with spare coefficient. The partners
-are:
-- $(0,b,c-b,-c) \mapsto (b, c-b, 0, -c)$;
-- $(0,0,c,-c) \mapsto (c,0,0,-c)$;
-- $(0,b,-b,0) \mapsto (b,0,-b,0)$;
-- $(a,-a,c,-c) \mapsto (a,c,-a,-c)$.
+\begin{theorem}\label{thm:d4}
+The conclusion of Theorem~\ref{thm:small} holds for $d = 4$: $C(M) \ge b(M)$ for every zero-sum
+$M$, with equality if and only if $\max M \le 1$.
+\end{theorem}
 
-This matching is injective, and the capacities suffice on the box $[0,16]^3$. Turning it into a
-proof in all degrees, i.e. $F_4 \ge Z_4$ for the corresponding series $Z_4$ with packet sums $b(M)$,
-is in progress.
+\begin{proof}
+\emph{Step 1: a lower bound for $F_4$ by supports.} Since $\tfrac12\,\frac{1}{1-2y} = \tfrac12 +
+\frac{y}{1-2y}$, Lemma~\ref{lem:f4} reads $F_4 = (1 + X + S + Y)\prod_{i=1}^4 (1 + V_i)$ with
+\[
+  X = \tfrac{x_1}{1-2x_1},\ S = \tfrac{s}{1-2s},\ Y = \tfrac{x_1^2 s}{(1-2x_1)(1-s-t)},\
+  V_1 = \tfrac{x_1x_2}{1-2x_1x_2},\ V_2 = \tfrac{x_1x_2}{1-x_2-x_1x_2},\
+  V_3 = \tfrac{t}{1-2t},\ V_4 = \tfrac{t}{1-x_3-t}.
+\]
+Each factor has nonnegative integer coefficients, positive exactly on the following supports.
+Write $(a,b,c)$ for an exponent vector.
+- $X$: $b = c = 0 < a$.
+- $S$: $a = 0 < b = c$.
+- $Y$: $a \ge 2$, $b = c \ge 1$.
+- $V_1$: $a = b \ge 1$, $c = 0$.
+- $V_2$: $1 \le a \le b$, $c = 0$.
+- $V_3$: $a = b = c \ge 1$.
+- $V_4$: $1 \le a = b \le c$.
+
+The coefficients are powers of $2$ or binomial coefficients $\binom mj$ with $0 \le j \le m$. For
+example, $V_2 = \sum_m x_1x_2(x_2 + x_1x_2)^m$ has coefficient $\binom{m}{j}$ at $(1+j, 1+m, 0)$.
+Expanding the product, $F_4$ is a sum of $64$ series with nonnegative integer coefficients, each
+positive exactly on a Minkowski sum of these supports. Hence $F_4(\beta) \ge N(\beta)$, the number
+of those $64$ supports that contain $\beta$.
+
+\emph{Step 2: the comparison series.} The zero set of $F_4$ is
+$\{a = 0,\ b \ne c\} \cup \{b = 0 < a, c\}$. The injective map in the text, extended by
+$(0,0,c,-c) \mapsto (c,0,0,-c)$ and $(0,b,-b,0) \mapsto (b,0,-b,0)$, carries the ballot words landing
+there bijectively onto the words landing on
+\[
+  T = \{b = c \ge 1 \le a\} \cup \{a = b \ge 1,\ c = 0\} \cup \{b = a + c,\ a, c \ge 1\},
+\]
+and every step permutes the entries of $\alpha$. So $Z_4 = P_4 - 1_{\text{zero set}} + 1_T$, where
+$P_4 = \prod_j (1-x_j)^{-1}$, has packet sums exactly $b(M)$. Its coefficient is
+$w = 1_{W_1} + 1_T$, where $W_1$ is the complement of the zero set.
+
+\emph{Step 3: exact inclusions.} Let $D$ be the set of cells whose word is weakly decreasing with
+$\alpha_1 \ge 2$. Every packet with $\max M \ge 2$ has its decreasing ordering in $D$. The
+functions $N$ and $w + 1_D \le 3$ are defined by Presburger formulas. The inequality $N \ge w + 1_D$
+is equivalent to three inclusions: for $k = 1, 2, 3$, $\{w + 1_D \ge k\}$ lies inside the set of
+cells covered by at least $k$ of the $64$ supports. These inclusions, and $T, D \subseteq W_1$, are
+decided exactly by the integer-set library isl (\texttt{chernpp.ballot.verify\_d4}, one second),
+with no truncation.
+
+Summing over a packet: $C(M) \ge \sum N \ge \sum (w + 1_D) = b(M) + [\max M \ge 2]$. The plane
+sector at $d = 4$ consists of five packets, where $C = b$ is checked directly.
+\end{proof}
+
+The same three steps would apply at $d = 5$ given a positive expression for (a gauge of) $F_5$ and a
+matching for its zero set. Strong positivity fails for the canonical $F_5$, so there the first step
+must use a residue-null gauge.
 
 \section{Zero insertion}
 
