@@ -1,0 +1,2083 @@
+[
+ {
+  "singularity": "I_2,2",
+  "relative_dimension": 0,
+  "codimension": 4,
+  "terms": 2,
+  "chern_negative": 1,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 1,
+   "3": 1
+  },
+  "seconds": 0.01
+ },
+ {
+  "singularity": "I_2,3",
+  "relative_dimension": 0,
+  "codimension": 5,
+  "terms": 4,
+  "chern_negative": 2,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 2,
+   "3": 3
+  },
+  "seconds": 0.01
+ },
+ {
+  "singularity": "III_2,2",
+  "relative_dimension": 1,
+  "codimension": 6,
+  "terms": 2,
+  "chern_negative": 1,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 1,
+   "3": 1
+  },
+  "seconds": 0.01
+ },
+ {
+  "singularity": "I_2,4",
+  "relative_dimension": 0,
+  "codimension": 6,
+  "terms": 8,
+  "chern_negative": 4,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true
+  },
+  "generators": {
+   "2": 6,
+   "3": 9
+  },
+  "seconds": 0.01
+ },
+ {
+  "singularity": "I_3,3",
+  "relative_dimension": 0,
+  "codimension": 6,
+  "terms": 7,
+  "chern_negative": 4,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 4,
+   "3": 5
+  },
+  "seconds": 0.01
+ },
+ {
+  "singularity": "B_5,1",
+  "relative_dimension": 0,
+  "codimension": 7,
+  "terms": 7,
+  "chern_negative": 3,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 10,
+   "3": 16
+  },
+  "seconds": 0.01
+ },
+ {
+  "singularity": "I_2,2",
+  "relative_dimension": 1,
+  "codimension": 7,
+  "terms": 4,
+  "chern_negative": 2,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 2,
+   "3": 3
+  },
+  "seconds": 0.01
+ },
+ {
+  "singularity": "I_2,5",
+  "relative_dimension": 0,
+  "codimension": 7,
+  "terms": 11,
+  "chern_negative": 6,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true
+  },
+  "generators": {
+   "2": 12,
+   "3": 21
+  },
+  "seconds": 0.02
+ },
+ {
+  "singularity": "I_3,4",
+  "relative_dimension": 0,
+  "codimension": 7,
+  "terms": 11,
+  "chern_negative": 7,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 12,
+   "3": 21
+  },
+  "seconds": 0.02
+ },
+ {
+  "singularity": "B_6",
+  "relative_dimension": 0,
+  "codimension": 8,
+  "terms": 13,
+  "chern_negative": 4,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 24,
+   "3": 42
+  },
+  "seconds": 0.07
+ },
+ {
+  "singularity": "III_2,2",
+  "relative_dimension": 2,
+  "codimension": 8,
+  "terms": 2,
+  "chern_negative": 1,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 1,
+   "3": 1
+  },
+  "seconds": 0.01
+ },
+ {
+  "singularity": "III_2,3",
+  "relative_dimension": 1,
+  "codimension": 8,
+  "terms": 7,
+  "chern_negative": 4,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true
+  },
+  "generators": {
+   "2": 2,
+   "3": 4
+  },
+  "seconds": 0.02
+ },
+ {
+  "singularity": "I_2,6",
+  "relative_dimension": 0,
+  "codimension": 8,
+  "terms": 19,
+  "chern_negative": 10,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true
+  },
+  "generators": {
+   "2": 27,
+   "3": 49
+  },
+  "seconds": 0.03
+ },
+ {
+  "singularity": "I_3,5",
+  "relative_dimension": 0,
+  "codimension": 8,
+  "terms": 18,
+  "chern_negative": 9,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true
+  },
+  "generators": {
+   "2": 27,
+   "3": 49
+  },
+  "seconds": 0.03
+ },
+ {
+  "singularity": "I_4,4",
+  "relative_dimension": 0,
+  "codimension": 8,
+  "terms": 17,
+  "chern_negative": 10,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 27,
+   "3": 49
+  },
+  "seconds": 0.03
+ },
+ {
+  "singularity": "(x^2+y^3,y^4)",
+  "relative_dimension": 0,
+  "codimension": 9,
+  "terms": 18,
+  "chern_negative": 9,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 47,
+   "3": 94
+  },
+  "seconds": 0.08
+ },
+ {
+  "singularity": "(x^2+y^4,xy^2)",
+  "relative_dimension": 0,
+  "codimension": 9,
+  "terms": 17,
+  "chern_negative": 9,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true
+  },
+  "generators": {
+   "2": 40,
+   "3": 74
+  },
+  "seconds": 0.09
+ },
+ {
+  "singularity": "I_2,3",
+  "relative_dimension": 1,
+  "codimension": 9,
+  "terms": 13,
+  "chern_negative": 5,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 10,
+   "3": 17
+  },
+  "seconds": 0.04
+ },
+ {
+  "singularity": "I_2,7",
+  "relative_dimension": 0,
+  "codimension": 9,
+  "terms": 27,
+  "chern_negative": 15,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true
+  },
+  "generators": {
+   "2": 50,
+   "3": 103
+  },
+  "seconds": 0.08
+ },
+ {
+  "singularity": "I_3,6",
+  "relative_dimension": 0,
+  "codimension": 9,
+  "terms": 26,
+  "chern_negative": 14,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true
+  },
+  "generators": {
+   "2": 50,
+   "3": 103
+  },
+  "seconds": 0.08
+ },
+ {
+  "singularity": "I_4,5",
+  "relative_dimension": 0,
+  "codimension": 9,
+  "terms": 24,
+  "chern_negative": 13,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 50,
+   "3": 103
+  },
+  "seconds": 0.08
+ },
+ {
+  "singularity": "cup_{lambda} (x^2-lambda yz , y^2-lambda xz, z^2-lambda xy) = open in Sigma^3(l=0)",
+  "relative_dimension": 0,
+  "codimension": 9,
+  "terms": 5,
+  "chern_negative": 2,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 3,
+  "support_corank": 3,
+  "row_floor": 3,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true
+  },
+  "generators": {
+   "3": 1
+  },
+  "seconds": 0.0
+ },
+ {
+  "singularity": "III_2,2",
+  "relative_dimension": 3,
+  "codimension": 10,
+  "terms": 2,
+  "chern_negative": 1,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 1,
+   "3": 1
+  },
+  "seconds": 0.01
+ },
+ {
+  "singularity": "III_2,4",
+  "relative_dimension": 1,
+  "codimension": 10,
+  "terms": 19,
+  "chern_negative": 11,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true
+  },
+  "generators": {
+   "2": 19,
+   "3": 31
+  },
+  "seconds": 0.14
+ },
+ {
+  "singularity": "III_3,3",
+  "relative_dimension": 1,
+  "codimension": 10,
+  "terms": 16,
+  "chern_negative": 10,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 13,
+   "3": 19
+  },
+  "seconds": 0.13
+ },
+ {
+  "singularity": "I_2,2",
+  "relative_dimension": 2,
+  "codimension": 10,
+  "terms": 7,
+  "chern_negative": 3,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 4,
+   "3": 6
+  },
+  "seconds": 0.05
+ },
+ {
+  "singularity": "B_4",
+  "relative_dimension": 1,
+  "codimension": 11,
+  "terms": 16,
+  "chern_negative": 7,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 28,
+   "3": 47
+  },
+  "seconds": 0.39
+ },
+ {
+  "singularity": "III_2,3",
+  "relative_dimension": 2,
+  "codimension": 11,
+  "terms": 10,
+  "chern_negative": 6,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true
+  },
+  "generators": {
+   "2": 2,
+   "3": 5
+  },
+  "seconds": 0.13
+ },
+ {
+  "singularity": "I_2,4",
+  "relative_dimension": 1,
+  "codimension": 11,
+  "terms": 31,
+  "chern_negative": 15,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true
+  },
+  "generators": {
+   "2": 41,
+   "3": 81
+  },
+  "seconds": 0.4
+ },
+ {
+  "singularity": "I_3,3",
+  "relative_dimension": 1,
+  "codimension": 11,
+  "terms": 27,
+  "chern_negative": 14,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 36,
+   "3": 68
+  },
+  "seconds": 0.38
+ },
+ {
+  "singularity": "B_5,1",
+  "relative_dimension": 1,
+  "codimension": 12,
+  "terms": 28,
+  "chern_negative": 10,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 67,
+   "3": 131
+  },
+  "seconds": 1.19
+ },
+ {
+  "singularity": "C_5,1",
+  "relative_dimension": 1,
+  "codimension": 12,
+  "terms": 5,
+  "chern_negative": 2,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 3,
+  "row_floor": 3,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true
+  },
+  "generators": {
+   "3": 1
+  },
+  "seconds": 0.01
+ },
+ {
+  "singularity": "III_2,2",
+  "relative_dimension": 4,
+  "codimension": 12,
+  "terms": 2,
+  "chern_negative": 1,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 1,
+   "3": 1
+  },
+  "seconds": 0.02
+ },
+ {
+  "singularity": "III_2,5",
+  "relative_dimension": 1,
+  "codimension": 12,
+  "terms": 41,
+  "chern_negative": 24,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true
+  },
+  "generators": {
+   "2": 69,
+   "3": 136
+  },
+  "seconds": 1.11
+ },
+ {
+  "singularity": "III_3,4",
+  "relative_dimension": 1,
+  "codimension": 12,
+  "terms": 38,
+  "chern_negative": 21,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true
+  },
+  "generators": {
+   "2": 63,
+   "3": 123
+  },
+  "seconds": 1.17
+ },
+ {
+  "singularity": "B_5,2",
+  "relative_dimension": 1,
+  "codimension": 13,
+  "terms": 42,
+  "chern_negative": 15,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 105,
+   "3": 213
+  },
+  "seconds": 3.02
+ },
+ {
+  "singularity": "C_5,2",
+  "relative_dimension": 1,
+  "codimension": 13,
+  "terms": 11,
+  "chern_negative": 5,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 3,
+  "row_floor": 3,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true
+  },
+  "generators": {
+   "3": 2
+  },
+  "seconds": 0.02
+ },
+ {
+  "singularity": "I_2,2",
+  "relative_dimension": 3,
+  "codimension": 13,
+  "terms": 10,
+  "chern_negative": 4,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 6,
+   "3": 10
+  },
+  "seconds": 0.69
+ },
+ {
+  "singularity": "I_2,3",
+  "relative_dimension": 2,
+  "codimension": 13,
+  "terms": 28,
+  "chern_negative": 9,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 28,
+   "3": 49
+  },
+  "seconds": 1.67
+ },
+ {
+  "singularity": "I_2,5",
+  "relative_dimension": 1,
+  "codimension": 13,
+  "terms": 63,
+  "chern_negative": 29,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true
+  },
+  "generators": {
+   "2": 144,
+   "3": 328
+  },
+  "seconds": 3.21
+ },
+ {
+  "singularity": "I_3,4",
+  "relative_dimension": 1,
+  "codimension": 13,
+  "terms": 59,
+  "chern_negative": 31,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 144,
+   "3": 328
+  },
+  "seconds": 2.95
+ },
+ {
+  "singularity": "B_6",
+  "relative_dimension": 1,
+  "codimension": 14,
+  "terms": 66,
+  "chern_negative": 18,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 233,
+   "3": 535
+  },
+  "seconds": 8.19
+ },
+ {
+  "singularity": "C_5,4",
+  "relative_dimension": 1,
+  "codimension": 14,
+  "terms": 24,
+  "chern_negative": 12,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 3,
+  "row_floor": 3,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true
+  },
+  "generators": {
+   "3": 6
+  },
+  "seconds": 0.08
+ },
+ {
+  "singularity": "III_2,2",
+  "relative_dimension": 5,
+  "codimension": 14,
+  "terms": 2,
+  "chern_negative": 1,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 1,
+   "3": 1
+  },
+  "seconds": 0.06
+ },
+ {
+  "singularity": "III_2,3",
+  "relative_dimension": 3,
+  "codimension": 14,
+  "terms": 13,
+  "chern_negative": 8,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true
+  },
+  "generators": {
+   "2": 2,
+   "3": 6
+  },
+  "seconds": 1.65
+ },
+ {
+  "singularity": "III_2,4",
+  "relative_dimension": 2,
+  "codimension": 14,
+  "terms": 37,
+  "chern_negative": 23,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true
+  },
+  "generators": {
+   "2": 44,
+   "3": 75
+  },
+  "seconds": 5.15
+ },
+ {
+  "singularity": "III_2,6",
+  "relative_dimension": 1,
+  "codimension": 14,
+  "terms": 84,
+  "chern_negative": 48,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true
+  },
+  "generators": {
+   "2": 236,
+   "3": 542
+  },
+  "seconds": 8.5
+ },
+ {
+  "singularity": "III_3,3",
+  "relative_dimension": 2,
+  "codimension": 14,
+  "terms": 31,
+  "chern_negative": 21,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 28,
+   "3": 43
+  },
+  "seconds": 5.16
+ },
+ {
+  "singularity": "III_3,5",
+  "relative_dimension": 1,
+  "codimension": 14,
+  "terms": 78,
+  "chern_negative": 42,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true
+  },
+  "generators": {
+   "2": 236,
+   "3": 542
+  },
+  "seconds": 8.81
+ },
+ {
+  "singularity": "III_4,4",
+  "relative_dimension": 1,
+  "codimension": 14,
+  "terms": 75,
+  "chern_negative": 47,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 236,
+   "3": 542
+  },
+  "seconds": 8.49
+ },
+ {
+  "singularity": "B_4",
+  "relative_dimension": 2,
+  "codimension": 15,
+  "terms": 29,
+  "chern_negative": 14,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true
+  },
+  "generators": {
+   "2": 53,
+   "3": 92
+  },
+  "seconds": 15.14
+ },
+ {
+  "singularity": "C_4,1",
+  "relative_dimension": 2,
+  "codimension": 15,
+  "terms": 5,
+  "chern_negative": 2,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 3,
+  "row_floor": 3,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true
+  },
+  "generators": {
+   "3": 1
+  },
+  "seconds": 0.03
+ },
+ {
+  "singularity": "C_4,2",
+  "relative_dimension": 2,
+  "codimension": 16,
+  "terms": 11,
+  "chern_negative": 5,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 3,
+  "row_floor": 3,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true
+  },
+  "generators": {
+   "3": 2
+  },
+  "seconds": 0.09
+ },
+ {
+  "singularity": "I_2,2",
+  "relative_dimension": 4,
+  "codimension": 16,
+  "terms": 14,
+  "chern_negative": 5,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 9,
+   "3": 15
+  },
+  "seconds": 8.32
+ },
+ {
+  "singularity": "I_2,4",
+  "relative_dimension": 2,
+  "codimension": 16,
+  "terms": 85,
+  "chern_negative": 39,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true
+  },
+  "generators": {
+   "2": 160,
+   "3": 338
+  },
+  "seconds": 39.2
+ },
+ {
+  "singularity": "I_3,3",
+  "relative_dimension": 2,
+  "codimension": 16,
+  "terms": 73,
+  "chern_negative": 35,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 155,
+   "3": 325
+  },
+  "seconds": 39.99
+ },
+ {
+  "singularity": "B_5,1",
+  "relative_dimension": 2,
+  "codimension": 17,
+  "terms": 78,
+  "chern_negative": 27,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 226,
+   "3": 484
+  },
+  "seconds": 102.11
+ },
+ {
+  "singularity": "C_5,1",
+  "relative_dimension": 2,
+  "codimension": 17,
+  "terms": 24,
+  "chern_negative": 12,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 3,
+  "row_floor": 3,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true
+  },
+  "generators": {
+   "3": 4
+  },
+  "seconds": 0.44
+ },
+ {
+  "singularity": "III_2,3",
+  "relative_dimension": 4,
+  "codimension": 17,
+  "terms": 16,
+  "chern_negative": 10,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true
+  },
+  "generators": {
+   "2": 2,
+   "3": 7
+  },
+  "seconds": 19.08
+ },
+ {
+  "singularity": "III_2,5",
+  "relative_dimension": 2,
+  "codimension": 17,
+  "terms": 103,
+  "chern_negative": 65,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true
+  },
+  "generators": {
+   "2": 228,
+   "3": 489
+  },
+  "seconds": 100.7
+ },
+ {
+  "singularity": "III_3,4",
+  "relative_dimension": 2,
+  "codimension": 17,
+  "terms": 93,
+  "chern_negative": 54,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true
+  },
+  "generators": {
+   "2": 207,
+   "3": 440
+  },
+  "seconds": 98.63
+ },
+ {
+  "singularity": "I_2,3",
+  "relative_dimension": 3,
+  "codimension": 17,
+  "terms": 51,
+  "chern_negative": 14,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true
+  },
+  "generators": {
+   "2": 60,
+   "3": 107
+  },
+  "seconds": 60.61
+ },
+ {
+  "singularity": "B_5,3",
+  "relative_dimension": 1,
+  "codimension": 14,
+  "terms": 53,
+  "chern_negative": 28,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": false,
+   "4": true,
+   "5": true,
+   "6": true
+  },
+  "generators": {
+   "2": 82,
+   "3": 242,
+   "4": 301
+  },
+  "seconds": 19.66
+ },
+ {
+  "singularity": "C_6",
+  "relative_dimension": 1,
+  "codimension": 14,
+  "terms": 19,
+  "chern_negative": 10,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 3,
+  "row_floor": 3,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": false,
+   "4": true,
+   "5": true,
+   "6": true
+  },
+  "generators": {
+   "3": 2,
+   "4": 4
+  },
+  "seconds": 0.18
+ },
+ {
+  "singularity": "B_5,2",
+  "relative_dimension": 2,
+  "codimension": 18,
+  "terms": 102,
+  "chern_negative": 42,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true,
+   "4": true,
+   "5": true,
+   "6": true
+  },
+  "generators": {
+   "2": 319
+  },
+  "seconds": 38.13
+ },
+ {
+  "singularity": "C_3",
+  "relative_dimension": 3,
+  "codimension": 18,
+  "terms": 5,
+  "chern_negative": 2,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 3,
+  "row_floor": 3,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true,
+   "4": true,
+   "5": true,
+   "6": true
+  },
+  "generators": {
+   "3": 1
+  },
+  "seconds": 0.12
+ },
+ {
+  "singularity": "C_5,2",
+  "relative_dimension": 2,
+  "codimension": 18,
+  "terms": 36,
+  "chern_negative": 18,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 3,
+  "row_floor": 3,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true,
+   "4": true,
+   "5": true,
+   "6": true
+  },
+  "generators": {
+   "3": 9
+  },
+  "seconds": 1.49
+ },
+ {
+  "singularity": "C_5,3",
+  "relative_dimension": 2,
+  "codimension": 18,
+  "terms": 29,
+  "chern_negative": 15,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 3,
+  "row_floor": 3,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": false,
+   "4": true,
+   "5": true,
+   "6": true
+  },
+  "generators": {
+   "3": 2,
+   "4": 5
+  },
+  "seconds": 3.98
+ },
+ {
+  "singularity": "III_2,4",
+  "relative_dimension": 3,
+  "codimension": 18,
+  "terms": 63,
+  "chern_negative": 42,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true,
+   "4": true,
+   "5": true,
+   "6": true
+  },
+  "generators": {
+   "2": 77,
+   "3": 135
+  },
+  "seconds": 166.75
+ },
+ {
+  "singularity": "III_3,3",
+  "relative_dimension": 3,
+  "codimension": 18,
+  "terms": 52,
+  "chern_negative": 37,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true,
+   "4": true,
+   "5": true,
+   "6": true
+  },
+  "generators": {
+   "2": 55
+  },
+  "seconds": 25.17
+ },
+ {
+  "singularity": "B_4",
+  "relative_dimension": 3,
+  "codimension": 19,
+  "terms": 53,
+  "chern_negative": 27,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true,
+   "4": true,
+   "5": true
+  },
+  "generators": {
+   "2": 91,
+   "3": 163
+  },
+  "seconds": 455.11
+ },
+ {
+  "singularity": "C_5,4",
+  "relative_dimension": 2,
+  "codimension": 19,
+  "terms": 61,
+  "chern_negative": 33,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 3,
+  "row_floor": 3,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true,
+   "4": true,
+   "5": true
+  },
+  "generators": {
+   "3": 18
+  },
+  "seconds": 5.83
+ },
+ {
+  "singularity": "I_2,2",
+  "relative_dimension": 5,
+  "codimension": 19,
+  "terms": 18,
+  "chern_negative": 6,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true,
+   "4": true,
+   "5": true
+  },
+  "generators": {
+   "2": 12
+  },
+  "seconds": 15.38
+ },
+ {
+  "singularity": "B_5,4",
+  "relative_dimension": 2,
+  "timeout": 600,
+  "codimension": 20,
+  "seconds": 600.0
+ },
+ {
+  "singularity": "C_5,7",
+  "relative_dimension": 2,
+  "codimension": 20,
+  "terms": 84,
+  "chern_negative": 40,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 3,
+  "row_floor": 3,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": false,
+   "4": true,
+   "5": true
+  },
+  "generators": {
+   "3": 17,
+   "4": 35
+  },
+  "seconds": 81.21
+ },
+ {
+  "singularity": "III_2,6",
+  "relative_dimension": 2,
+  "error": "ArithmeticError('C_2: LP infeasible but no exact Farkas certificate was found')",
+  "codimension": 20,
+  "seconds": 191.56
+ },
+ {
+  "singularity": "C_3",
+  "relative_dimension": 4,
+  "codimension": 21,
+  "terms": 5,
+  "chern_negative": 2,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 3,
+  "row_floor": 3,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true,
+   "4": true,
+   "5": true
+  },
+  "generators": {
+   "3": 1
+  },
+  "seconds": 0.31
+ },
+ {
+  "singularity": "B_5,3",
+  "relative_dimension": 2,
+  "timeout": 600,
+  "codimension": 19,
+  "seconds": 600.0
+ },
+ {
+  "singularity": "C_5,5",
+  "relative_dimension": 2,
+  "codimension": 19,
+  "terms": 57,
+  "chern_negative": 32,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 3,
+  "row_floor": 3,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": false,
+   "4": true,
+   "5": true
+  },
+  "generators": {
+   "3": 5,
+   "4": 12
+  },
+  "seconds": 19.57
+ },
+ {
+  "singularity": "I_2,5",
+  "relative_dimension": 2,
+  "error": "ArithmeticError('C_2: LP infeasible but no exact Farkas certificate was found')",
+  "codimension": 19,
+  "seconds": 83.81
+ },
+ {
+  "singularity": "B_6",
+  "relative_dimension": 2,
+  "codimension": 20,
+  "terms": 222,
+  "chern_negative": 56,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true,
+   "4": true,
+   "5": true
+  },
+  "generators": {
+   "2": 1112
+  },
+  "seconds": 194.38
+ },
+ {
+  "singularity": "C_6",
+  "relative_dimension": 2,
+  "codimension": 20,
+  "terms": 105,
+  "chern_negative": 57,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 3,
+  "row_floor": 3,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": false,
+   "4": true,
+   "5": true
+  },
+  "generators": {
+   "3": 19,
+   "4": 40
+  },
+  "seconds": 82.9
+ },
+ {
+  "singularity": "III_3,5",
+  "relative_dimension": 2,
+  "error": "ArithmeticError('C_2: LP infeasible but no exact Farkas certificate was found')",
+  "codimension": 20,
+  "seconds": 189.49
+ },
+ {
+  "singularity": "I_2,3",
+  "relative_dimension": 4,
+  "codimension": 21,
+  "terms": 84,
+  "chern_negative": 21,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true,
+   "4": true,
+   "5": true
+  },
+  "generators": {
+   "2": 110
+  },
+  "seconds": 199.07
+ },
+ {
+  "singularity": "C_4,1",
+  "relative_dimension": 3,
+  "codimension": 19,
+  "terms": 11,
+  "chern_negative": 5,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 3,
+  "row_floor": 3,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true,
+   "4": true,
+   "5": true
+  },
+  "generators": {
+   "3": 2
+  },
+  "seconds": 0.39
+ },
+ {
+  "singularity": "C_5,6",
+  "relative_dimension": 2,
+  "codimension": 19,
+  "terms": 56,
+  "chern_negative": 27,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 3,
+  "row_floor": 3,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": false,
+   "4": true,
+   "5": true
+  },
+  "generators": {
+   "3": 7,
+   "4": 17
+  },
+  "seconds": 19.81
+ },
+ {
+  "singularity": "I_3,4",
+  "relative_dimension": 2,
+  "codimension": 19,
+  "terms": 197,
+  "chern_negative": 93,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true,
+   "4": true,
+   "5": true
+  },
+  "generators": {
+   "2": 783
+  },
+  "seconds": 88.81
+ },
+ {
+  "singularity": "C_4,2",
+  "relative_dimension": 3,
+  "codimension": 20,
+  "terms": 19,
+  "chern_negative": 8,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 3,
+  "row_floor": 3,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true,
+   "4": true,
+   "5": true
+  },
+  "generators": {
+   "3": 4
+  },
+  "seconds": 1.64
+ },
+ {
+  "singularity": "III_2,3",
+  "relative_dimension": 5,
+  "codimension": 20,
+  "terms": 19,
+  "chern_negative": 12,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true,
+   "4": true,
+   "5": true
+  },
+  "generators": {
+   "2": 2,
+   "3": 8
+  },
+  "seconds": 219.32
+ },
+ {
+  "singularity": "III_4,4",
+  "relative_dimension": 2,
+  "codimension": 20,
+  "terms": 234,
+  "chern_negative": 151,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true,
+   "4": true,
+   "5": true
+  },
+  "generators": {
+   "2": 1100
+  },
+  "seconds": 192.8
+ },
+ {
+  "singularity": "I_2,4",
+  "relative_dimension": 3,
+  "timeout": 600,
+  "codimension": 21,
+  "seconds": 600.0
+ },
+ {
+  "singularity": "C_4,3",
+  "relative_dimension": 3,
+  "codimension": 22,
+  "terms": 40,
+  "chern_negative": 21,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 3,
+  "row_floor": 3,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": false,
+   "4": true,
+   "5": true
+  },
+  "generators": {
+   "3": 2,
+   "4": 6
+  },
+  "seconds": 61.67
+ },
+ {
+  "singularity": "I_3,3",
+  "relative_dimension": 3,
+  "codimension": 21,
+  "terms": 162,
+  "chern_negative": 75,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": true,
+   "3": true,
+   "4": true,
+   "5": true
+  },
+  "generators": {
+   "2": 431
+  },
+  "seconds": 304.76
+ }
+]
