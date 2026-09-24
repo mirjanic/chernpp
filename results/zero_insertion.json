@@ -1,0 +1,59 @@
+{
+ "bases_checked": 4925,
+ "negative": [],
+ "certified_degrees": [
+  {
+   "base": [
+    1,
+    -1
+   ],
+   "degree": 2,
+   "newton": [
+    1,
+    2,
+    1
+   ]
+  },
+  {
+   "base": [
+    1,
+    1,
+    -2
+   ],
+   "degree": 3,
+   "newton": [
+    1,
+    3,
+    3,
+    1
+   ]
+  },
+  {
+   "base": [
+    2,
+    -2
+   ],
+   "degree": 3,
+   "newton": [
+    2,
+    5,
+    4,
+    1
+   ]
+  },
+  {
+   "base": [
+    3,
+    -3
+   ],
+   "degree": 4,
+   "newton": [
+    4,
+    13,
+    16,
+    9,
+    2
+   ]
+  }
+ ]
+}

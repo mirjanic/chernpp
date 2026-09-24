@@ -201,8 +201,8 @@ are Kreweras numbers. Separately, the corank filtration $C_r$ (`corank.py`) gene
 conjecture beyond Morin: $\rho\ge$ corank is proved, $\rho=$ corank is *false* by exact
 certificate ($I_{2,4}$), and what predicts $\rho$ is open.
 
-**The strongest current conjecture is the ballot bound** (`sectors.py`, report §"Where positivity is
-tight"): $C(M) \ge b(M)$, the number of ballot orderings, with equality exactly on $\max M \le 1$.
+**The strongest current conjecture is the ballot bound** (`sectors.py`; standalone note
+`report/ballot.tex`): $C(M) \ge b(M)$, the number of ballot orderings, with equality exactly on $\max M \le 1$.
 On that sector it is a theorem (given the external summary's Thm 5.4). It implies Rimányi and holds on
 every exact packet at $d \le 7$. A proof must show that the curvilinear locus in $\mathbb{C}^{p+1}$
 only adds to the planar count — that is where the open problem now lives.

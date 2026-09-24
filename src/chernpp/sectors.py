@@ -38,6 +38,13 @@ ballot, ``b(M) >= 1``, so this implies Rimányi's conjecture and explains why th
 least Chern coefficient is 1 and never 0.  It is verified on every exact table
 in ``results/`` (:func:`ballot_violations`).
 
+*Zero insertion.*  For a zero-free ``M0``, ``z -> C(M0 + 0^z)`` (append ``z`` zeros,
+i.e. ``z`` singleton blocks) appears to be a polynomial whose Newton coefficients
+``Delta^k C(M0 + 0^z)|_{z=0}`` are all nonnegative -- and so are those of
+``C - b``.  The second statement refines the ballot conjecture: ``C(M) - b(M)`` is
+then a nonnegative combination of binomials in the number of zeros of ``M``.
+Verified on every base available (:func:`newton_coefficients`).
+
 *Stabilisation.*  ``F_d |_{x_{d-1} = 0} = F_{d-1}``: the top chamber variable
 switched off recovers the previous series.  Checked cell by cell on boxes.
 """
@@ -146,6 +153,29 @@ def ballot_violations(table: Dict[Tuple[int, ...], int]):
         if not is_plane(m) and c == b:
             equal.append((m, c, b))
     return violations, plane, equal
+
+
+def newton_coefficients(values: Sequence[int]) -> List[int]:
+    """Forward differences at 0: ``values[z] = sum_k out[k] * binom(z, k)``."""
+    out, cur = [], list(values)
+    while cur:
+        out.append(cur[0])
+        cur = [cur[i + 1] - cur[i] for i in range(len(cur) - 1)]
+    return out
+
+
+def zero_insertion_series(table_by_d: Dict[int, Dict[Tuple[int, ...], int]], base: Sequence[int]):
+    """``[(C, b)]`` for ``base + 0^z``, ``z = 0, 1, ...`` while the tables contain it."""
+    base = tuple(a for a in base if a != 0)
+    out = []
+    z = 0
+    while True:
+        m = tuple(sorted(base + (0,) * z, reverse=True))
+        c = table_by_d.get(len(m), {}).get(m)
+        if c is None:
+            return out
+        out.append((c, ballot_count(m)))
+        z += 1
 
 
 def stabilisation_holds(d: int, bounds: Sequence[int]) -> bool:

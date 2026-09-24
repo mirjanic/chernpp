@@ -1,8 +1,8 @@
 [
  {
   "d": 2,
-  "box": "level box L=10",
-  "packets": 11,
+  "box": "level box L=14",
+  "packets": 15,
   "violations": [],
   "plane_mismatches": [],
   "nonplane_equalities": [],
@@ -14,8 +14,8 @@
  },
  {
   "d": 3,
-  "box": "level box L=10",
-  "packets": 91,
+  "box": "level box L=14",
+  "packets": 169,
   "violations": [],
   "plane_mismatches": [],
   "nonplane_equalities": [],
@@ -28,8 +28,8 @@
  },
  {
   "d": 4,
-  "box": "level box L=8",
-  "packets": 351,
+  "box": "level box L=12",
+  "packets": 1033,
   "violations": [],
   "plane_mismatches": [],
   "nonplane_equalities": [],
@@ -43,8 +43,8 @@
  },
  {
   "d": 5,
-  "box": "level box L=8",
-  "packets": 1747,
+  "box": "level box L=12",
+  "packets": 7166,
   "violations": [],
   "plane_mismatches": [],
   "nonplane_equalities": [],
@@ -59,8 +59,8 @@
  },
  {
   "d": 6,
-  "box": "level box L=9",
-  "packets": 12692,
+  "box": "level box L=11",
+  "packets": 29941,
   "violations": [],
   "plane_mismatches": [],
   "nonplane_equalities": [],
@@ -77,6 +77,24 @@
  {
   "d": 7,
   "box": "level box L=6",
+  "packets": 8033,
+  "violations": [],
+  "plane_mismatches": [],
+  "nonplane_equalities": [],
+  "min_nonplane_ratio": "58/21",
+  "min_nonplane_ratio_at": [
+   2,
+   1,
+   1,
+   -1,
+   -1,
+   -1,
+   -1
+  ]
+ },
+ {
+  "d": 7,
+  "box": "charge box p=6",
   "packets": 8033,
   "violations": [],
   "plane_mismatches": [],

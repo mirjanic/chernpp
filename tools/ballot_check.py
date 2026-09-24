@@ -1,6 +1,7 @@
 """
 Check the ballot conjecture C(M) >= b(M) (equality exactly on max M <= 1) on every
-exact Chern table: d <= 5 from fresh level boxes, d = 6, 7 from ``results/``.
+exact Chern table: fresh level boxes for d <= 6, the stored A_7 level box,
+and the A_7 charge box p = 6.
 
     python tools/ballot_check.py results/ballot_conjecture.json
 """
@@ -13,15 +14,18 @@ from pathlib import Path
 from chernpp import boxes, sectors
 
 RESULTS = Path(__file__).resolve().parent.parent / "results"
-FRESH = {2: 10, 3: 10, 4: 8, 5: 8}
+FRESH = {2: 14, 3: 14, 4: 12, 5: 12, 6: 11}
+#: charge boxes: every packet with max M <= p
+CHARGE = {7: 6}
 
 
 def tables():
     for d, L in FRESH.items():
         yield d, f"level box L={L}", boxes.chern_table_exact(boxes.level_box(d, L))
-    for d in (6, 7):
-        data = json.loads((RESULTS / f"morin_a{d}.json").read_text())
-        yield d, f"level box L={data['level']}", {tuple(m): c for m, c in data["packet_values"]}
+    data = json.loads((RESULTS / "morin_a7.json").read_text())
+    yield 7, f"level box L={data['level']}", {tuple(m): c for m, c in data["packet_values"]}
+    for d, p in CHARGE.items():
+        yield d, f"charge box p={p}", boxes.chern_table_exact(boxes.charge_box(d, p))
 
 
 def main(path):

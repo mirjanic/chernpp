@@ -108,11 +108,34 @@ def landscape_table():
     return "".join(lines)
 
 
+def ballot_table():
+    rows = json.loads((RESULTS / "ballot_conjecture.json").read_text())
+    lines = [
+        HEADER,
+        "\\begin{table}[ht]\n\\centering\n",
+        "\\caption{The ballot conjecture on every exact table. A violation is $C(M) < b(M)$; the equality "
+        "columns test that $C = b$ holds exactly on the plane sector.}\n\\label{tab:ballot}\n",
+        "\\begin{tabular}{@{}rlrrrrl@{}}\n\\toprule\n",
+        "$d$ & box & packets & violations & plane $C \\ne b$ & off-plane $C = b$ & "
+        "$\\min_{\\max M \\ge 2} C/b$ \\\\\n\\midrule\n",
+    ]
+    for r in rows:
+        q = r["min_nonplane_ratio"]
+        q = f"${q}$" if q not in (None, "None") else "---"
+        lines.append(
+            f"{r['d']} & {r['box']} & {r['packets']} & {len(r['violations'])} & "
+            f"{len(r['plane_mismatches'])} & {len(r['nonplane_equalities'])} & {q} \\\\\n"
+        )
+    lines.append("\\bottomrule\n\\end{tabular}\n\\end{table}\n")
+    return "".join(lines)
+
+
 def main(out):
     out = Path(out)
     (out / "corank.tex").write_text(corank_table())
     (out / "anatomy.tex").write_text(anatomy_table())
     (out / "landscape.tex").write_text(landscape_table())
+    (out / "ballot.tex").write_text(ballot_table())
 
 
 if __name__ == "__main__":

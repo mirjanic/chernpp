@@ -1,0 +1,264 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=2.6cm]{geometry}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[colorlinks,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+\DeclareMathOperator{\Tp}{Tp}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\title{\textbf{Ballot words and the Morin Thom polynomials}}
+\author{Chern++}
+\date{September 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The Chern coefficients $C(M)$ of the Morin Thom polynomials $\Tp_{A_d}$ are indexed by zero-sum
+multisets $M$ of $d$ integers. Let $b(M)$ be the number of orderings of $M$ whose proper partial
+sums are nonnegative. We prove, given one theorem of an unrefereed external report, that
+$C(M) = b(M)$ whenever $\max M \le 1$. On that sector $b(M)$ is a Kreweras number. We conjecture that
+$C(M) \ge b(M)$ for every $M$, with equality exactly on that sector. This implies Rim\'anyi's
+positivity conjecture, and it holds, with its equality case, on every exact coefficient we can
+compute: all $d \le 7$ on large boxes, including $\Tp_{A_7}$ to $\ell = 5$ and every packet of
+charge $\le 6$ at $d = 7$.
+\end{abstract}
+
+\section{Setting}
+
+By Rim\'anyi's $\ell$-free reduction~\cite{Rim01} and the B\'erczi--Szenes residue formula~\cite{BS12},
+\[
+  \Tp^{\ell}_{A_d} = \sum_{M} C(M) \prod_{a \in M} c_{\ell + 1 + a},
+\]
+where $M$ ranges over multisets of $d$ integers summing to $0$, $c_0 = 1$, and $c_j = 0$ for $j < 0$. The
+coefficient $C(M)$ does not depend on $\ell$. In chamber coordinates,
+\[
+  C(M) = \sum_{\alpha} A_{\beta(\alpha)} ,
+\]
+where the sum is over the distinct orderings $\alpha$ of $M$, the prefix sums
+$\beta_j = \alpha_1 + \dots + \alpha_j$ ($j < d$) must be nonnegative, and $F_d = \sum_\beta A_\beta
+x^\beta$ is the Morin chamber series. Rim\'anyi's conjecture is $C(M) \ge 0$.
+
+\begin{definition}
+A \emph{ballot ordering} of $M$ is an ordering whose proper prefix sums are all nonnegative. Let
+$b(M)$ be the number of distinct ballot orderings. Equivalently, $b(M)$ is $C(M)$ computed with the
+pure chain series $\prod_{j=1}^{d-1}(1 - x_j)^{-1}$, all of whose coefficients are $1$, in place
+of $F_d$.
+\end{definition}
+
+The decreasing ordering is always ballot, so $b(M) \ge 1$. The \emph{charge} of $M$ is $\max M$. The
+\emph{plane sector} is charge $\le 1$; for $\ell = L - 1$ these are the Chern monomials whose largest
+index is at most $\ell + 2$.
+
+\section{The plane sector}
+
+\begin{theorem}\label{thm:plane}
+Assume Theorem~5.4 of~\cite{FS}. If $\max M \le 1$ then $C(M) = b(M)$. Write
+$M = (1^{d-b}, 1-s_1, \dots, 1-s_b)$ with every $s_i \ge 1$, and let $m_i$ be the number of $s$'s
+equal to $i$. Then this common value is the number of noncrossing partitions of $[d]$ with block
+sizes $s_1, \dots, s_b$:
+\[
+  C(M) = b(M) = \frac{d!}{(d-b+1)!\ \prod_i m_i!} .
+\]
+\end{theorem}
+
+The input from~\cite{FS} is geometric. It identifies $C(M)$ with an integral over the closure
+$C_{n,r}$ of the curvilinear locus of length-$n$ subschemes of $\mathbb{C}^r$ ($n = d+1$). It lowers $r$
+by a multiplicity-one hyperplane lemma while every exponent stays positive. On the plane sector this
+reaches $r = 2$, the punctual Hilbert scheme of the plane. There, via Lehn--Sorger, the integral
+becomes a coefficient in the class algebra:
+\[
+  C(M) = [\sigma]\ m_\nu(J_1, \dots, J_n), \qquad J_k = \sum_{a < k} (a\ k),
+\]
+where $\sigma$ is any $n$-cycle and $\nu$ is the partition formed by the entries of $1 - M$. Everything
+below is new.
+
+\begin{lemma}\label{lem:monotone}
+Let $\sigma(x) = x + 1 \pmod n$. A \emph{minimal monotone factorisation} of $\sigma$ is an expression
+$\sigma = (a_1\,b_1)(a_2\,b_2)\cdots(a_{n-1}\,b_{n-1})$ with $a_i < b_i$ and $b_1 \le \dots \le
+b_{n-1}$. Its exponent vector is $e_k = \#\{i : b_i = k\}$, with $e_1 = 0$. Then for every
+$e \in \mathbb{Z}_{\ge 0}^n$ with $\sum e_k = n - 1$:
+\[
+  \#\{\text{minimal monotone factorisations of } \sigma \text{ with exponent vector } e\}
+  = \begin{cases} 1 & \text{if } D(j) := j - 1 - \sum_{k \le j} e_k \ge 0 \text{ for all } j, \\
+                  0 & \text{otherwise.} \end{cases}
+\]
+\end{lemma}
+
+\begin{proof}
+\emph{Necessity.} The $n-1$ transpositions of a minimal factorisation of an $n$-cycle are the edges
+of a tree on $[n]$. Those with $b_i \le j$ are edges of a forest on $[j]$, so there are at most
+$j - 1$ of them.
+
+\emph{Existence and uniqueness,} by induction on $n$. The case $n = 1$ is trivial. Let $m = e_n$
+and let $(a_1\,n)\cdots(a_m\,n)$ be the final $m$ factors, with product $C$. The remaining
+factors form a minimal monotone factorisation of $F = \sigma C^{-1}$, a permutation of $[n-1]$ with
+exactly $m$ cycles. Since $C^{-1} = (n\ a_1\ a_2 \cdots a_m)$ we have $a_1 = \sigma^{-1}(n) = n-1$ and
+\[
+  F(x) = x + 1 \ (x \notin \{a_i\}), \qquad F(a_i) = a_{i+1} + 1 \ (i < m), \qquad F(a_m) = 1 .
+\]
+Because $F \cdot C = \sigma$ is one cycle and $C$ is an $(m+1)$-cycle, each cycle of $F$ contains
+exactly one $a_i$. Starting at $a_{i+1} + 1$ and stepping by $+1$, the cycle through $a_i$ must meet
+$a_i$ before any other $a_j$. So $a_{i+1} < a_i$ with no $a_j$ in between, and $a_m$ is the least.
+Hence $a_1 > a_2 > \dots > a_m$, and $F$ is the product of the increasing cycles on the consecutive
+intervals
+\[
+  I_m = [1, a_m],\quad I_{m-1} = [a_m + 1, a_{m-1}],\quad \dots,\quad I_1 = [a_2 + 1, n - 1].
+\]
+Transpositions on disjoint intervals commute, so monotone factorisations of $F$ are exactly
+shuffles, merged by $b$, of monotone factorisations of the interval cycles. Minimality on each
+interval says the exponents inside $I_{m-i}$ sum to $|I_{m-i}| - 1$. Since $D$ changes by
+$1 - e_k \le 1$ per step, this means $D(a_{m-i}) = i$, and the ballot condition inside the interval
+means $D > i$ strictly after $a_{m-i}$, up to the next cut. So $a_{m-i}$ is the last $j$ with
+$D(j) = i$. When $e$ is ballot these last visits exist, are increasing in $i$, and end at
+$D(n-1) = m - 1$. So the cut points exist and are forced, and the induction applies to each interval
+(each is again an increasing cycle, of smaller length).
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:plane}]
+Expanding $m_\nu(J_1, \dots, J_n) = \sum_e \prod_k J_k^{e_k}$ over distinct rearrangements $e$ of
+$\nu$ (padded by zeros, $e_1 = 0$ since $J_1 = 0$), the coefficient of $\sigma$ counts pairs
+($e$, minimal monotone factorisation with exponent vector $e$). By Lemma~\ref{lem:monotone} this is the
+number of ballot vectors $e$. Setting $\alpha_k = 1 - e_{k+1}$ ($k = 1, \dots, d$) turns the condition
+$D \ge 0$ into $\alpha_1 + \dots + \alpha_j \ge 0$, and $e$ into an ordering of $M$. So $C(M) = b(M)$.
+For the product formula, apply the cycle lemma to $-M$ with a final $-1$ appended: $n$ integers
+$\ge -1$ summing to $-1$, exactly one cyclic rotation of which has all proper prefix sums nonnegative.
+Reversal identifies these rotations with ballot orderings of $M$, so
+$b(M) = \frac1n \cdot \frac{n!}{(d-b+1)!\prod_i m_i!}$. This is Kreweras' count~\cite{Kre72}.
+\end{proof}
+
+Lemma~\ref{lem:monotone} is checked exhaustively for $n \le 7$; the totals are the Catalan numbers
+$1, 2, 5, 14, 42, 132$. The identity $C(M) = b(M)$ is checked on every plane-sector packet for
+$d \le 7$ directly from the chamber series. Both checks are in tier~12 of the test suite.
+
+\begin{remark}
+On the plane sector the Morin chamber series is therefore indistinguishable, packet by packet,
+from the pure chain series $\prod_j (1 - x_j)^{-1}$. For example, at $d = 7$ the packet
+$M = (1,1,1,0,-1,-1,-1)$ has $35$ ballot orderings. Eight of them carry nonzero $A_\beta$, namely
+$1, 4, -1, -4, 5, 6, 6, 18$, and these sum to $35$.
+\end{remark}
+
+\section{The ballot conjecture}
+
+\begin{conjecture}[ballot]\label{conj:ballot}
+For every zero-sum multiset $M$ of $d$ integers, $C(M) \ge b(M)$, with equality if and only if
+$\max M \le 1$. Equivalently: the series $F_d - \prod_j (1 - x_j)^{-1}$ has nonnegative packet sums,
+and they vanish exactly on the plane sector.
+\end{conjecture}
+
+\begin{corollary}
+Conjecture~\ref{conj:ballot} implies Rim\'anyi's conjecture, and more: every Chern coefficient of
+$\Tp_{A_d}$ is at least $1$ whenever the monomial occurs.
+\end{corollary}
+
+This explains a feature of the data that had no explanation: across $d = 4, \dots, 7$ the least Chern
+coefficient is $1$, never $0$. It is attained exactly at $M = 0$ and $M = (1^{d-1}, 1-d)$, the two
+multisets with $b(M) = 1$ on the plane sector.
+
+\input{tables/ballot}
+
+\paragraph{Evidence.} Table~\ref{tab:ballot} tests the conjecture on every exact table available.
+The data come from the exact sweep of~\texttt{chernpp.boxes}, reconstructed by CRT and verified
+against a held-back prime. The level box $\min M \ge -L$ contains every packet of $\Tp^{\ell}$ with
+$\ell < L$; the charge box contains every packet with $\max M \le p$. There is no violation, no
+plane-sector packet with $C \ne b$, and no off-plane packet with $C = b$. Off the plane sector
+$C(M)/b(M) \ge 2$ throughout. The minimum is $2$ at $(2,-1,-1)$ and grows slowly with $d$
+($9/4$, $12/5$, $79/30$, $58/21$), attained on the family $(2, 1^{d-4}, -1^{d-2})$ and its
+neighbours.
+
+\paragraph{What does not work.}
+\begin{itemize}[nosep]
+\item \emph{Factorial weights.} $C(p, -1^p) = p!$, which suggests weighting each ballot word by
+  $\prod_{\alpha_i > 0} \alpha_i!$. That bound fails already at $d = 3$.
+\item \emph{Fusion.} Replacing a $2$ by two $1$s and counting plane-sector ballot words of the
+  longer multiset gives some families exactly. For example, $C(2, 0^{d-2}, -2) = \binom{d+1}{3} +
+  \binom{d}{2}$, where both terms are plane-sector counts. But the residual is negative elsewhere.
+\item \emph{Local step weights.} Keep weight $1$ on steps $\le 1$ and give each step of size $2$ a
+  weight depending on local data: its height, together with the neighbouring steps, the number of
+  remaining steps, or the next return. Fitted exactly on the packets with one $2$, every such model
+  that is consistent within a single $d$ is inconsistent across $d$.
+\item \emph{Formal Jucys--Murphy extension.} Theorem~\ref{thm:plane} reads $C(M) = \sum_{\alpha}
+  [\sigma] \prod_k J_{k+1}^{1-\alpha_k}$ over ballot $\alpha$. At charge $2$ this needs $J_k^{-1}$,
+  which exists for $k = 2, 3$ (their eigenvalues, the contents of boxes $2$ and $3$, are nonzero).
+  Where it can be evaluated, it returns the wrong values, some of them fractional ($C(2,0,-2) = 7$
+  against $23/2$). At $d = 4$ the needed inverses do not exist.
+\item \emph{Individual coefficients.} No bound on single $A_\beta$ can work: they are unbounded
+  below ($-3622$ at $d = 7$), and the smallest symmetrisation that clears all negatives grows with
+  $d$~\cite{Rep}.
+\end{itemize}
+
+\section{Zero insertion}
+
+Appending a $0$ to $M$ adds a singleton block and multiplies the Chern monomial by $c_{\ell+1}$. For
+a zero-free base $M_0$ write $C_z = C(M_0 \sqcup 0^z)$ and $b_z = b(M_0 \sqcup 0^z)$. On the plane
+sector $b_z$ is a Kreweras number, a polynomial in $z$. For example $b(1,-1,0^z) = \binom{z+2}{2} = 1
++ 2z + \binom{z}{2}$.
+
+\begin{conjecture}[zero insertion]\label{conj:zero}
+For every zero-free $M_0$, the sequences $C_z$ and $C_z - b_z$ have nonnegative forward differences
+of every order at $z = 0$:
+\[
+  C_z - b_z = \sum_{k \ge 0} N_k(M_0) \binom{z}{k}, \qquad N_k(M_0) \ge 0 .
+\]
+\end{conjecture}
+
+This refines Conjecture~\ref{conj:ballot}, since every $M$ is some $M_0 \sqcup 0^z$. It holds on
+all $4925$ zero-free bases available (\texttt{results/zero\_insertion.json}), for $C$ and for
+$C - b$, at every order that fits in $d \le 7$. Where the differences terminate within range,
+$C_z$ is a polynomial:
+\[
+  C(2,-2,0^z) = 2 + 5z + 4\binom z2 + \binom z3, \qquad
+  C(3,-3,0^z) = 4 + 13 z + 16\binom z2 + 9\binom z3 + 2\binom z4 .
+\]
+The degree equals $\sum_{a > 0} a + \#\{a < 0\}$ in all four certified cases. That is too few to
+conjecture.
+
+\section{Where a proof has to go}
+
+In the geometric model of~\cite{FS}, a packet of charge $p$ reduces by the hyperplane lemma only to
+the curvilinear locus $C_{n,p+1}$ in $\mathbb{C}^{p+1}$. The plane case $p = 1$ is
+Theorem~\ref{thm:plane}. Conjecture~\ref{conj:ballot} therefore says:
+\begin{quote}
+\emph{the integral of $m_\nu(E)$ over the curvilinear locus in $\mathbb{C}^{p+1}$ is at least the
+count of ballot words, which is what the same integral gives in the plane, and exceeds it as soon
+as $p \ge 2$.}
+\end{quote}
+Two routes suggest themselves.
+\begin{enumerate}[nosep]
+\item \emph{A degeneration.} Degenerate $C_{n,p+1}$ to a cycle containing a planar component with
+  multiplicity one, plus effective components on which $m_\nu(E)$ is nonnegative. The report
+  of~\cite{FS} records that effective-component positivity fails for individual degeneration
+  components, so the decomposition would have to be chosen with care.
+\item \emph{A charge-2 Jucys--Murphy calculus.} Find the analogue, for the curvilinear component
+  of the punctual Hilbert scheme of $\mathbb{C}^3$, of the Lehn--Sorger description. In such a
+  calculus the excess $C(M) - b(M)$ should count a positive family of \emph{non-monotone} or
+  \emph{branched} factorisations.
+\end{enumerate}
+The exact tables (\texttt{results/morin\_a\{6,7\}.json}, 20,725 coefficients) are available to test
+either route.
+
+\begin{thebibliography}{9}
+\bibitem{BS12} L.~B\'erczi, A.~Szenes, Thom polynomials of Morin singularities, \emph{Ann.\ of Math.}\ 175 (2012) 567--629.
+\bibitem{Rim01} R.~Rim\'anyi, Thom polynomials, symmetries and incidences of singularities, \emph{Invent.\ Math.}\ 143 (2001) 499--521.
+\bibitem{FS} Rim\'anyi positivity: findings summary (29 July 2026), unrefereed; Theorem 5.4 and Lemma 5.3. \texttt{papers/rimanyi\_positivity\_findings\_summary.pdf}.
+\bibitem{Kre72} G.~Kreweras, Sur les partitions non crois\'ees d'un cycle, \emph{Discrete Math.}\ 1 (1972) 333--350.
+\bibitem{Rep} Chern++, \emph{Beyond Morin, and deeper into $A_7$}, \texttt{report/morin\_d7.pdf}.
+\end{thebibliography}
+
+\end{document}

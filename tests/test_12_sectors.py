@@ -68,6 +68,23 @@ class TestBallot(unittest.TestCase):
                 self.assertEqual((violations, plane, equal), ([], [], []))
 
 
+class TestZeroInsertion(unittest.TestCase):
+    def test_newton_coefficients_invert_binomial_sums(self):
+        from math import comb
+
+        coeffs = [2, 5, 4, 1]
+        values = [sum(c * comb(z, k) for k, c in enumerate(coeffs)) for z in range(7)]
+        self.assertEqual(sectors.newton_coefficients(values), coeffs + [0, 0, 0])
+
+    def test_charge_two_family_is_a_cubic_with_positive_newton_coefficients(self):
+        # C(2, -2, 0^z) = 2 + 5z + 4 binom(z,2) + binom(z,3), checked out to z = 5
+        by_d = {d: boxes.chern_table_exact(boxes.charge_box(d, 2)) for d in range(2, 8)}
+        series = sectors.zero_insertion_series(by_d, (2, -2))
+        self.assertEqual(len(series), 6)
+        self.assertEqual(sectors.newton_coefficients([c for c, _ in series]), [2, 5, 4, 1, 0, 0])
+        self.assertTrue(all(v >= 0 for v in sectors.newton_coefficients([c - b for c, b in series])))
+
+
 class TestStabilisation(unittest.TestCase):
     def test_top_face_is_the_previous_series(self):
         for d in (5, 6, 7):

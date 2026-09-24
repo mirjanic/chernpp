@@ -84,7 +84,8 @@ Reproducible from a clean checkout:
   $C(M) = b(M)$, the number of ballot orderings of $M$ (= a Kreweras number) — proved, given
   Theorem 5.4 of the external summary, via a bijection with monotone factorisations of a long
   cycle. *Conjecture*: $C(M) \ge b(M)$ for every $M$, equality exactly on the plane sector; this
-  implies Rimányi and holds on all 22,925 exact packets at $d \le 7$ (`tools/ballot_check.py`).
+  implies Rimányi and holds on every exact packet at $d \le 7$ (`tools/ballot_check.py`). Written
+  up as a standalone note: `report/ballot.pdf`, summary `report/ballot_summary.md`.
 - **Where positivity is tight at $d \le 7$.** On every charge layer computed, a packet's negative mass is
   at most $\kappa_d$ times its dominant-ordering term, with $\kappa_5 = \kappa_6 = 1/6$ and
   $\kappa_7 = 8/21$; individual $A_\beta$ are unbounded below ($-3622$ at $d = 7$). The 0-Hecke
@@ -143,7 +144,7 @@ src/examples.ipynb   annotated tour, from the published results to the new ones
 tools/               scrapers and helpers, not part of the package
 tests/               thirteen tiers, in dependency order
 papers/              reference PDFs: Bérczi–Szenes, and the prior/external reports
-report/              the project's reports -- chernpp_report and morin_d7 (LaTeX, tables, PDF)
+report/              the project's reports -- chernpp_report, morin_d7, ballot (LaTeX, tables, PDF)
 results/             exact data behind morin_d7: A_6/A_7 tables, anatomy, landscape, rho
 ```
 
