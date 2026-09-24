@@ -109,5 +109,40 @@
    -1,
    -1
   ]
+ },
+ {
+  "d": 6,
+  "box": "level L=13",
+  "packets": 62239,
+  "violations": [],
+  "plane_mismatches": [],
+  "nonplane_equalities": [],
+  "min_nonplane_ratio": "79/30",
+  "min_nonplane_ratio_at": [
+   2,
+   1,
+   0,
+   -1,
+   -1,
+   -1
+  ]
+ },
+ {
+  "d": 7,
+  "box": "charge p=7",
+  "packets": 16475,
+  "violations": [],
+  "plane_mismatches": [],
+  "nonplane_equalities": [],
+  "min_nonplane_ratio": "58/21",
+  "min_nonplane_ratio_at": [
+   2,
+   1,
+   1,
+   -1,
+   -1,
+   -1,
+   -1
+  ]
  }
 ]

@@ -41,9 +41,9 @@ Equivalently, `F_d − ∏(1−x_j)^{−1}` has nonnegative packet sums, and the
 
 - It implies Rimányi's conjecture, with every occurring coefficient at least 1. This explains why the least Chern coefficient is 1, never 0.
 - It holds with no violation and the exact equality case on every exact table (`results/ballot_conjecture.json`, `tools/ballot_check.py`):
-  - d ≤ 6 on large level boxes;
+  - d ≤ 6 on large level boxes (A_6 to ℓ = 12);
   - `Tp_{A_7}` for ℓ ≤ 5;
-  - every d = 7 packet of charge ≤ 6.
+  - every d = 7 packet of charge ≤ 7.
 - Off the plane sector `C/b ≥ 2`, with minima 2, 2, 9/4, 12/5, 79/30, 58/21 for d = 2..7.
 
 **Theorem (d ≤ 4), unconditional.** The ballot conjecture holds for d ≤ 4, with equality exactly on the plane sector and `C ≥ b + 1` off it.
@@ -58,7 +58,7 @@ Equivalently, `F_d − ∏(1−x_j)^{−1}` has nonnegative packet sums, and the
 - **Proof strategy.** `F_4` dominates the number of the 64 product supports containing each cell. That count dominates the weight of a comparison series `Z_4` whose packet sums are `b(M)`, plus one unit at every decreasing cell with `β₁ ≥ 2`.
 - **Verification.** The last step is three inclusions of Presburger sets, decided exactly by isl (`chernpp.ballot.verify_d4`).
 
-**Refinement (zero insertion).** For zero-free `M₀`, the Newton coefficients in `z` of both `C(M₀ ⊔ 0^z)` and `C − b` are ≥ 0. This holds on all 4,925 bases with d ≤ 7.
+**Refinement (zero insertion).** For zero-free `M₀`, the Newton coefficients in `z` of both `C(M₀ ⊔ 0^z)` and `C − b` are ≥ 0. This holds on all 10,620 bases with d ≤ 7.
 
 For example, `C(2,−2,0^z) = 2 + 5z + 4·C(z,2) + C(z,3)`.
 
