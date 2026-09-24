@@ -332,9 +332,57 @@ $C(M) \ge b(M) + 1$. Finally, the plane sector at $d = 3$ is $\{(0,0,0), (1,0,-1
 $C = 1, 3, 1 = b$.
 \end{proof}
 
-The same shape of argument applies whenever the chamber series is a product of Lemma-1 ratios,
-i.e. strong positivity together with a factorised numerator. That is the case at $d = 4$, where
-the zero set of $F_4$ is larger and needs more compensating cells.
+\subsection{An explicit positive formula for $F_4$}
+
+The same shape of argument needs a manifestly positive expression for the chamber series. At
+$d = 4$ one exists. In chamber variables $x_1, x_2, x_3$ put $s = x_2x_3$ and $t = x_1x_2x_3$. The
+Morin chamber series is
+\[
+  F_4 = \frac{N_4}{(1-2x_1)(1-2x_1x_2)(1-x_2-x_1x_2)(1-2t)(1-s-t)(1-x_3-t)(1-2s)} ,
+\]
+and its numerator factors completely:
+\[
+  N_4 = (1-x_1)(1-x_2)(1-x_1x_2)(1-x_3)(1-s)(1-t)(1-s-2t).
+\]
+
+\begin{lemma}\label{lem:f4}
+\[
+  F_4 = \Bigl(\tfrac12\,\tfrac{1}{1-2x_1} + \tfrac12\,\tfrac{1}{1-2s}
+          + \frac{x_1^2 s}{(1-2x_1)(1-s-t)}\Bigr)
+        \cdot \frac{1-x_1x_2}{1-2x_1x_2}\cdot\frac{1-x_2}{1-x_2-x_1x_2}
+        \cdot \frac{1-t}{1-2t}\cdot\frac{1-x_3}{1-x_3-t} .
+\]
+Each of the last four factors is $1 + v/(1-u-v)$ with $u, v$ nonnegative, and the first factor is
+a sum of nonnegative series. In particular $F_4$ has nonnegative coefficients (strong positivity
+at $d = 4$).
+\end{lemma}
+
+\begin{proof}
+Group the numerator factors $(1-x_1)(1-s)(1-s-2t)$ with the denominator factors
+$(1-2x_1)(1-s-t)(1-2s)$, and write $a = x_1$, so that $t = as$. Then
+\[
+  (1-a)(1-s)(1-s-2as) = a^2 s (1-2s) + \tfrac12 (1-2a)(1-s-as) + \tfrac12 (1-s-as)(1-2s),
+\]
+which is checked by expanding both sides. Dividing by $(1-2a)(1-s-as)(1-2s)$ gives the first
+factor, and the remaining four numerator factors pair with the remaining four denominator
+factors as displayed.
+\end{proof}
+
+This expression was found by a small exact certificate search, and both identities are pinned in
+tier~15. As at $d = 3$, the zero set of $F_4$ is explicit:
+- $\{\beta_1 = 0\}$, except $\beta = 0$ and the cells $(0, k, k)$, where the coefficient is $1$;
+- $\{\beta_2 = 0 < \beta_1, \beta_3\}$.
+
+Each ballot word landing there has a partner in its packet with spare coefficient. The partners
+are:
+- $(0,b,c-b,-c) \mapsto (b, c-b, 0, -c)$;
+- $(0,0,c,-c) \mapsto (c,0,0,-c)$;
+- $(0,b,-b,0) \mapsto (b,0,-b,0)$;
+- $(a,-a,c,-c) \mapsto (a,c,-a,-c)$.
+
+This matching is injective, and the capacities suffice on the box $[0,16]^3$. Turning it into a
+proof in all degrees, i.e. $F_4 \ge Z_4$ for the corresponding series $Z_4$ with packet sums $b(M)$,
+is in progress.
 
 \section{Zero insertion}
 
