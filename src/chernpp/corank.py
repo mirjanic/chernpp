@@ -498,6 +498,9 @@ def survey_table(table: Table, ranks: Sequence[int] = (1, 2, 3), max_generators:
         row_floor=row_count_floor(schur),
     )
     for r in ranks:
+        if any(s.memberships.values()):
+            s.memberships[r] = True  # C_r grows with r
+            continue
         if r == 1:
             s.memberships[1] = s.chern_negative == 0
             continue

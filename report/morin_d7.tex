@@ -1,0 +1,301 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=2.6cm]{geometry}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage[colorlinks,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+\DeclareMathOperator{\Tp}{Tp}
+\DeclareMathOperator{\supp}{supp}
+\newcommand{\Qd}{\mathcal{Q}}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{observation}[theorem]{Observation}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\title{\textbf{Beyond Morin, and deeper into $A_7$}:\\[2pt]
+       the corank filtration of Thom polynomials,\\ and the anatomy of Chern positivity at $d \le 7$}
+\author{Chern++}
+\date{September 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We place Rim\'anyi's conjecture inside a filtration $C_1 \subset C_2 \subset \cdots$ of cones of
+symmetric functions, running from the Chern-monomial cone to the Schur-positive cone. Rim\'anyi's
+conjecture says that $\Tp_{A_d} \in C_1$. The natural generalisation is $\Tp_\eta \in
+C_{\operatorname{corank}\eta}$. We prove the matching lower bound, and we prove, by exact
+certificates, that the generalisation itself is false. The minimal rank $\rho(\eta)$ is therefore a
+new invariant, and we tabulate it on the published registry. For Morin singularities we give a
+sweep algorithm for the chamber series that is $50$--$100\times$ faster than the previous one. It
+yields $\Tp_{A_7}$ exactly for $\ell \le 5$ and $\Tp_{A_6}$ for $\ell \le 8$, all positive. We
+locate where positivity is tight (the plane sector, whose values are Kreweras numbers), and we
+observe a quantitative strengthening: the negative mass of every packet is at most a fixed
+fraction of a single term. Every statement is labelled \emph{proved}, \emph{verified} (a finite
+exact computation) or \emph{conjectured}.
+\end{abstract}
+
+\section*{Summary of results}
+
+\begin{center}\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+& statement & status \\
+\midrule
+\ref{thm:lower} & $\rho(\eta) \ge$ support corank $\ge \operatorname{corank} \eta$ & proved \\
+\ref{cor:sum} & $\sum$ Chern coefficients $= [s_{(n)}]\Tp$; $=0$ at corank $\ge 2$ & proved \\
+\ref{prop:i24} & $\Tp_{I_{2,4}}, \Tp_{\mathrm{III}_{2,3}} \notin C_2$: $\rho \ne \operatorname{corank}$ & proved \\
+Table~\ref{tab:rho} & $\rho$ on the registry; $\rho - \operatorname{corank}$ reaches $2$ & verified \\
+\S\ref{sec:data} & $\Tp_{A_7}$ ($\ell \le 5$), $\Tp_{A_6}$ ($\ell \le 8$) exact and positive, $\min C = 1$ & verified \\
+\ref{obs:kreweras} & plane sector: $C(M)$ = Kreweras number, $d \le 7$ & verified \\
+\ref{conj:dom} & $N(M) \le \kappa_d\, A_{\beta_{\max}(M)}$ with $\kappa_5 = \kappa_6 = \tfrac16$, $\kappa_7 = \tfrac{8}{21}$ & conjectured \\
+\S\ref{sec:hecke} & 0-Hecke landscape $P_5, P_6$ (stable), $P_7$ (on boxes) & verified \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{The corank filtration}\label{sec:corank}
+
+Write a Thom polynomial in the relative Chern classes and read $c_k$ as the complete homogeneous
+symmetric function $h_k$. Then $s_\nu = \det(c_{\nu_i + j - i})$, and Pragacz--Weber
+positivity~\cite{PW07} says that every $\Tp_\eta$ is a nonnegative combination of the $s_\nu$.
+
+\begin{definition}
+For $r \ge 1$ let $C_r$ be the convex cone spanned by all products $s_{\nu^1} \cdots s_{\nu^k}$ in
+which every $\nu^i$ has at most $r$ rows. Set $\rho(\eta) = \min\{r : \Tp_\eta \in C_r\}$.
+\end{definition}
+
+Since $s_{(k)} = c_k$, the cone $C_1$ is spanned by the Chern monomials; because Chern monomials
+form a basis, $f \in C_1$ exactly when all its Chern coefficients are nonnegative. At the other end,
+$\bigcup_r C_r$ is the Schur-positive cone. Hence:
+\[
+  \text{Rim\'anyi's conjecture} \iff \rho(A_d) = 1,
+  \qquad
+  \text{Pragacz--Weber} \iff \rho(\eta) < \infty .
+\]
+The filtration is natural from the point of view of residue formulas. The B\'erczi--Szenes formula
+is a residue over $\mathbb{P}(TX)$: after the residue, each chamber monomial becomes a product of
+one-row Schur functions $c_{\ell+1+\alpha_i}$, and Rim\'anyi's conjecture asks the packet sums to
+be nonnegative. A formula of the same kind on the Grassmannian $\mathrm{Gr}(r, TX)$ would produce
+products of Schur functions with at most $r$ rows. So \emph{a corank-$r$ residue formula with
+nonnegative packet sums would place $\Tp_\eta$ in $C_r$.}
+
+\begin{theorem}[lower bound; proved]\label{thm:lower}
+If every Schur component of $\Tp_\eta$ has at least $r$ rows, then $\Tp_\eta \notin C_{r-1}$. In
+particular $\rho(\eta) \ge \operatorname{corank} \eta$.
+\end{theorem}
+
+\begin{proof}
+Let $g = s_{\nu^1} \cdots s_{\nu^k}$ with every $\ell(\nu^i) \le r-1$. By the Littlewood--Richardson
+rule, $s_{\nu^1+\cdots+\nu^k}$ (row-wise sum) appears in $g$ with coefficient $1$, and it has at
+most $r-1$ rows. All LR coefficients are nonnegative, so in a nonnegative combination of such
+products nothing cancels it. Every nonzero element of $C_{r-1}$ therefore has a Schur component
+with at most $r-1$ rows, and $\Tp_\eta$ has none. A singularity of corank $r$ lies in the
+Thom--Boardman stratum $\Sigma^r$, and every Schur component of its Thom polynomial contains the
+rectangle $(\ell+r)^r$. This is the support property, verified on every registry table: the column
+$s$ of Table~\ref{tab:rho} is at least the corank.
+\end{proof}
+
+\begin{corollary}[proved]\label{cor:sum}
+The sum of the Chern coefficients of any $\Tp_\eta$ equals its coefficient on $s_{(n)}$, where
+$n = \operatorname{codim}\eta$. This is $(d!)^{\ell+1}$ for $A_d$ and $0$ for every $\eta$ of corank
+$\ge 2$. In particular, no Thom polynomial of corank $\ge 2$ is Chern-positive, and each has at
+least one negative Chern coefficient.
+\end{corollary}
+
+\begin{proof}
+$h_\mu = \sum_\lambda K_{\lambda\mu} s_\lambda$, and $K_{(n),\mu} = 1$ for every $\mu \vdash n$. So
+$[s_{(n)}] \sum_\mu a_\mu h_\mu = \sum_\mu a_\mu$. At corank $\ge 2$ every component has at least two
+rows. For $A_d$ the value $(d!)^{\ell+1}$ is verified: on every published table (tier 14)
+and on all fifteen new tables of \S\ref{sec:data}.
+\end{proof}
+
+The negative Chern coefficients of non-Morin Thom polynomials are thus \emph{forced}. They are not
+an accident of the data, and they are exactly what Theorem~\ref{thm:lower} forbids. The natural
+generalisation of Rim\'anyi's conjecture would be $\rho = \operatorname{corank}$. It is false.
+
+\begin{proposition}[proved by certificate]\label{prop:i24}
+$\Tp_{I_{2,4}} = 16 s_{42} + 4 s_{33} + 12 s_{321} + 5 s_{222} + 2 s_{2211}$ (at $\ell = 0$) is not in
+$C_2$. Similarly $\Tp_{\mathrm{III}_{2,3}} = 8 s_{53} + 4 s_{431} + 2 s_{332}$ (at $\ell = 1$) is
+not in $C_2$. Both lie in $C_3$.
+\end{proposition}
+
+\begin{proof}
+Since products of Schur functions are Schur-positive, a decomposition can only use generators $g$
+with $\supp g \subseteq \supp \Tp$, and there are finitely many. For $I_{2,4}$ the functional
+$\varphi = [s_{33}] + [s_{222}] - [s_{321}]$ is nonnegative on each of them but
+$\varphi(\Tp) = 4 + 5 - 12 = -3$. For $\mathrm{III}_{2,3}$ take $\varphi = [s_{332}] - [s_{431}]$:
+for instance $s_{33}s_{2} = s_{53} + s_{431} + s_{332}$, while $\varphi(\Tp) = -2$. The
+nonnegativity checks, and the $C_3$ decompositions, are exact rational computations in
+\texttt{chernpp.corank} (tier 14).
+\end{proof}
+
+\paragraph{The invariant $\rho$ on the registry.}
+Table~\ref{tab:rho} gives $\rho$ for every surveyed table. Each entry is decided by a linear
+programme whose answer is re-verified in exact arithmetic, with a decomposition or a Farkas vector
+as appropriate. The Farkas vectors are strikingly simple: every one found is $\pm\frac1k$ on a
+handful of Schur functions. What the table shows:
+\begin{itemize}[nosep]
+\item $\rho(I_{a,b}) = 2$ exactly when $b \le a+1$, and $3$ otherwise, for $a \le b$. Likewise
+  $\rho(\mathrm{III}_{a,b}) = 2$ exactly when $a = b$. In both families $\rho$ is constant in
+  $\ell$ wherever it was computed.
+\item $\rho$ is not always constant in $\ell$: $\rho(B_4) = 2$ at $\ell = 1$ and $3$ at $\ell = 2$.
+\item $\rho - s$ reaches $2$: $B_{5,3}$ at $\ell = 1$ has $s = 2$ and $\rho = 4$. $C_6$ and $C_{5,3}$
+  have $s = 3$ and $\rho = 4$.
+\end{itemize}
+We have not found an invariant of the local algebra that predicts $\rho$ in general; the
+multiplicity and the Hilbert function do not. This is the open question the filtration raises.
+
+\begin{remark}[a negative result]
+A sharper variant replaces cones by a basis: $b^{(r)}_\lambda = \prod_k s_{(\lambda_{rk+1}, \dots,
+\lambda_{rk+r})}$. It is unitriangular against $h_\lambda$, equals $h_\lambda$ at $r = 1$, and so
+has unique coefficients, as Rim\'anyi's conjecture does. $\Tp$ is not $b^{(\mathrm{corank})}$-positive
+in general. $I_{2,2}$, $I_{3,3}$, $I_{4,4}$, $\mathrm{III}_{2,2}$ and $\mathrm{III}_{3,3}$ are
+$b^{(2)}$-positive wherever tabulated, and $I_{3,4}$ at $\ell = 0$. But $\mathrm{III}_{4,4}$ is not,
+$I_{2,3}$ fails from $\ell = 2$, and $I_{2,4}$, $I_{4,5}$ and $B_4$ fail already at the smallest
+$\ell$.
+\end{remark}
+
+\input{tables/corank}
+
+\section{New exact data for $A_6$ and $A_7$}\label{sec:data}
+
+\paragraph{The sweep.} Every monomial of a level-$l$ denominator factor of $F_d = \mathcal N_d /
+\prod_r(1 - f_r)$ contains $x_{l-1}$ exactly once. Hence $H = G + f H$ is a recurrence along one
+axis, and multiplying by $1/(1 - f_r)$ needs one pass over the grid instead of a fixed point. At
+$d = 7$ this is $34$ passes, not $\sim 4500$. Values are computed modulo word-sized primes,
+reconstructed by CRT, and checked against a prime held back from the reconstruction
+(\texttt{chernpp.boxes}). The sweep agrees cell by cell with the fixed point of
+\texttt{chernpp.chern}, and packet by packet with \texttt{chernpp.crt}.
+
+\paragraph{Boxes and packets.} Every ballot ordering of $M$ satisfies $\beta \le \beta_{\max}(M)$,
+the partial sums of the decreasing ordering. So the level box $\beta_j \le (d-j)L$ holds every
+packet with $\min M \ge -L$, and the charge box $\beta_j \le jp$ holds every packet with $\max M \le
+p$. Since $C(M)$ does not depend on $\ell$, one level box gives $\Tp_{A_d}$ at every $\ell < L$.
+
+\begin{observation}[verified]
+$\Tp_{A_7}$ for $\ell \le 5$ (8033 Chern coefficients) and $\Tp_{A_6}$ for $\ell \le 8$ (12692) have
+every coefficient positive, and the minimum is $1$. Both agree with every published table they
+overlap. The $A_7$ box has $49.6$M cells and took seven minutes with four primes. The data are in
+\texttt{results/morin\_a\{6,7\}.json}.
+\end{observation}
+
+\section{Where positivity is tight}\label{sec:tight}
+
+\begin{observation}[verified, $d \le 7$]\label{obs:kreweras}
+On the plane sector $\max M \le 1$, write $M = (1^{d-b}, 1-s_1, \dots, 1-s_b)$ with $s_i \ge 1$.
+Then
+\[
+  C(M) = \frac{d!}{(d-b+1)!\,\prod_i m_i!},
+\]
+the number of noncrossing partitions of $[d]$ with block sizes $s_i$ (Kreweras), where $m_i$ is
+the number of blocks of size $i$. This holds for every plane-sector packet at $d \le 7$. The
+external summary~\cite{FS} proves positivity on this sector; the observation identifies the
+values. In particular $C(M) = 1$ on the sector exactly at $M = 0$ and $M = (1^{d-1}, 1-d)$, and
+these are the global minima.
+\end{observation}
+
+Off the plane sector the margin is large. The smallest $C(M)$ with $\max M = 2$ is $12, 17, 27$ at
+$d = 5, 6, 7$, and the layer minima grow quickly with the charge (Table~\ref{tab:anatomy}).
+
+\paragraph{Anatomy of a packet.} Let $N(M)$ be the negative mass of a packet, $\sum_{A_\beta < 0}
+|A_\beta|$ over its ballot orderings, and $A_{\mathrm{dom}}(M) = A_{\beta_{\max}(M)}$ the coefficient
+of its decreasing ordering. Table~\ref{tab:anatomy} gives, per charge layer, the largest ratio
+$N/A_{\mathrm{dom}}$.
+
+\input{tables/anatomy}
+
+\begin{conjecture}[dominance]\label{conj:dom}
+For every $d$ there is $\kappa_d < 1$ with $N(M) \le \kappa_d\, A_{\beta_{\max}(M)}$ for every
+zero-sum $M$. In particular $C(M) \ge (1 - \kappa_d) A_{\beta_{\max}(M)} > 0$.
+\end{conjecture}
+
+The evidence: $\kappa_5 = \kappa_6 = \frac16$ and $\kappa_7 = \frac{8}{21}$ on every packet with
+$\max M \le 8, 6, 5$ respectively (exact). The extremal packets are $(1,1,0,-1,-1)$,
+$(1,1,1,0,-1,-2)$ and $(2,1,1,0,-1,-1,-2)$. In every layer the ratio falls by a factor of $3$ to
+$4$ per unit of charge, so the conjecture is a statement about small charge. Three remarks keep
+it honest.
+\begin{itemize}[nosep]
+\item Individual coefficients are unbounded below: $\min A_\beta = -3622$ in the $d = 7$ layer
+  $p = 5$. This corrects the report's earlier ``least value $-2$''.
+\item $\kappa_d$ grows with $d$. The conjecture is informative only if it stays below $1$, and
+  $d = 8$ would test that.
+\item The single term $A_{\beta_{\max}(M)}$ is the largest in all but $42$ of the $3538$ packets at
+  $d = 7$. A proof would need a lower bound for this one coefficient of $F_d$ and an upper bound
+  for the negative ones, and no pairing is involved. This is the kind of statement the report's
+  Assessment \S4 asked for.
+\end{itemize}
+
+\section{The 0-Hecke landscape}\label{sec:hecke}
+
+On a packet, let $\pi_i$ act by $(\pi_i f)(\alpha) = f(\alpha) + f(s_i\alpha)$ if $\alpha_i >
+\alpha_{i+1}$, by $f(\alpha)$ if $\alpha_i = \alpha_{i+1}$, and by $0$ otherwise. The $\pi_i$ satisfy
+the 0-Hecke relations (tier 11), and $\Pi_{w_0}$ puts $C(M)$ on the decreasing ordering. The
+operators and this criterion are from~\cite[\S3.3]{FS}. So $P_d = \{w : \Pi_w F_d \ge 0\}$ contains
+$w_0$ iff Rim\'anyi's conjecture holds. $P_d$ is an upper set in the left weak order, and its
+minimal elements are the minimal cancellation units.
+
+\input{tables/landscape}
+
+\begin{itemize}[nosep]
+\item $P_5 = S_5 \setminus \langle s_3, s_4\rangle$, with minimal elements $s_1, s_2, s_2s_3,
+  s_2s_3s_4$. This is unchanged from $L = 4$ to $5$.
+\item $|P_6| = 643$ with $11$ minimal elements, unchanged from $L = 4$ to $5$. $s_1 \in P_6$, which
+  is the unpaired-tail and paired inequalities of the $\tau$ frame holding at $d = 6$.
+\item At $d = 7$, $s_1 \notin P_7$, which is the failure of the $\tau$ frame at $d = 7$. $P_7$
+  still shrinks with the box ($|P_7| = 3998, 3352, 2792, 2696$ for $L = 2, \dots, 5$). The minimal
+  parabolic subsets $J$ with $w_0(J) \in P_7$ are the same at $L = 4$ and $5$: $\{1,2,k\}$
+  ($k = 3, \dots, 6$) and $\{1,3,5\}$. At $d = 5$ they are $\{1\}$ and $\{2\}$, and at $d = 6$
+  $\{1\}$ and $\{2,5\}$. The smallest unit of symmetrisation that clears every negative grows
+  from one transposition to three, so no fixed-size pairing survives.
+\end{itemize}
+Exclusions from $P_d$ are proofs, each witnessed by a packet. Memberships hold on the stated boxes
+only.
+
+\section{Stabilisation, and what this means for $\Qd_8$}\label{sec:q8}
+
+\begin{observation}[verified, $d = 5, 6, 7$]
+$F_d|_{x_{d-1} = 0} = F_{d-1}$, cell by cell, on the tested boxes. The corresponding statement
+for numerators, $[z_d^{e(d)}]\Qd_d = (-1)^{e(d)}\Qd_{d-1}$ with $e(d) = \lfloor d^2/4\rfloor - d + 1$,
+was checked directly at $d = 5$.
+\end{observation}
+
+The corank filtration changes the case for $\Qd_8$. Evidence about generalisations of the
+conjecture now comes from breadth across coranks, which the registry already supplies. Depth in
+$d$ adds one Morin data point, and the published $\Tp_{A_8}$ and $\Tp_{A_9}$ at $\ell = 0$ already
+lie in $C_1$. $\Qd_8$ matters for one question raised here: whether $\kappa_8 < 1$ in
+Conjecture~\ref{conj:dom}. The constraints already available for any candidate $\Qd_8$ are its
+degree ($22$), its normalisation, the stabilisation $[z_8^{9}]\Qd_8 = -\Qd_7$, and agreement with
+Rim\'anyi's $\Tp_{A_8}$ at $\ell = 0$.
+
+\section*{Reproducing}
+\begin{itemize}[nosep]
+\item \texttt{tools/morin\_tables.py 7 6 results/morin\_a7.json} (the $A_7$ tables).
+\item \texttt{tools/packet\_anatomy.py}, \texttt{tools/hecke\_landscape.py}, and
+  \texttt{tools/corank\_survey.py} for $\rho$.
+\item \texttt{tools/render\_d7\_tables.py report/tables} regenerates every table here.
+\end{itemize}
+Tiers 10--14 of the test suite pin each module.
+
+\begin{thebibliography}{9}
+\bibitem{BS12} L.~B\'erczi, A.~Szenes, Thom polynomials of Morin singularities, \emph{Ann.\ of Math.}\ 175 (2012) 567--629.
+\bibitem{Rim01} R.~Rim\'anyi, Thom polynomials, symmetries and incidences of singularities, \emph{Invent.\ Math.}\ 143 (2001) 499--521.
+\bibitem{PW07} P.~Pragacz, A.~Weber, Positivity of Schur function expansions of Thom polynomials, \emph{Fund.\ Math.}\ 195 (2007) 85--100.
+\bibitem{FS} Rim\'anyi positivity: findings summary (29 July 2026), unrefereed, \texttt{papers/rimanyi\_positivity\_findings\_summary.pdf}.
+\end{thebibliography}
+
+\end{document}
