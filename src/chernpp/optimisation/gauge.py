@@ -179,8 +179,8 @@ class FastChamberMultiplier:
                 valid = False
                 break
             dest_idx, src_idx = self.get_shift_map(f)
-            # -c because shifted logic negates chamber
-            res_arr[dest_idx] += (-float(c)) * self.phi_arr[: self.N][src_idx]
+            # normalized numerator = sign * Q / x^corr, sign = (-1)^{deg Q_d}
+            res_arr[dest_idx] += (self.gauge.sign * float(c)) * self.phi_arr[: self.N][src_idx]
 
         if not valid:
             return None
@@ -206,6 +206,7 @@ __all__ = [
     "to_chamber",
     "to_z",
     "correction_monomial",
+    "correction_and_sign",
     "setup",
     "series_of",
     "admissible_monomials",
@@ -277,26 +278,34 @@ def to_z(poly_chamber: Poly, order: int, total_degree: int) -> Poly:
     return {e: c for e, c in out.items() if c}
 
 
-def correction_monomial(algebra: ChamberAlgebra) -> Exponent:
+def correction_and_sign(algebra: ChamberAlgebra) -> Tuple[Exponent, int]:
     """
-    The chamber correction ``x^corr`` with ``normalized_numerator = -Q_d / x^corr``.
+    The chamber correction ``x^corr`` and the sign with ``normalized = sign * Q_d / x^corr``.
 
     Recovered rather than tabulated: the normalized numerator has constant term
     1, so its exponentwise minimum is zero and ``corr`` is the exponentwise
-    minimum of ``Q_d`` in chamber coordinates.  The result is checked against the
-    artifact before being returned, so a change in the Sage stage's normalisation
-    convention shows up here as a failure rather than as silently wrong gauges.
+    minimum of ``Q_d`` in chamber coordinates.  The sign is ``(-1)^{deg Q_d}`` in
+    the Sage stage's convention -- ``-1`` for ``d = 4..7`` but ``+1`` at ``d = 8``
+    -- and is read off the artifact rather than assumed.  Anything else is a
+    change in the normalisation convention and raises rather than yielding
+    silently wrong gauges.
     """
     Q = algebra.multidegree
     nvars = algebra.nvars
     corr = tuple(min(e[i] for e in Q) for i in range(nvars))
-    rebuilt = {tuple(e[i] - corr[i] for i in range(nvars)): -c for e, c in Q.items()}
-    if rebuilt != algebra.normalized_numerator:
-        raise RuntimeError(
-            f"A_{algebra.order}: could not recover the chamber correction monomial; "
-            "the artifact's normalized numerator is not -Q_d / x^corr"
-        )
-    return corr
+    for sign in (-1, 1):
+        rebuilt = {tuple(e[i] - corr[i] for i in range(nvars)): sign * c for e, c in Q.items()}
+        if rebuilt == algebra.normalized_numerator:
+            return corr, sign
+    raise RuntimeError(
+        f"A_{algebra.order}: could not recover the chamber correction monomial; "
+        "the artifact's normalized numerator is not +-Q_d / x^corr"
+    )
+
+
+def correction_monomial(algebra: ChamberAlgebra) -> Exponent:
+    """The chamber correction ``x^corr``; see :func:`correction_and_sign`."""
+    return correction_and_sign(algebra)[0]
 
 
 # --------------------------------------------------------------------------
@@ -317,6 +326,8 @@ class GaugeSetup:
     correction: Exponent
     #: deg Q_d, which every admissible numerator must match.
     degree: int
+    #: normalized numerator = sign * Q_d / x^corr; (-1)^{deg Q_d}.
+    sign: int = -1
 
     @property
     def nvars(self) -> int:
@@ -338,8 +349,8 @@ def setup(
         phi = expand_rational_jax(alg.vandermonde, list(alg.denominator_factors), max_deg, alg.nvars)
     else:
         phi = expand_rational(alg.vandermonde, list(alg.denominator_factors), max_deg, exact=exact)
-    corr = correction_monomial(alg)
-    return GaugeSetup(order, max_deg, alg, phi, corr, _z_degree(alg))
+    corr, sign = correction_and_sign(alg)
+    return GaugeSetup(order, max_deg, alg, phi, corr, _z_degree(alg), sign)
 
 
 def _z_degree(algebra: ChamberAlgebra) -> int:
@@ -374,7 +385,7 @@ def series_of(numerator_z: Poly, gauge: GaugeSetup, exact: bool = False) -> Poly
                 f"A_{gauge.order}: numerator monomial {e} is not divisible by the chamber "
                 f"correction x^{corr}; it is not an admissible numerator"
             )
-        shifted[f] = -c
+        shifted[f] = gauge.sign * c
     return poly_mul(shifted, gauge.phi, max_deg=gauge.max_deg, exact=exact)
 
 
@@ -948,7 +959,7 @@ def null_candidates(
                 f = tuple(e[i] - corr[i] for i in range(n))
                 if any(v < 0 for v in f):
                     raise ValueError
-                f_shifted[f] = -c
+                f_shifted[f] = filter_gauge.sign * c
         except ValueError:
             continue
 
