@@ -203,7 +203,9 @@ certificate ($I_{2,4}$), and what predicts $\rho$ is open.
 
 **The strongest current conjecture is the ballot bound** (`sectors.py`; standalone note
 `report/ballot.tex`): $C(M) \ge b(M)$, the number of ballot orderings, with equality exactly on $\max M \le 1$.
-On that sector it is a theorem, given two geometric inputs stated in full in the note. It implies Rimányi and holds on
+On that sector it is a theorem, given two geometric inputs stated in full in the note, and the
+whole conjecture is **proved for d ≤ 4** (d = 4 via an explicit positive product formula for F_4 and
+exact Presburger inclusions in `ballot.py`; needs `islpy`, installed with `uv pip install islpy`). It implies Rimányi and holds on
 every exact packet at $d \le 7$. A proof must show that the curvilinear locus in $\mathbb{C}^{p+1}$
 only adds to the planar count — that is where the open problem now lives.
 

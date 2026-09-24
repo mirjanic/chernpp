@@ -83,7 +83,7 @@ Reproducible from a clean checkout:
 - **The ballot theorem and conjecture** (`chernpp/sectors.py`). On the plane sector $\max M \le 1$,
   $C(M) = b(M)$, the number of ballot orderings of $M$ (= a Kreweras number) — proved, given
   two geometric inputs stated in full in `report/ballot.pdf` (a curvilinear incidence formula and a
-  hyperplane lemma), via a bijection with monotone factorisations of a long cycle. *Conjecture*: $C(M) \ge b(M)$ for every $M$ (proved for $d \le 3$), equality exactly on the plane sector; this
+  hyperplane lemma), via a bijection with monotone factorisations of a long cycle. *Conjecture*: $C(M) \ge b(M)$ for every $M$ (proved for $d \le 4$: `chernpp/ballot.py`, exact isl inclusions), equality exactly on the plane sector; this
   implies Rimányi and holds on every exact packet at $d \le 7$ (`tools/ballot_check.py`). Written
   up as a standalone note: `report/ballot.pdf`, summary `report/ballot_summary.md`.
 - **Where positivity is tight at $d \le 7$.** On every charge layer computed, a packet's negative mass is

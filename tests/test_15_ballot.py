@@ -105,5 +105,58 @@ class TestDFour(unittest.TestCase):
         self.assertEqual(clean(lhs), clean(rhs))
 
 
+try:
+    import islpy  # noqa: F401
+
+    HAVE_ISL = True
+except ImportError:  # pragma: no cover
+    HAVE_ISL = False
+
+
+@unittest.skipUnless(HAVE_ISL, "islpy is needed for the exact set inclusions")
+class TestDFourBallot(unittest.TestCase):
+    """The d = 4 ballot theorem: exact inclusions plus a numerical cross-check of every support."""
+
+    def test_exact_inclusions(self):
+        from chernpp.ballot import verify_d4
+
+        for name, ok in verify_d4().items():
+            with self.subTest(check=name):
+                self.assertTrue(ok)
+
+    def test_claimed_supports_lie_in_the_true_supports(self):
+        import islpy as isl
+
+        from chernpp.ballot import FACTOR_SUPPORTS
+        from chernpp.polynomial import expand_rational
+
+        K = 10
+        x1, x2, x3, s, t = (1, 0, 0), (0, 1, 0), (0, 0, 1), (0, 1, 1), (1, 1, 1)
+        series = {
+            "X": expand_rational({x1: 1}, [{x1: 2}], 3 * K),
+            "S": expand_rational({s: 1}, [{s: 2}], 3 * K),
+            "Y": expand_rational({(2, 1, 1): 1}, [{x1: 2}, {s: 1, t: 1}], 3 * K),
+            "V1": expand_rational({(1, 1, 0): 1}, [{(1, 1, 0): 2}], 3 * K),
+            "V2": expand_rational({(1, 1, 0): 1}, [{x2: 1, (1, 1, 0): 1}], 3 * K),
+            "V3": expand_rational({t: 1}, [{t: 2}], 3 * K),
+            "V4": expand_rational({t: 1}, [{x3: 1, t: 1}], 3 * K),
+        }
+        for name, ser in series.items():
+            claimed = isl.Set(FACTOR_SUPPORTS[name])
+            for a in range(K + 1):
+                for b in range(K + 1):
+                    for c in range(K + 1):
+                        inside = claimed.intersect(isl.Set(f"{{ [{a},{b},{c}] }}")).is_empty() is False
+                        with self.subTest(factor=name, cell=(a, b, c)):
+                            self.assertEqual(inside, ser.get((a, b, c), 0) >= 1)
+
+    def test_plane_sector_equality_at_d4(self):
+        table = boxes.chern_table_exact(boxes.level_box(4, 4))
+        plane = [m for m in table if max(m) <= 1]
+        self.assertEqual(len(plane), 5)
+        for m in plane:
+            self.assertEqual(table[m], sectors.ballot_count(m))
+
+
 if __name__ == "__main__":
     unittest.main()

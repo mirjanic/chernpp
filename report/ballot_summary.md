@@ -46,12 +46,17 @@ Equivalently, `F_d − ∏(1−x_j)^{−1}` has nonnegative packet sums, and the
   - every d = 7 packet of charge ≤ 6.
 - Off the plane sector `C/b ≥ 2`, with minima 2, 2, 9/4, 12/5, 79/30, 58/21 for d = 2..7.
 
-**Theorem (d ≤ 3), unconditional.** The ballot conjecture holds for d ≤ 3, with equality exactly on the plane sector and `C ≥ b + 1` off it.
+**Theorem (d ≤ 4), unconditional.** The ballot conjecture holds for d ≤ 4, with equality exactly on the plane sector and `C ≥ b + 1` off it.
 - **Main input:** `F_3 = (1−x)(1−y)(1−xy)/((1−2x)(1−2xy)(1−y−xy))` factors into three ratios of the form `1 + v/(1−u−v)`.
 - **Dominated series:** that product dominates `Z_3 = 1 + x/((1−x)(1−y)) + xy/(1−xy)`.
   - The packet sums of `Z_3` are exactly `b(M)`.
   - The zero face `(0,k)` of `F_3` is compensated by the diagonal `(k,k)` in the same packet.
 - **Equality case:** at fixed d the plane sector is finite, so equality there is a finite check.
+
+**The d = 4 case.**
+- **Explicit formula.** `F_4 = (½/(1−2x₁) + ½/(1−2s) + x₁²s/((1−2x₁)(1−s−t)))` × four Lemma-1 ratios, with `s = x₂x₃` and `t = x₁x₂x₃`. This is a new one-line proof of strong positivity at d = 4.
+- **Proof strategy.** `F_4` dominates the number of the 64 product supports containing each cell. That count dominates the weight of a comparison series `Z_4` whose packet sums are `b(M)`, plus one unit at every decreasing cell with `β₁ ≥ 2`.
+- **Verification.** The last step is three inclusions of Presburger sets, decided exactly by isl (`chernpp.ballot.verify_d4`).
 
 **Refinement (zero insertion).** For zero-free `M₀`, the Newton coefficients in `z` of both `C(M₀ ⊔ 0^z)` and `C − b` are ≥ 0. This holds on all 4,925 bases with d ≤ 7.
 

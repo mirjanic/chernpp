@@ -37,6 +37,8 @@ dependencies = [
 [project.optional-dependencies]
 notebook = ["ipykernel>=6", "jupyter-client>=8"]
 dev = ["black>=24", "pre-commit>=3"]
+# exact Presburger-set inclusions for the d = 4 ballot proof (tests skip without it)
+proofs = ["islpy>=2024"]
 
 [project.scripts]
 chernpp-experiments = "chernpp.experiments:main"
