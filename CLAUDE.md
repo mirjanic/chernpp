@@ -17,8 +17,8 @@ you must put the worktree's `src` ahead of it or you will silently test the wron
 PYTHONPATH=$PWD/src ~/.virtualenvs/chernplusplus/bin/python -m unittest discover -s tests
 ```
 
-From the main checkout the `PYTHONPATH` prefix is unnecessary. Full suite is 196 tests,
-~5m20s, and passes clean. It needs no SageMath.
+From the main checkout the `PYTHONPATH` prefix is unnecessary. Full suite is ~240 tests,
+~6m, and passes clean. It needs no SageMath.
 
 - **git LFS is a hard prerequisite.** `src/chernpp/data/*.npz` and
   `tests/data/published_thom_polynomials.json` are LFS objects. Without them
@@ -186,11 +186,24 @@ the fit must be run at a depth where the MILP is currently too slow. That is the
 
 The live lead, from the report's Assessment §4: since the $\tau$-orbit is not the right
 unit of cancellation, **what is?** The negative mass is strikingly small and bounded —
-at $d = 7$ it is 0.19% of the positive mass, least value $-2$, spread over few ballot
-orderings while the positive mass concentrates in one. *A bound on the negative part of
+at $d = 7$ it is 0.19% of the positive mass, spread over few ballot orderings while the positive
+mass concentrates in one. (Individual $A_\beta$ are *not* bounded: $-3622$ in the $d=7$ charge
+layer $p=5$. The bounded quantity is the per-packet ratio, see below.) *A bound on the negative part of
 $C(M)$ in terms of its largest term would settle the conjecture with no pairing at all*,
 and nothing computed so far argues against one existing. Note also that the empirical
 $\min C(M)$ is $1$ rather than $0$ across $d = 4..7$ in `papers/tables/cancellation.tex`.
+
+**Update (September 2026, `report/morin_d7.tex`).** The bound asked for above now has sharp
+data: on every charge layer computed, negative mass $\le \kappa_d \cdot A_{\beta_{\max}(M)}$ with
+$\kappa_5=\kappa_6=1/6$, $\kappa_7=8/21$ (the dominance conjecture). Whether $\kappa_d<1$ for all
+$d$ is the live question, and $d=8$ is the one thing that would test it. The plane-sector values
+are Kreweras numbers. Separately, the corank filtration $C_r$ (`corank.py`) generalises the
+conjecture beyond Morin: $\rho\ge$ corank is proved, $\rho=$ corank is *false* by exact
+certificate ($I_{2,4}$), and what predicts $\rho$ is open.
+
+Faster tooling: `boxes.py` sweeps the series in one pass per denominator factor (A_7 at $\ell=4$
+in 16 s per prime). Prefer it to `chern.py` for anything deep; `chern.py` stays as the
+reference path it is tested against.
 
 Other open questions, with more setup cost, are in the report's final section: what
 $\mathcal{Q}_d$ is an invariant of (corank two has no canonical reference jet — four germs

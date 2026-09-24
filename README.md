@@ -46,8 +46,9 @@ Reproducible from a clean checkout:
 - The classical Thom polynomials for $d \le 7$, including all fifteen $A_7$ coefficients. At
   $d \le 3$ the construction degenerates — $\deg\mathcal{Q}_d = 0$, so $\mathcal{Q}_d = 1$ and the
   orbit fills the ambient space — and the pipeline still returns Porteous's $c_{\ell+1}$ for $A_1$.
-- **Rimányi's conjecture for $A_6$**, verified at every relative dimension $\ell \le 7$, and for
-  $A_5$ at $\ell \le 11$. Past $\ell = 5$ the coefficients outgrow `int64` (they reach
+- **Rimányi's conjecture for $A_7$ at every $\ell \le 5$** (8033 Chern coefficients) and for
+  **$A_6$ at every $\ell \le 8$** (12692), all positive with minimum 1, from one exact level box each
+  (`chernpp/boxes.py`, `tools/morin_tables.py`, data in `results/`). Also $A_5$ at $\ell \le 11$. Past $\ell = 5$ the coefficients outgrow `int64` (they reach
   $1.75\times10^{22}$ at $A_6$, $\ell = 7$), so these use CRT reconstruction over word-sized
   primes, verified against a prime held back from the reconstruction.
 - **Agreement with Rimányi's published tables** across every relative dimension the registry
@@ -72,6 +73,18 @@ Reproducible from a clean checkout:
   multiplicities. $\mathcal{Q}_5 = (2z_1 + z_2 - z_5)P_5$ is the **only** order at which the
   class factors: $\mathcal{Q}_4$ is a single linear form and $\mathcal{Q}_6$, $\mathcal{Q}_7$
   are irreducible, so the $d=5$ factorisation is an accident rather than a pattern.
+- **The corank filtration** (`chernpp/corank.py`, `report/morin_d7.pdf`). Let $C_r$ be the cone
+  of products of Schur functions with $\le r$ rows (reading $c_k = h_k$). Then $C_1$ is the
+  Chern-monomial cone and Rimányi's conjecture reads $\rho(A_d) = 1$ for
+  $\rho = \min\{r : \mathrm{Tp} \in C_r\}$. *Proved*: $\rho \ge$ corank, and the sum of Chern
+  coefficients is $[s_{(n)}]\mathrm{Tp}$, which is $0$ at corank $\ge 2$, so no non-Morin Thom
+  polynomial is Chern-positive. *Refuted by exact certificate*: $\rho = $ corank, e.g.
+  $\mathrm{Tp}_{I_{2,4}} \notin C_2$. $\rho$ is tabulated on the registry in `results/corank_survey.json`.
+- **Where positivity is tight at $d \le 7$.** On the plane sector $\max M \le 1$, $C(M)$ is a
+  Kreweras number (verified $d \le 7$). On every charge layer computed, a packet's negative mass is
+  at most $\kappa_d$ times its dominant-ordering term, with $\kappa_5 = \kappa_6 = 1/6$ and
+  $\kappa_7 = 8/21$; individual $A_\beta$ are unbounded below ($-3622$ at $d = 7$). The 0-Hecke
+  positivity landscape $P_d$ is in `chernpp/hecke.py`.
 - An explicit, machine-found and **exactly verified denominator certificate for $A_4$**, of order
   exactly 4 — an independent computational proof of strong Laurent positivity at $d=4$.
 - **Rigorous lower bounds on certificate order.** Nothing of order $\le 7$ certifies $A_5$, even
@@ -114,15 +127,20 @@ src/chernpp/         Pure Python/JAX.  Reads the artifacts; never re-derives the
   certificates.py      additive denominator certificates and order obstructions
   lemma1.py            multiplicative certificates: Lemma 1, matching, absorption
   crt.py               exact Chern coefficients past the int64 ceiling
+  boxes.py             one-sweep-per-factor expansion on level/charge boxes, exact by CRT
+  sectors.py           plane-sector (Kreweras) values and stabilisation in d
+  hecke.py             0-Hecke folds and the positivity landscape P_d
+  corank.py            the corank filtration C_r: Schur arithmetic, exact cone membership
   tables.py            text tables and statistics for the mined objects
   lorentzian.py        log-concavity / M-convexity tests
   experiments.py       command-line runner
   data/                the mined algebras and geometry records, tracked (git LFS)
 src/examples.ipynb   annotated tour, from the published results to the new ones
 tools/               scrapers and helpers, not part of the package
-tests/               eight tiers, in dependency order
+tests/               thirteen tiers, in dependency order
 papers/              reference PDFs: Bérczi–Szenes, and the prior/external reports
-report/              this project's own report -- LaTeX source, tables, and PDF
+report/              the project's reports -- chernpp_report and morin_d7 (LaTeX, tables, PDF)
+results/             exact data behind morin_d7: A_6/A_7 tables, anatomy, landscape, rho
 ```
 
 ## Running it
@@ -206,6 +224,11 @@ chamber correction divides exactly, and that the resulting numerator has constan
 7. `test_7_tail.py` — the unpaired-tail series, multiplicative certificates, and absorption.
 8. `test_8_corank2.py` — corank-two orbit geometry for $I_{a,b}$, against the frozen survey in
    `tests/data/corank2_orbit_closures.json`. Like every other tier, it runs without SageMath.
+9. `test_9_gauge.py` — residue-null gauges and the symmetry construction.
+10. `test_10_boxes.py` — the sweep against the fixed point cell by cell, and against CRT.
+11. `test_11_landscape.py` — 0-Hecke relations and the $d = 5$ landscape.
+12. `test_12_sectors.py` — Kreweras on the plane sector, stabilisation at $d \le 7$.
+14. `test_14_corank.py` — Schur arithmetic, exact certificates, the refutation of $\rho =$ corank.
 
 ## Caveats
 
