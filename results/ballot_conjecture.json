@@ -1,0 +1,95 @@
+[
+ {
+  "d": 2,
+  "box": "level box L=10",
+  "packets": 11,
+  "violations": [],
+  "plane_mismatches": [],
+  "nonplane_equalities": [],
+  "min_nonplane_ratio": "2",
+  "min_nonplane_ratio_at": [
+   2,
+   -2
+  ]
+ },
+ {
+  "d": 3,
+  "box": "level box L=10",
+  "packets": 91,
+  "violations": [],
+  "plane_mismatches": [],
+  "nonplane_equalities": [],
+  "min_nonplane_ratio": "2",
+  "min_nonplane_ratio_at": [
+   2,
+   -1,
+   -1
+  ]
+ },
+ {
+  "d": 4,
+  "box": "level box L=8",
+  "packets": 351,
+  "violations": [],
+  "plane_mismatches": [],
+  "nonplane_equalities": [],
+  "min_nonplane_ratio": "9/4",
+  "min_nonplane_ratio_at": [
+   2,
+   0,
+   -1,
+   -1
+  ]
+ },
+ {
+  "d": 5,
+  "box": "level box L=8",
+  "packets": 1747,
+  "violations": [],
+  "plane_mismatches": [],
+  "nonplane_equalities": [],
+  "min_nonplane_ratio": "12/5",
+  "min_nonplane_ratio_at": [
+   2,
+   1,
+   -1,
+   -1,
+   -1
+  ]
+ },
+ {
+  "d": 6,
+  "box": "level box L=9",
+  "packets": 12692,
+  "violations": [],
+  "plane_mismatches": [],
+  "nonplane_equalities": [],
+  "min_nonplane_ratio": "79/30",
+  "min_nonplane_ratio_at": [
+   2,
+   1,
+   0,
+   -1,
+   -1,
+   -1
+  ]
+ },
+ {
+  "d": 7,
+  "box": "level box L=6",
+  "packets": 8033,
+  "violations": [],
+  "plane_mismatches": [],
+  "nonplane_equalities": [],
+  "min_nonplane_ratio": "58/21",
+  "min_nonplane_ratio_at": [
+   2,
+   1,
+   1,
+   -1,
+   -1,
+   -1,
+   -1
+  ]
+ }
+]

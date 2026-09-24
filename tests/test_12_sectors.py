@@ -32,6 +32,42 @@ class TestPlaneSector(unittest.TestCase):
             sectors.block_sizes((2, -1, -1))
 
 
+class TestBallot(unittest.TestCase):
+    def test_ballot_count_matches_enumeration(self):
+        for m in ((1, 1, 1, 0, -1, -1, -1), (2, 1, -1, -2), (3, -1, -1, -1), (2, 2, -4)):
+            with self.subTest(m=m):
+                self.assertEqual(sectors.ballot_count(m), sum(1 for _ in boxes.ballot_words(m)))
+
+    def test_plane_ballot_count_is_kreweras(self):
+        # the cycle lemma
+        for d in (4, 5, 6, 7):
+            for m in boxes.complete_packets(boxes.charge_box(d, 1)):
+                self.assertEqual(sectors.ballot_count(m), sectors.kreweras(m))
+
+    def test_one_monotone_factorisation_per_ballot_vector(self):
+        # step 2 of the plane-sector proof, exhaustively for n <= 6
+        from itertools import product
+
+        for n in range(2, 7):
+            found = sectors.monotone_factorisations(n)
+            self.assertEqual(set(found.values()), {1})
+            ballot = set()
+            for tail in product(range(n), repeat=n - 1):
+                if sum(tail) != n - 1:
+                    continue
+                alpha = tuple(1 - e for e in tail)
+                if all(sum(alpha[: j + 1]) >= 0 for j in range(len(alpha) - 1)):
+                    ballot.add((0,) + tail)
+            self.assertEqual(set(found), ballot)
+
+    def test_ballot_conjecture_on_small_boxes(self):
+        for d, L in ((2, 6), (3, 8), (4, 6), (5, 5)):
+            with self.subTest(d=d):
+                table = boxes.chern_table_exact(boxes.level_box(d, L))
+                violations, plane, equal = sectors.ballot_violations(table)
+                self.assertEqual((violations, plane, equal), ([], [], []))
+
+
 class TestStabilisation(unittest.TestCase):
     def test_top_face_is_the_previous_series(self):
         for d in (5, 6, 7):

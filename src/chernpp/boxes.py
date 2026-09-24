@@ -329,9 +329,12 @@ def _packet_index(box: Box):
     base = max(box.bounds) - lo + 1
     if base**box.d >= 2**62:
         raise OverflowError(f"{box.label}: packet keys do not fit in int64")
-    tail = np.stack(np.meshgrid(*[np.arange(n) for n in shape[1:]], indexing="ij"), axis=-1).reshape(
-        -1, nvars - 1
-    )
+    if nvars > 1:
+        tail = np.stack(np.meshgrid(*[np.arange(n) for n in shape[1:]], indexing="ij"), axis=-1).reshape(
+            -1, nvars - 1
+        )
+    else:  # d = 2: one chamber variable, so the slab is a single cell
+        tail = np.zeros((1, 0), dtype=np.int64)
     keys = np.empty(box.cells, dtype=np.int64)
     step = tail.shape[0]
     for b0 in range(shape[0]):
