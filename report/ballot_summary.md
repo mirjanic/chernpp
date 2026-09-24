@@ -10,7 +10,7 @@ Companion to `report/ballot.pdf`.
 
 ## Theorem (plane sector)
 
-This is proved, given Theorem 5.4 of the unrefereed external findings summary.
+This is proved, given two geometric inputs, both stated in full in `ballot.pdf` §2.1: the curvilinear form of the Bérczi–Szenes incidence formula, and a multiplicity-one hyperplane lemma.
 
 If `max M ≤ 1` then
 
@@ -21,7 +21,10 @@ C(M) = b(M) = d! / ((d−b+1)! ∏ m_i!)
 where `M = (1^{d−b}, 1−s_1, …, 1−s_b)` and `m_i` is the number of `s` equal to `i`. This is Kreweras' count of noncrossing partitions.
 
 **Proof.**
-- **External input:** the summary identifies `C(M)` with the coefficient of an `n`-cycle in `m_ν(J_1, …, J_n)`, where the `J_k` are the Jucys–Murphy elements.
+- **Geometric input** (`ballot.pdf` §2.1).
+  - `C(M)` is an integral of a monomial symmetric function of the tautological bundle over the curvilinear component `C_{n,r}` of the punctual Hilbert scheme of `C^r`, with `n = d+1`.
+  - The hyperplane lemma lowers `r` one step at a time; on the plane sector it reaches `r = 2`.
+  - There, by Briançon and Lehn–Sorger, the integral is the coefficient of an `n`-cycle in `m_{1−M}(J_1, …, J_n)`, where the `J_k` are the Jucys–Murphy elements.
 - **New lemma:** for the cycle `x ↦ x+1`, each ballot exponent vector has **exactly one** minimal monotone factorisation, and no other vector has any.
   - Peel off the transpositions through `n`.
   - Their other endpoints are forced to decrease.

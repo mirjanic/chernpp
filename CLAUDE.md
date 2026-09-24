@@ -203,7 +203,7 @@ certificate ($I_{2,4}$), and what predicts $\rho$ is open.
 
 **The strongest current conjecture is the ballot bound** (`sectors.py`; standalone note
 `report/ballot.tex`): $C(M) \ge b(M)$, the number of ballot orderings, with equality exactly on $\max M \le 1$.
-On that sector it is a theorem (given the external summary's Thm 5.4). It implies Rimányi and holds on
+On that sector it is a theorem, given two geometric inputs stated in full in the note. It implies Rimányi and holds on
 every exact packet at $d \le 7$. A proof must show that the curvilinear locus in $\mathbb{C}^{p+1}$
 only adds to the planar count — that is where the open problem now lives.
 
@@ -223,5 +223,10 @@ localisation on a resolution, not a faster basis).
 
 `papers/chernpp_report.tex` is the live report; `papers/tables/*.tex` are **generated** by
 `tools/render_tables.py` and carry a do-not-edit header. Regenerate rather than hand-edit.
+**Our reports must be self-contained.** A reader should never have to open an external report
+in `papers/` to follow an argument: restate any imported result precisely (definitions, statement,
+and a proof or proof sketch), say plainly which steps are imported and which are ours, and keep
+citations to external reports for credit and provenance only.
+
 Prior commit messages are full sentences describing the mathematical content of the change
 ("Compute Q_7, and show the A_5 reduction machinery fails at d = 7"); match that register.
