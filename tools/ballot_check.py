@@ -26,6 +26,9 @@ def tables():
     yield 7, f"level box L={data['level']}", {tuple(m): c for m, c in data["packet_values"]}
     for d, p in CHARGE.items():
         yield d, f"charge box p={p}", boxes.chern_table_exact(boxes.charge_box(d, p))
+    for path in sorted(RESULTS.glob("deep_*.json")):
+        data = json.loads(path.read_text())
+        yield data["d"], data["box"], {tuple(m): c for m, c in data["packet_values"]}
 
 
 def main(path):
