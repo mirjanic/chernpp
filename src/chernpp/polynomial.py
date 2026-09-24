@@ -4,8 +4,9 @@ Exact sparse polynomial arithmetic on exponent-tuple dictionaries.
 A polynomial in the ``n`` chamber variables is a ``dict`` mapping an exponent
 tuple of length ``n`` to a coefficient (``int`` or ``Fraction``).  This is the
 representation the Sage stage exports, so nothing has to be parsed or
-re-expanded downstream.  Every routine here is exact; no floating point is
-used anywhere in this module.
+re-expanded downstream.  Every routine here is exact.  Floating point is
+used only when a caller opts in with ``exact=False`` and passes float
+coefficients (see :func:`poly_mul`); on the default path a float raises.
 
 Truncation is by *total* degree.  Because every denominator factor ``f_r`` has
 zero constant term, truncating at degree ``D`` throughout is safe: no term of
@@ -50,99 +51,123 @@ def poly_scale(p: Poly, c) -> Poly:
 
 
 import numpy as np
+from fractions import Fraction
+from numbers import Integral
+
+#: The int64 path refuses products whose worst-case accumulated magnitude could
+#: reach this; they go to exact Python integers instead.
+_INT64_SAFE = 2**62
 
 
-def _poly_mul_numpy(p: Poly, q: Poly, max_deg: int) -> Poly:
+def _is_integral(p: Poly) -> bool:
+    return all(isinstance(c, Integral) and not isinstance(c, bool) for c in p.values())
+
+
+def _has_float(p: Poly) -> bool:
+    return any(isinstance(c, (float, np.floating)) for c in p.values())
+
+
+def _poly_mul_vectorised(p: Poly, q: Poly, max_deg: int, dtype) -> Poly:
+    """
+    Truncated product by numpy, in ``int64`` (exact) or ``float64`` (opt-in only).
+
+    The integer path is exact: callers guarantee, through :func:`poly_mul`, that
+    no partial sum can exceed ``2**62`` in magnitude, so ``int64`` never wraps.
+    """
     if not p or not q:
         return {}
-
     nvars = len(next(iter(p.keys())))
-    p_len = len(p)
-    q_len = len(q)
+    if len(q) > len(p):
+        p, q = q, p
+    p_exps = np.array(list(p.keys()), dtype=np.int64).reshape(len(p), nvars)
+    p_coeffs = np.array([int(c) if dtype is np.int64 else float(c) for c in p.values()], dtype=dtype)
+    q_items = list(q.items())
 
-    p_exps = np.zeros((p_len, nvars), dtype=np.uint32)
-    p_coeffs = np.zeros(p_len, dtype=np.float64)
-    for i, (e, c) in enumerate(p.items()):
-        p_exps[i] = e
-        p_coeffs[i] = float(c)
+    base = max(max_deg + 1, 2)
+    weights = np.array([base ** (nvars - 1 - i) for i in range(nvars)], dtype=np.int64)
+    if base**nvars >= 2**62:
+        raise OverflowError("exponent box too large to index in int64")
 
-    q_exps = np.zeros((q_len, nvars), dtype=np.uint32)
-    q_coeffs = np.zeros(q_len, dtype=np.float64)
-    for i, (e, c) in enumerate(q.items()):
-        q_exps[i] = e
-        q_coeffs[i] = float(c)
-
-    # Base for 1D indices must be strictly greater than max_deg to avoid collisions
-    b = max(max_deg + 1, 31)
-    base = np.array([b ** (nvars - 1 - i) for i in range(nvars)], dtype=np.uint64)
-
-    # Iterate over the smaller polynomial to minimize loop overhead
-    if q_len > p_len:
-        p_exps, q_exps = q_exps, p_exps
-        p_coeffs, q_coeffs = q_coeffs, p_coeffs
-        p_len, q_len = q_len, p_len
-
-    all_exps = []
-    all_coeffs = []
-
-    for j in range(q_len):
-        qe = q_exps[j]
-        qc = q_coeffs[j]
-
-        new_exps = p_exps + qe
-        degrees = new_exps.sum(axis=1)
-        mask = degrees <= max_deg
-
-        valid_exps = new_exps[mask]
-        valid_coeffs = p_coeffs[mask] * qc
-
-        if len(valid_exps) > 0:
-            all_exps.append(valid_exps)
-            all_coeffs.append(valid_coeffs)
-
-    if not all_exps:
+    all_idx, all_coeffs = [], []
+    p_deg = p_exps.sum(axis=1)
+    for qe, qc in q_items:
+        mask = p_deg + sum(qe) <= max_deg
+        if not mask.any():
+            continue
+        exps = p_exps[mask] + np.array(qe, dtype=np.int64)
+        all_idx.append(exps @ weights)
+        all_coeffs.append(p_coeffs[mask] * (int(qc) if dtype is np.int64 else float(qc)))
+    if not all_idx:
         return {}
-
-    flat_exps = np.concatenate(all_exps, axis=0)
-    flat_coeffs = np.concatenate(all_coeffs, axis=0)
-
-    flat_idx = flat_exps.dot(base)
-    unique_idx, inverse = np.unique(flat_idx, return_inverse=True)
-    res_coeffs = np.zeros(len(unique_idx), dtype=np.float64)
-    np.add.at(res_coeffs, inverse, flat_coeffs)
-
-    # Get the unique exponents corresponding to unique_idx
-    # inverse gives the mapping, we can find the first occurrence of each unique_idx
-    _, first_occurrences = np.unique(inverse, return_index=True)
-    unique_exps_arr = flat_exps[first_occurrences]
-
-    res = {}
-    # Convert exactly once at the end
-    for e, c in zip(unique_exps_arr, res_coeffs):
-        if abs(c) > 1e-10:
-            res[tuple(int(x) for x in e)] = c
-    return res
-
-
-def poly_mul(p1: Poly, p2: Poly, max_deg: int = None, exact: bool = False) -> Poly:
-    """Product, optionally truncated above total degree ``max_deg``."""
-    if p1 and p2 and max_deg is not None and not exact:
-        try:
-            return _poly_mul_numpy(p1, p2, max_deg)
-        except Exception as e:
-            pass  # Fallback
+    idx = np.concatenate(all_idx)
+    coeffs = np.concatenate(all_coeffs)
+    unique_idx, inverse = np.unique(idx, return_inverse=True)
+    sums = np.zeros(len(unique_idx), dtype=dtype)
+    np.add.at(sums, inverse.ravel(), coeffs)
 
     out: Dict[Exponent, object] = {}
+    for key, c in zip(unique_idx.tolist(), sums.tolist()):
+        if c == 0:
+            continue
+        e, k = [], key
+        for w in weights.tolist():
+            e.append(k // w)
+            k %= w
+        out[tuple(e)] = int(c) if dtype is np.int64 else c
+    return out
+
+
+def poly_mul(p1: Poly, p2: Poly, max_deg: int = None, exact: bool = None) -> Poly:
+    """
+    Product, optionally truncated above total degree ``max_deg``.
+
+    Exact by default.  Integer inputs take a vectorised ``int64`` path when an
+    a-priori bound shows no partial sum can wrap, and exact Python integers
+    otherwise; ``Fraction`` inputs are multiplied exactly in Python.
+
+    Floating point is used only when the caller asks for it with
+    ``exact=False`` *and* supplies float coefficients -- the gauge search does,
+    and re-verifies everything it keeps in exact arithmetic.  A float reaching
+    the default path raises rather than being silently rounded.  With
+    ``exact=True`` float coefficients are rationalised explicitly.
+    """
+    if not p1 or not p2:
+        return {}
+    has_float = _has_float(p1) or _has_float(p2)
+    if has_float and exact is None:
+        raise TypeError(
+            "poly_mul got floating-point coefficients on the exact path; pass exact=False to "
+            "opt in to float arithmetic, or exact=True to rationalise them"
+        )
     if exact:
         p1 = {
-            e: (Fraction(c).limit_denominator(10**10) if isinstance(c, float) else c) for e, c in p1.items()
+            e: (Fraction(c).limit_denominator(10**10) if isinstance(c, (float, np.floating)) else c)
+            for e, c in p1.items()
         }
         p2 = {
-            e: (Fraction(c).limit_denominator(10**10) if isinstance(c, float) else c) for e, c in p2.items()
+            e: (Fraction(c).limit_denominator(10**10) if isinstance(c, (float, np.floating)) else c)
+            for e, c in p2.items()
         }
+        has_float = False
+    if max_deg is not None:
+        if has_float:
+            return {
+                e: c for e, c in _poly_mul_vectorised(p1, p2, max_deg, np.float64).items() if abs(c) > 1e-10
+            }
+        if _is_integral(p1) and _is_integral(p2):
+            bound = (
+                max(abs(c) for c in p1.values()) * max(abs(c) for c in p2.values()) * min(len(p1), len(p2))
+            )
+            if bound < _INT64_SAFE and max_deg + 1 < 2**20:
+                try:
+                    return _poly_mul_vectorised(p1, p2, max_deg, np.int64)
+                except OverflowError:
+                    pass  # exponent box too large to index; the Python path is exact
+    out: Dict[Exponent, object] = {}
     for e1, c1 in p1.items():
+        s1 = sum(e1)
         for e2, c2 in p2.items():
-            if max_deg is not None and sum(e1) + sum(e2) > max_deg:
+            if max_deg is not None and s1 + sum(e2) > max_deg:
                 continue
             e = tuple(a + b for a, b in zip(e1, e2))
             out[e] = out.get(e, 0) + c1 * c2
@@ -201,7 +226,7 @@ def one_minus(f: Poly, nvars: int) -> Poly:
     return poly_sub(poly_one(nvars), f)
 
 
-def divide_by_one_minus(p: Poly, f: Poly, max_deg: int, exact: bool = False) -> Poly:
+def divide_by_one_minus(p: Poly, f: Poly, max_deg: int, exact: bool = None) -> Poly:
     """
     ``p / (1 - f)`` truncated at total degree ``max_deg``.
 
@@ -220,7 +245,7 @@ def divide_by_one_minus(p: Poly, f: Poly, max_deg: int, exact: bool = False) -> 
     return res
 
 
-def expand_rational(num: Poly, factors: List[Poly], max_deg: int, exact: bool = False) -> Poly:
+def expand_rational(num: Poly, factors: List[Poly], max_deg: int, exact: bool = None) -> Poly:
     """
     Taylor expansion of ``num / prod_r (1 - f_r)``, truncated at ``max_deg``.
 

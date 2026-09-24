@@ -217,5 +217,63 @@ class TestArtifactGuards(unittest.TestCase):
             self.assertTrue(all(type(e) is int for e in exponents))
 
 
+class TestExactnessOfTheFastPath(unittest.TestCase):
+    """
+    The vectorised product is exact.
+
+    A float64 path was once the default here: it rounded silently, dropped
+    coefficients below 1e-10 and returned numpy floats, so a chamber series was
+    only as exact as float64 happened to be.  These pin the repair.
+    """
+
+    def _python_product(self, p, q, max_deg):
+        out = {}
+        for e1, c1 in p.items():
+            for e2, c2 in q.items():
+                if sum(e1) + sum(e2) <= max_deg:
+                    e = tuple(a + b for a, b in zip(e1, e2))
+                    out[e] = out.get(e, 0) + c1 * c2
+        return {e: c for e, c in out.items() if c}
+
+    def test_fast_product_matches_python_and_returns_ints(self):
+        import random
+
+        rng = random.Random(7)
+        for nvars in (2, 4, 6):
+            p = {tuple(rng.randrange(4) for _ in range(nvars)): rng.randrange(-900, 900) for _ in range(60)}
+            q = {tuple(rng.randrange(4) for _ in range(nvars)): rng.randrange(-900, 900) for _ in range(60)}
+            p = {e: c for e, c in p.items() if c}
+            q = {e: c for e, c in q.items() if c}
+            fast = poly_mul(p, q, max_deg=7)
+            self.assertEqual(fast, self._python_product(p, q, 7))
+            self.assertTrue(all(type(c) is int for c in fast.values()))
+
+    def test_huge_coefficients_fall_back_to_python_integers(self):
+        big = 3**50
+        p = {(0, 1): big, (1, 0): -big}
+        q = {(1, 1): big, (0, 0): 1}
+        self.assertEqual(poly_mul(p, q, max_deg=5), self._python_product(p, q, 5))
+
+    def test_a_float_on_the_default_path_is_refused(self):
+        with self.assertRaises(TypeError):
+            poly_mul({(0,): 0.5}, {(1,): 1}, max_deg=3)
+
+    def test_floats_are_only_used_when_asked_for(self):
+        self.assertEqual(poly_mul({(0,): 0.5}, {(1,): 2.0}, max_deg=3, exact=False), {(1,): 1.0})
+
+    def test_fractions_stay_exact(self):
+        out = poly_mul({(0,): Fraction(1, 3)}, {(1,): Fraction(3, 7)}, max_deg=3)
+        self.assertEqual(out, {(1,): Fraction(1, 7)})
+
+    def test_chamber_series_and_chern_coefficient_are_exact_integers(self):
+        from chernpp.chamber import chamber_series, chern_coefficient
+
+        series = chamber_series(5, 10)
+        self.assertTrue(all(type(c) is int for c in series.values()))
+        value = chern_coefficient(series, (1, 1, 0, -1, -1), 10)
+        self.assertIs(type(value), int)
+        self.assertEqual(value, 10)
+
+
 if __name__ == "__main__":
     unittest.main()
