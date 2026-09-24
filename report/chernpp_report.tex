@@ -214,14 +214,14 @@ rather than the verification.
 \section{Gauge freedom in the numerator}
 \label{sec:gauge}
 
-The multidegree numerator $\Qd_d$ is not the unique polynomial that correctly computes the Thom polynomial $\Tp_{A_d}$. We can perturb $\Qd_d$ by adding any ``residue-null'' kernel $P$ without altering the geometric results at any depth. Because strong positivity is false for the canonical B\'erczi--Szenes numerator, resolving the remaining negative coefficients requires exploiting this gauge freedom to find an alternative, positive representative.
+The multidegree numerator $\Qd_d$ is not the unique polynomial that correctly computes the Thom polynomial $\Tp_{A_d}$. We can perturb $\Qd_d$ by adding any ``residue-null'' kernel $P$ without altering the geometric results at any depth. Because strong positivity is false for the canonical B\'erczi--Szenes numerator, resolving the remaining negative coefficients requires exploiting this gauge freedom to find an alternative, positive representative. The idea, and the $d=5$ kernel that first showed it works, are due to the external reports \cite{FS,A6}; both are unrefereed.
 
 \subsection{The kernel basis at \texorpdfstring{$d = 5$}{d = 5}}
 
-At $d = 5$, enforcing exact nullity across the available Chern packets identifies exactly $6$ fundamental geometric kernels ($K_i$) that span the space of all valid residue-null gauge modifications. Each kernel represents a structural symmetry in the residue integral:
+At $d = 5$, enforcing exact nullity across the available Chern packets produces $6$ structural kernels ($K_i$). They span a $6$-dimensional subspace of the residue-null gauge space. Whether they span all of it is open: the null space of the packet map, which contains every residue-null kernel, has dimension $8$ at the depths tested. Each kernel represents a structural symmetry in the residue integral:
 \begin{table}[ht]
 \centering
-\caption{The 6 fundamental geometric kernels for $d=5$, spanning the valid residue-null gauge space.}
+\caption{The 6 structural kernels for $d=5$. They are not known to span the residue-null gauge space.}
 \label{tab:d5_kernels}
 \small
 \begin{tabularx}{\textwidth}{@{}lLl@{}}
@@ -242,7 +242,7 @@ This basis illuminates the underlying structure of known positive gauges. For ex
 \[
   GBC = -K_4 + 2 K_5 + K_6 = (2z_1 - z_2)(z_1 + z_4 - z_5)(2z_1 + z_2 - z_5)
 \]
-Because $K_4, K_5,$ and $K_6$ natively share the factor $(z_1 + z_4 - z_5)$, their linear combination $GBC$ neatly factors as well. Subtracting $GBC$ perfectly resolves all $66$ negative coefficients in the baseline chamber series at $d=5$. 
+Because $K_4, K_5,$ and $K_6$ natively share the factor $(z_1 + z_4 - z_5)$, their linear combination $GBC$ neatly factors as well. Subtracting $GBC$ removes every negative coefficient of the baseline chamber series at $d=5$ on the tested range. 
 
 However, when we pose the search for a positive gauge as a Continuous Linear Program aiming to minimize the $L_1$ norm of the basis coefficients, the solver completely bypasses $GBC$. Instead, it finds a strictly smaller geometric perturbation:
 \[
@@ -277,7 +277,7 @@ Comparisons here are exact equalities, not tolerances: a packet sum is an intege
 vanish, and a drift of $10^{-13}$ in one is a moved packet rather than a rounding detail.
 Note also that $P_5$ is not load-bearing for $d = 5$. That case already rests on $GBC$, an
 \emph{integer} kernel whose nullity and whose companion's positivity are proved at every degree
-in [S]; $P_5$ is a minimality refinement sitting on top of a settled result.
+in \cite{FS}; $P_5$ is a minimality refinement sitting on top of a settled result.
 
 \subsection{Scaling to \texorpdfstring{$d = 6$}{d = 6}}
 
@@ -460,6 +460,8 @@ transcribed, so they cannot drift from the pipeline.
 \bibitem{BS12} B\'erczi, L., \& Szenes, A. (2012). Thom polynomials of Morin singularities. \emph{Annals of Mathematics}, 175(2), 567--629.
 \bibitem{Rim01} Rim\'anyi, R. (2001). Thom polynomials, symmetries and incidences of singularities. \emph{Inventiones mathematicae}, 143(3), 499--521.
 \bibitem{PW07} Pragacz, P., \& Weber, A. (2007). Positivity of Schur function expansions of Thom polynomials. \emph{Fundamenta Mathematicae}, 195, 85--100.
+\bibitem{FS} Rim\'anyi positivity: findings summary (29 July 2026), unrefereed report, \texttt{papers/rimanyi\_positivity\_findings\_summary.pdf}.
+\bibitem{A6} $A_6$ status report (31 July 2026), unrefereed, \texttt{papers/a6\_status.pdf}.
 \end{thebibliography}
 
-\end{document}\section{Numerical Computation of \texorpdfstring{$\Qd_d$}{Q\_d}}
+\end{document}
