@@ -46,6 +46,13 @@ Equivalently, `F_d − ∏(1−x_j)^{−1}` has nonnegative packet sums, and the
   - every d = 7 packet of charge ≤ 6.
 - Off the plane sector `C/b ≥ 2`, with minima 2, 2, 9/4, 12/5, 79/30, 58/21 for d = 2..7.
 
+**Theorem (d ≤ 3), unconditional.** The ballot conjecture holds for d ≤ 3, with equality exactly on the plane sector and `C ≥ b + 1` off it.
+- **Main input:** `F_3 = (1−x)(1−y)(1−xy)/((1−2x)(1−2xy)(1−y−xy))` factors into three ratios of the form `1 + v/(1−u−v)`.
+- **Dominated series:** that product dominates `Z_3 = 1 + x/((1−x)(1−y)) + xy/(1−xy)`.
+  - The packet sums of `Z_3` are exactly `b(M)`.
+  - The zero face `(0,k)` of `F_3` is compensated by the diagonal `(k,k)` in the same packet.
+- **Equality case:** at fixed d the plane sector is finite, so equality there is a finite check.
+
 **Refinement (zero insertion).** For zero-free `M₀`, the Newton coefficients in `z` of both `C(M₀ ⊔ 0^z)` and `C − b` are ≥ 0. This holds on all 4,925 bases with d ≤ 7.
 
 For example, `C(2,−2,0^z) = 2 + 5z + 4·C(z,2) + C(z,3)`.
