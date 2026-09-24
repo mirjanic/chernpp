@@ -15,7 +15,7 @@ The target is Rimányi's conjecture: every Chern coefficient `C(M)` of the Morin
 | **Explicit positive product formula for `F_4`.** A one-line proof of strong positivity at d = 4. | Proved | `ballot.pdf`, Lemma 4 |
 | **Zero insertion.** `C − b` is a nonnegative binomial combination in the number of zeros. | Verified on 10,620 bases | `ballot.pdf` §5 |
 | **Dominance.** `N(M) ≤ κ_d A_dom`, with κ = 1/6, 1/6, 8/21. | Verified | `morin_d7.pdf` |
-| **The corank filtration.** `ρ ≥ corank`, and `ρ = corank` is refuted. `C_2` is simplicial only in degree n ≤ 5. | Proved (refutation by exact certificates) | `morin_d7.pdf` §1 |
+| **The corank filtration.** `ρ ≥ corank`, and `ρ = corank` is refuted; `ρ − corank` reaches 3 (`B_{5,4}`). `C_2` is simplicial only in degree n ≤ 5. | Proved (refutation by exact certificates) | `morin_d7.pdf` §1 |
 
 **Dead routes**, each recorded with its obstruction in the reports:
 - τ-pairing;
@@ -85,8 +85,8 @@ Open follow-up: do the known constraints determine the *packet class* of 𝒬₈
 |---|---|
 | D1. A_7 charge box p = 7 (118.5M cells) | **Done.** 16,475 coefficients, minimum 1 (`results/deep_a7_charge7.json`). |
 | D2. A_6 level box L = 13 | **Done.** `Tp_{A_6}` to ℓ = 12: 62,239 coefficients, minimum 1. |
-| D3. Finish the corank survey (41 tables, codimension 19–26) | **Running.** Two shards with no cap. The exact vertex-Farkas fallback settled the three previously undecided tables. |
-| Ballot and zero-insertion re-checks on the deep tables | **Running.** Results go to `results/ballot_conjecture.json` and `results/zero_insertion.json`. |
+| D3. Finish the corank survey | **Stopped at 94 of 128 tables**, merged into `results/corank_survey.json`. The exact vertex-Farkas fallback settled the three previously undecided tables. New: `ρ(B_{5,4}) = 5` at ℓ = 2, so `ρ − corank` reaches 3. The remaining 34 tables (codimension 20–26) need column generation. |
+| Ballot and zero-insertion re-checks on the deep tables | **Done.** 133,104 packet checks and 10,620 bases, no violation (`results/ballot_conjecture.json`, `results/zero_insertion.json`). |
 | D4. d = 6 gauge search with the ballot target | Queued. Waits on the Workstream A tooling. |
 
 ## Writing

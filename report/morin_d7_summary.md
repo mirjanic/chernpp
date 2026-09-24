@@ -22,7 +22,8 @@ Read the Chern class `c_k` as `h_k`. With that convention Pragacz–Weber says e
   - `ρ(I_{a,b}) = 2` iff `b ≤ a+1`, otherwise 3.
   - `ρ(III_{a,b}) = 2` iff `a = b`, otherwise 3.
   - `ρ(B_4)` rises from 2 to 3 between ℓ = 1 and ℓ = 2.
-  - `ρ − corank` reaches 2 (for example `B_{5,3}`).
+  - `ρ − corank` reaches 3: `ρ(B_{5,4}) = 5` at ℓ = 2, with corank 2 (and `ρ(B_{5,3}) = 4`).
+  - 94 of the 128 registry tables are decided; the rest (codimension 20–26) exceeded the time budget.
 
 **Why this matters.** A Bérczi–Szenes-type residue formula on `Gr(r, TX)` with nonnegative packet sums would put `Tp_η` in `C_r`. Each Farkas certificate therefore rules out such a formula for that singularity. The open question is **what invariant of the local algebra predicts ρ**.
 

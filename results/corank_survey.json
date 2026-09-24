@@ -1699,9 +1699,29 @@
  {
   "singularity": "B_5,4",
   "relative_dimension": 2,
-  "timeout": 600,
   "codimension": 20,
-  "seconds": 600.0
+  "terms": 139,
+  "chern_negative": 65,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": false,
+   "4": false,
+   "5": true
+  },
+  "generators": {
+   "2": 56,
+   "3": 162,
+   "4": 239,
+   "5": 284
+  },
+  "seconds": 4262.83
  },
  {
   "singularity": "C_5,7",
@@ -1731,9 +1751,27 @@
  {
   "singularity": "III_2,6",
   "relative_dimension": 2,
-  "error": "ArithmeticError('C_2: LP infeasible but no exact Farkas certificate was found')",
   "codimension": 20,
-  "seconds": 191.56
+  "terms": 261,
+  "chern_negative": 162,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true,
+   "4": true,
+   "5": true
+  },
+  "generators": {
+   "2": 1115,
+   "3": 2824
+  },
+  "seconds": 1594.57
  },
  {
   "singularity": "C_3",
@@ -1762,9 +1800,28 @@
  {
   "singularity": "B_5,3",
   "relative_dimension": 2,
-  "timeout": 600,
   "codimension": 19,
-  "seconds": 600.0
+  "terms": 124,
+  "chern_negative": 64,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": false,
+   "4": true,
+   "5": true
+  },
+  "generators": {
+   "2": 175,
+   "3": 580,
+   "4": 747
+  },
+  "seconds": 1932.08
  },
  {
   "singularity": "C_5,5",
@@ -1794,9 +1851,27 @@
  {
   "singularity": "I_2,5",
   "relative_dimension": 2,
-  "error": "ArithmeticError('C_2: LP infeasible but no exact Farkas certificate was found')",
   "codimension": 19,
-  "seconds": 83.81
+  "terms": 212,
+  "chern_negative": 95,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true,
+   "4": true,
+   "5": true
+  },
+  "generators": {
+   "2": 783,
+   "3": 1983
+  },
+  "seconds": 685.89
  },
  {
   "singularity": "B_6",
@@ -1850,9 +1925,27 @@
  {
   "singularity": "III_3,5",
   "relative_dimension": 2,
-  "error": "ArithmeticError('C_2: LP infeasible but no exact Farkas certificate was found')",
   "codimension": 20,
-  "seconds": 189.49
+  "terms": 245,
+  "chern_negative": 134,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true,
+   "4": true,
+   "5": true
+  },
+  "generators": {
+   "2": 1100,
+   "3": 2784
+  },
+  "seconds": 1550.78
  },
  {
   "singularity": "I_2,3",
@@ -2027,9 +2120,27 @@
  {
   "singularity": "I_2,4",
   "relative_dimension": 3,
-  "timeout": 600,
   "codimension": 21,
-  "seconds": 600.0
+  "terms": 185,
+  "chern_negative": 80,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": 2,
+  "support_corank": 2,
+  "row_floor": 2,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true,
+   "4": true,
+   "5": true
+  },
+  "generators": {
+   "2": 436,
+   "3": 971
+  },
+  "seconds": 2864.87
  },
  {
   "singularity": "C_4,3",
@@ -2079,5 +2190,29 @@
    "2": 431
   },
   "seconds": 304.76
+ },
+ {
+  "singularity": "C_5,1",
+  "relative_dimension": 3,
+  "codimension": 22,
+  "terms": 60,
+  "chern_negative": 30,
+  "schur_negative": 0,
+  "one_row": 0,
+  "chern_sum": 0,
+  "algebra_corank": null,
+  "support_corank": 3,
+  "row_floor": 3,
+  "memberships": {
+   "1": false,
+   "2": false,
+   "3": true,
+   "4": true,
+   "5": true
+  },
+  "generators": {
+   "3": 15
+  },
+  "seconds": 28.32
  }
 ]

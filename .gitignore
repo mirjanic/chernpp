@@ -28,3 +28,5 @@ dist/
 
 # live partial outputs of sharded runs; merged by tools/corank_survey.py --merge
 results/*.shard*
+*.fdb_latexmk
+*.fls

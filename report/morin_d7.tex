@@ -59,7 +59,7 @@ exact computation) or \emph{conjectured}.
 \ref{thm:lower} & $\rho(\eta) \ge$ support corank $\ge \operatorname{corank} \eta$ & proved \\
 \ref{cor:sum} & $\sum$ Chern coefficients $= [s_{(n)}]\Tp$; $=0$ at corank $\ge 2$ & proved \\
 \ref{prop:i24} & $\Tp_{I_{2,4}}, \Tp_{\mathrm{III}_{2,3}} \notin C_2$: $\rho \ne \operatorname{corank}$ & proved \\
-Table~\ref{tab:rho} & $\rho$ on the registry; $\rho - \operatorname{corank}$ reaches $2$ & verified \\
+Table~\ref{tab:rho} & $\rho$ on the registry; $\rho - \operatorname{corank}$ reaches $3$ & verified \\
 \S\ref{sec:data} & $\Tp_{A_7}$ ($\ell \le 5$), $\Tp_{A_6}$ ($\ell \le 8$) exact and positive, $\min C = 1$ & verified \\
 \ref{thm:plane} & plane sector: $C(M) = b(M)$ (ballot words) $=$ Kreweras & proved$^*$ \\
 \ref{conj:ballot} & $C(M) \ge b(M)$, equality iff $\max M \le 1$ (implies Rim\'anyi) & conjectured \\
@@ -148,11 +148,11 @@ nonnegativity checks, and the $C_3$ decompositions, are exact rational computati
 \end{proof}
 
 \paragraph{The invariant $\rho$ on the registry.}
-Table~\ref{tab:rho} gives $\rho$ for the $87$ tables decided so far, out of $128$ non-Morin
-tables in the registry. Most of the rest are of codimension $19$ to $26$ and exceeded the time
-budget. In three of them ($I_{2,5}$, $\mathrm{III}_{2,6}$ and $\mathrm{III}_{3,5}$ at $\ell = 2$)
-the LP reports $\Tp \notin C_2$, but its Farkas vector did not rationalise to a certificate that
-verifies, so they are left undecided rather than reported. Each entry is decided by a linear
+Table~\ref{tab:rho} gives $\rho$ for the $94$ tables decided so far, out of $128$ non-Morin
+tables in the registry. The rest are of codimension $20$ to $26$ and exceeded the time budget.
+Three tables ($I_{2,5}$, $\mathrm{III}_{2,6}$ and $\mathrm{III}_{3,5}$ at $\ell = 2$) whose float
+Farkas vector did not rationalise are now decided by recovering the Farkas vector exactly at an LP
+vertex (solving the square system on its active support in rationals). Each entry is decided by a linear
 programme whose answer is re-verified in exact arithmetic, with a decomposition or a Farkas vector
 as appropriate. The Farkas vectors are strikingly simple: every one found is $\pm\frac1k$ on a
 handful of Schur functions. What the table shows:
@@ -161,8 +161,9 @@ handful of Schur functions. What the table shows:
   $\rho(\mathrm{III}_{a,b}) = 2$ exactly when $a = b$. In both families $\rho$ is constant in
   $\ell$ wherever it was computed.
 \item $\rho$ is not always constant in $\ell$: $\rho(B_4) = 2$ at $\ell = 1$ and $3$ at $\ell = 2$.
-\item $\rho - s$ reaches $2$: $B_{5,3}$ at $\ell = 1$ has $s = 2$ and $\rho = 4$. $C_6$ and $C_{5,3}$
-  have $s = 3$ and $\rho = 4$.
+\item $\rho - s$ reaches $3$: $B_{5,4}$ at $\ell = 2$ has $s = 2$ and $\rho = 5$. $B_{5,3}$ at
+  $\ell = 1, 2$ has $s = 2$ and $\rho = 4$; $C_6$ and $C_{5,3}$ have $s = 3$ and $\rho = 4$. Along the
+  $B_5$ family at $\ell = 2$ the gap runs $0, 0, 2, 3$ for $B_{5,1}, \dots, B_{5,4}$.
 \end{itemize}
 We have not found an invariant of the local algebra that predicts $\rho$ in general; the
 multiplicity and the Hilbert function do not. This is the open question the filtration raises.
