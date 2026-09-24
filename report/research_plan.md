@@ -51,6 +51,13 @@ The target is Rimányi's conjecture: every Chern coefficient `C(M)` of the Morin
 
 ## Workstream B: the structure of charge 2 (exploratory, time-boxed)
 
+**Result so far (negative).** At r = 2 the curvilinear integral functional is a content evaluation with Frobenius weights over hooks. That is the plane theorem restated.
+
+At r = 3 the exact tables determine the whole functional, and **no content-evaluation weights over partitions of n fit it** at d = 3, 4, 5 (`tools/content_functional.py`). So the naive charge-2 Jucys–Murphy calculus does not exist. Local step weights (exact fits) also fail across d.
+
+Remaining ideas: a larger algebra (e.g. evaluation at 3-dimensional/plane-partition contents), or the degeneration route.
+
+
 Charge 2 (`max M = 2`) is where the conjecture now lives. Geometrically it is the curvilinear locus in `C^3`.
 
 1. **Combinatorial models, tested exhaustively** on d ≤ 5, each required to predict d = 6, 7 exactly:

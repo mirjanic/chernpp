@@ -513,7 +513,20 @@ Two routes suggest themselves.
   multiplicity one, plus effective components on which $m_\nu(\epsilon)$ integrates nonnegatively.
   Positivity does fail on some individual degeneration components~\cite{FS}, so the decomposition
   would have to be chosen with care.
-\item \emph{A charge-2 Jucys--Murphy calculus.} Find the analogue, for the curvilinear component
+\item \emph{A charge-2 Jucys--Murphy calculus} (the naive form is ruled out). Since symmetric
+  functions of the $J_k$ are central, (I4) says that on the plane
+  \[
+    \int_{C_{n,2}} f(\epsilon) = \sum_{\lambda \vdash n} \frac{\dim\lambda\ \chi^\lambda(\sigma)}{n!}\,
+    f\bigl(\mathrm{contents}(\lambda) \setminus \{0\}\bigr),
+  \]
+  a sum over hooks. The exact tables determine the whole functional $f \mapsto \int_{C_{n,3}}
+  f(\epsilon)$ on symmetric functions of degree $2d$: every packet with $\max M \le 2$ reduces to
+  $r = 3$ by (I3). No weights $w_\lambda$, $\lambda \vdash n$, make it a content evaluation of the
+  same shape: the linear system (7, 15, 30 equations against 5, 7, 11 unknowns at $d = 3, 4, 5$) is
+  inconsistent (\texttt{tools/content\_functional.py}). So the curvilinear locus in $\mathbb{C}^3$
+  is not governed by any central functional of the Jucys--Murphy elements of $S_n$. A charge-2
+  calculus needs a larger algebra.
+\item \emph{A charge-2 Jucys--Murphy calculus (what remains).} Find the analogue, for the curvilinear component
   of the punctual Hilbert scheme of $\mathbb{C}^3$, of the Lehn--Sorger description. In such a
   calculus the excess $C(M) - b(M)$ should count a positive family of \emph{non-monotone} or
   \emph{branched} factorisations.
