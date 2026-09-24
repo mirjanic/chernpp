@@ -158,5 +158,64 @@ class TestDFourBallot(unittest.TestCase):
             self.assertEqual(table[m], sectors.ballot_count(m))
 
 
+class TestDFiveGauged(unittest.TestCase):
+    """The GBC-gauged d = 5 chamber series (report/ballot.tex, "Toward d = 5")."""
+
+    def test_gauged_numerator_factors_completely(self):
+        from chernpp.optimisation import gauge
+        from chernpp.polynomial import poly_mul
+
+        g = gauge.setup(5, 4)
+        alg = g.algebra
+
+        def lin(**kw):
+            out = {}
+            for name, c in kw.items():
+                e = [0] * 5
+                e[int(name[1:]) - 1] = 1
+                out[tuple(e)] = out.get(tuple(e), 0) + c
+            return out
+
+        gbc = poly_mul(lin(z1=2, z2=1, z5=-1), poly_mul(lin(z1=2, z2=-1), lin(z1=1, z4=1, z5=-1)))
+        Q = gauge.to_z(alg.multidegree, 5, g.degree)
+        for k, v in gbc.items():
+            Q[k] = Q.get(k, 0) - v
+        chamber = gauge.to_chamber({k: v for k, v in Q.items() if v}, 5, g.degree)
+        shifted = {tuple(e[i] - g.correction[i] for i in range(4)): g.sign * c for e, c in chamber.items()}
+        numerator = {k: v for k, v in poly_mul(shifted, dict(alg.vandermonde)).items() if v}
+
+        def one_minus(terms):
+            out = {(0, 0, 0, 0): 1}
+            for k, v in terms:
+                out[k] = out.get(k, 0) - v
+            return out
+
+        x = lambda *idx: tuple(1 if i in idx else 0 for i in range(4))
+        factors = [
+            [(x(0), 1)],
+            [(x(1), 1)],
+            [(x(0, 1), 1)],
+            [(x(2), 1)],
+            [(x(1, 2), 1)],
+            [(x(1, 2), 2)],
+            [(x(0, 1, 2), 1)],
+            [(x(3), 1)],
+            [(x(2, 3), 1)],
+            [(x(1, 2, 3), 1)],
+            [(x(0, 1, 2, 3), 1)],
+            [(x(2, 3), 1), (x(0, 1, 2, 3), 2)],
+            [(x(1, 2, 3), 1), (x(0, 1, 2, 3), 2)],
+        ]
+        product = {(0, 0, 0, 0): 1}
+        for f in factors:
+            product = poly_mul(product, one_minus(f))
+        self.assertEqual({k: v for k, v in product.items() if v}, numerator)
+
+    def test_block_certificate_verifies_exactly(self):
+        from chernpp.ballot import verify_d5_block
+
+        self.assertTrue(verify_d5_block())
+
+
 if __name__ == "__main__":
     unittest.main()

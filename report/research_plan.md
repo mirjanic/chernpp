@@ -39,11 +39,15 @@ The target is Rimányi's conjecture: every Chern coefficient `C(M)` of the Morin
   1. The explicit positive product formula gives `F_4 ≥ N` = the number of the 64 product supports that contain a cell.
   2. A packet-preserving bijection moves the zero set of `F_4` onto a target set T. This gives a comparison series with packet sums `b(M)`.
   3. `N ≥ w + 1_D` reduces to three Presburger-set inclusions, decided exactly by isl.
-- **d = 5: in progress.**
-  - **The gauge preserves the structure.** With the gauge GBC, the gauged chamber numerator factors completely into 13 simple factors. One of them, (1 − 2x₂x₃), cancels a denominator factor. The canonical numerator does not factor completely.
-  - **What remains.** After Lemma-1 pairing, one six-factor block is left. Its numerator is exactly the product of two copies of the d = 4 block, B₄(x₁, x₂x₃x₄) · B₄(x₁x₂, x₃x₄); only one denominator factor differs, (1 − p − q) instead of (1 − 2p). The block is nonnegative to degree 22.
-  - **Current step.** An exact certificate for the block, via the order-5/6 search now running or a hand decomposition. After that, steps 2–3 (the zero-set matching and isl inclusions) for the gauged series.
-  - **Gate.** If there is no certificate within ~2 days, record the obstruction and stop at d = 4.
+- **d = 5: partial result, then gate.**
+  - **Achieved.**
+    - The GBC-gauged numerator factors completely.
+    - The one remaining six-factor block has an exact certificate with 17 parts.
+    - So the gauged `F_5` has an explicit nonnegative expression (`results/d5_block_certificate.json`, `ballot.verify_d5_block`, tier 15).
+  - **Blocking the d = 5 ballot theorem.**
+    - The certificate's weights are fractional. No integer certificate of that shape exists with parts of degree ≤ 10: the integer program is infeasible while its LP relaxation is feasible. So the support-counting step does not transfer.
+    - GBC's nullity is proved only in the external report.
+  - **Possible continuations.** A weighted Step 3 (Presburger counting with weights), an integer certificate of higher degree, or a self-contained proof of GBC's nullity.
 
 ## Workstream B: the structure of charge 2 (exploratory, time-boxed)
 

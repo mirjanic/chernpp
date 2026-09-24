@@ -58,6 +58,10 @@ Equivalently, `F_d − ∏(1−x_j)^{−1}` has nonnegative packet sums, and the
 - **Proof strategy.** `F_4` dominates the number of the 64 product supports containing each cell. That count dominates the weight of a comparison series `Z_4` whose packet sums are `b(M)`, plus one unit at every decreasing cell with `β₁ ≥ 2`.
 - **Verification.** The last step is three inclusions of Presburger sets, decided exactly by isl (`chernpp.ballot.verify_d4`).
 
+**Toward d = 5.**
+- **Achieved.** With the residue-null kernel `K = (2z₁+z₂−z₅)(2z₁−z₂)(z₁+z₄−z₅)`, the gauged numerator factors completely. The gauged series then has an explicit nonnegative expression: six Lemma-1 ratios times one block with an exact 17-part certificate.
+- **Still missing.** The certificate is fractional, and no integer certificate of that shape exists up to degree 10, so the d = 4 counting argument does not yet transfer.
+
 **Refinement (zero insertion).** For zero-free `M₀`, the Newton coefficients in `z` of both `C(M₀ ⊔ 0^z)` and `C − b` are ≥ 0. This holds on all 10,620 bases with d ≤ 7.
 
 For example, `C(2,−2,0^z) = 2 + 5z + 4·C(z,2) + C(z,3)`.

@@ -113,3 +113,53 @@ def verify_d4() -> Dict[str, bool]:
     checks["level 2 covered"] = level2.is_subset(covered_at_least(sup, 2))
     checks["level 3 covered"] = level3.is_subset(covered_at_least(sup, 3))
     return checks
+
+
+# --------------------------------------------------------------------------
+# d = 5: the GBC-gauged chamber series
+# --------------------------------------------------------------------------
+
+
+def verify_d5_block(path=None) -> bool:
+    """
+    Re-verify, in exact rationals, the certificate for the six-factor block of
+    the GBC-gauged d = 5 series (report/ballot.tex, "Toward d = 5"):
+
+        N_block = sum_S P_S * prod_{r in S} (1 - f_r)  +  P_empty,
+
+    with every P_S and the remainder P_empty coefficientwise nonnegative.
+    Dividing by prod_r (1 - f_r) exhibits the block as a nonnegative series.
+    """
+    import json
+    from fractions import Fraction
+    from pathlib import Path
+
+    from .polynomial import poly_mul
+
+    path = Path(path or Path(__file__).resolve().parents[2] / "results" / "d5_block_certificate.json")
+    data = json.loads(path.read_text())
+
+    def poly(rows, frac=False):
+        return {tuple(k): (Fraction(v) if frac else v) for k, v in rows}
+
+    def one_minus(p):
+        out = {(0, 0, 0, 0): 1}
+        for k, v in p.items():
+            out[k] = out.get(k, 0) - v
+        return out
+
+    num = {(0, 0, 0, 0): 1}
+    for f in data["numerator_factors"]:
+        num = poly_mul(num, one_minus(poly(f["poly"])))
+    dens = [poly(f["poly"]) for f in data["denominator_factors"]]
+    remainder = {k: Fraction(v) for k, v in num.items()}
+    for part in data["parts"]:
+        P = poly(part["poly"], frac=True)
+        if any(v < 0 for v in P.values()):
+            return False
+        g = {(0, 0, 0, 0): Fraction(1)}
+        for r in part["subset"]:
+            g = poly_mul(g, {k: Fraction(v) for k, v in one_minus(dens[r]).items()})
+        for k, v in poly_mul(P, g).items():
+            remainder[k] = remainder.get(k, 0) - v
+    return all(v >= 0 for v in remainder.values())

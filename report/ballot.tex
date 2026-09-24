@@ -17,6 +17,7 @@
 \newtheorem{lemma}[theorem]{Lemma}
 \newtheorem{corollary}[theorem]{Corollary}
 \newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{observation}[theorem]{Observation}
 \theoremstyle{definition}
 \newtheorem{definition}[theorem]{Definition}
 \theoremstyle{remark}
@@ -424,9 +425,51 @@ Summing over a packet: $C(M) \ge \sum N \ge \sum (w + 1_D) = b(M) + [\max M \ge 
 sector at $d = 4$ consists of five packets, where $C = b$ is checked directly.
 \end{proof}
 
-The same three steps would apply at $d = 5$ given a positive expression for (a gauge of) $F_5$ and a
-matching for its zero set. Strong positivity fails for the canonical $F_5$, so there the first step
-must use a residue-null gauge.
+\subsection{Toward $d = 5$}
+
+Strong positivity fails for the canonical $F_5$, so the first step needs a different numerator
+with the same packet sums. A polynomial $K$ in $z_1, \dots, z_5$ is \emph{residue-null} if replacing
+the multidegree numerator $\mathcal{Q}_5$ by $\mathcal{Q}_5 - K$ leaves every Chern coefficient
+unchanged. The product
+\[
+  K = (2z_1 + z_2 - z_5)(2z_1 - z_2)(z_1 + z_4 - z_5)
+\]
+is such a kernel. Its nullity is proved in~\cite{FS} by two contour exchanges in the iterated
+residue, and here it is verified exactly: every packet sum is unchanged at truncations $16, 18, 20$
+(tier~9).
+
+\begin{observation}[proved, as an identity of rational functions]
+Write $p = x_3x_4$, $q = x_2x_3x_4$ and $t = x_1x_2x_3x_4$. The chamber numerator of $\mathcal{Q}_5 - K$
+factors completely:
+\[
+  (1-x_1)(1-x_2)(1-x_1x_2)(1-x_3)(1-x_2x_3)(1-2x_2x_3)(1-x_1x_2x_3)
+  (1-x_4)(1-p)(1-q)(1-t)(1-p-2t)(1-q-2t).
+\]
+The factor $(1 - 2x_2x_3)$ cancels a denominator factor. Six of the remaining factors pair with
+six denominator factors into ratios $1 + v/(1-u-v)$. What is left is the block
+\[
+  \frac{(1-x_1)(1-x_1x_2)(1-p)(1-q)(1-p-2t)(1-q-2t)}{(1-2x_1)(1-2x_1x_2)(1-q-t)(1-p-t)(1-2q)(1-p-q)},
+\]
+whose numerator is exactly the product of the numerators of two copies of the $d = 4$ block of
+Lemma~\ref{lem:f4}. An exact certificate writes the block numerator as
+$\sum_S P_S \prod_{r \in S}(1 - f_r) + P_\emptyset$. It has $17$ nonnegative rational parts $P_S$ over
+subsets $S$ of at most five factors, and a nonnegative remainder. Dividing by the block denominator
+exhibits the block as a nonnegative series. Hence the gauged series $F_5^{K}$ has an explicit
+nonnegative expression. The certificate is stored in \texttt{results/d5\_block\_certificate.json} and
+re-verified in exact rationals by \texttt{chernpp.ballot.verify\_d5\_block} (tier~15).
+\end{observation}
+
+This gives a new, fully factorised route to strong positivity of a residue-equivalent
+representative of $F_5$. It does not yet give Theorem~\ref{thm:d4} at $d = 5$, for two reasons.
+\begin{itemize}[nosep]
+\item Step~1 counts supports, which needs each term of the expansion to contribute whole units. The
+  certificate's weights are fractional ($1/12$, $5/18$, \ldots), and no integer certificate of the
+  same shape exists with parts of degree $\le 10$: the integer program is infeasible while its
+  linear relaxation is feasible.
+\item The argument would rest on the nullity of $K$, which is proved only in~\cite{FS}.
+\end{itemize}
+A weighted version of Step~3, or an integer certificate of higher degree, would close the first
+gap.
 
 \section{Zero insertion}
 
@@ -481,7 +524,7 @@ either route.
 \begin{thebibliography}{9}
 \bibitem{BS12} L.~B\'erczi, A.~Szenes, Thom polynomials of Morin singularities, \emph{Ann.\ of Math.}\ 175 (2012) 567--629.
 \bibitem{Rim01} R.~Rim\'anyi, Thom polynomials, symmetries and incidences of singularities, \emph{Invent.\ Math.}\ 143 (2001) 499--521.
-\bibitem{FS} Rim\'anyi positivity: findings summary (29 July 2026), unrefereed, \S5 (Theorem 5.1, Lemma 5.3, Theorem 5.4). Consulted only for (I1) and (I3), which are restated here in full.
+\bibitem{FS} Rim\'anyi positivity: findings summary (29 July 2026), unrefereed, \S5 (Theorem 5.1, Lemma 5.3, Theorem 5.4). Consulted for (I1) and (I3), which are restated here in full, and for the nullity of the $d = 5$ kernel $K$ (\S4), which is used only in the partial $d = 5$ result.
 \bibitem{Bri77} J.~Brian\c{c}on, Description de $\mathrm{Hilb}^n\mathbb{C}\{x,y\}$, \emph{Invent.\ Math.}\ 41 (1977) 45--89.
 \bibitem{LS01} M.~Lehn, C.~Sorger, Symmetric groups and the cup product on the cohomology of Hilbert schemes, \emph{Duke Math.\ J.}\ 110 (2001) 345--357.
 \bibitem{Kre72} G.~Kreweras, Sur les partitions non crois\'ees d'un cycle, \emph{Discrete Math.}\ 1 (1972) 333--350.
