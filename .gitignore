@@ -25,3 +25,6 @@ dist/
 
 # Root scripts
 /*.py
+
+# live partial outputs of sharded runs; merged by tools/corank_survey.py --merge
+results/*.shard*
