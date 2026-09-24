@@ -68,7 +68,7 @@ Table~\ref{tab:rho} & $\rho$ on the registry; $\rho - \operatorname{corank}$ rea
 \bottomrule
 \end{tabular}
 
-{\footnotesize $^*$ given Theorem 5.4 of the unrefereed external summary~\cite{FS}.}
+{\footnotesize $^*$ given two geometric inputs (a curvilinear incidence formula and a hyperplane lemma), stated in full in \texttt{report/ballot.pdf}.}
 \end{center}
 
 \section{The corank filtration}\label{sec:corank}
@@ -207,7 +207,7 @@ For a zero-sum multiset $M$ let $b(M)$ be the number of its \emph{ballot orderin
 orderings whose proper partial sums are nonnegative. Equivalently, $b(M)$ is the packet sum of the
 pure chain series $\prod_j (1-x_j)^{-1}$, all of whose coefficients are $1$.
 
-\begin{theorem}[plane sector; proved, given {\cite[Thm.~5.4]{FS}}]\label{thm:plane}
+\begin{theorem}[plane sector; proved, given two geometric inputs]\label{thm:plane}
 If $\max M \le 1$ then $C(M) = b(M)$. Writing $M = (1^{d-b}, 1-s_1, \dots, 1-s_b)$ with $s_i \ge 1$,
 this is Kreweras' number of noncrossing partitions of $[d]$ with block sizes $s_i$:
 \[
@@ -217,7 +217,16 @@ where $m_i$ is the number of blocks of size $i$.
 \end{theorem}
 
 \begin{proof}
-Put $n = d+1$. The external summary~\cite[Thm.~5.4]{FS} identifies $C(M)$, on this sector, with the
+Put $n = d+1$. Four inputs, stated in full in the companion note \texttt{report/ballot.pdf}
+(\S2.1), identify $C(M)$ on this sector with the coefficient described below:
+\begin{itemize}[nosep]
+\item the curvilinear form of the B\'erczi--Szenes incidence formula;
+\item an elementary extraction of Chern coefficients;
+\item a multiplicity-one hyperplane lemma;
+\item Brian\c{c}on's theorem with the Lehn--Sorger description of the punctual Hilbert scheme of the
+  plane.
+\end{itemize}
+Concretely, $C(M)$ is the
 coefficient of an $n$-cycle $\sigma$ in $m_\nu(J_1, \dots, J_n)$. Here the $J_k = \sum_{a<k}(a\,k)$ are the
 Jucys--Murphy elements and $\nu$ is the partition formed by the entries of $1 - M$. Expanding the
 monomial symmetric function, this coefficient counts pairs $(e, w)$. Here $e = (e_1, \dots, e_n)$
@@ -276,7 +285,7 @@ where $C = p!$), fails already at $d = 3$.
 A self-contained account, with the evidence table, is in the companion note \texttt{report/ballot.pdf}.
 
 \begin{remark}[what a proof must explain]
-In the external summary's geometric model, $C(M) = \int_{C_{n,r}} m_\nu(E)$ over the closure of
+In the geometric model (stated in \texttt{report/ballot.pdf}, \S2.1), $C(M) = \int_{C_{n,r}} m_\nu(E)$ over the closure of
 curvilinear length-$n$ subschemes of $\mathbb{C}^r$, with the hyperplane lemma lowering $r$ one step
 at a time. The plane sector is the case where one can descend to $r = 2$, the punctual Hilbert
 scheme of the plane, where the Jucys--Murphy calculus applies. A packet of charge $\max M = p$

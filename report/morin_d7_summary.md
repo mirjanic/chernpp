@@ -40,7 +40,7 @@ Read the Chern class `c_k` as `h_k`. With that convention Pragacz–Weber says e
 
 ## 3. Where positivity is tight
 
-- **Proved** (given Theorem 5.4 of the unrefereed external summary). On the plane sector `max M ≤ 1`, `C(M) = b(M)`, where `b(M)` is the number of *ballot orderings* of `M`. By the cycle lemma this equals the Kreweras number of noncrossing partitions with the block sizes read from `M`:
+- **Proved**, given two geometric inputs (a curvilinear incidence formula and a hyperplane lemma), both stated in full in `report/ballot.pdf` §2.1. On the plane sector `max M ≤ 1`, `C(M) = b(M)`, where `b(M)` is the number of *ballot orderings* of `M`. By the cycle lemma this equals the Kreweras number of noncrossing partitions with the block sizes read from `M`:
 
   ```
   C(M) = b(M) = d! / ((d−b+1)! ∏ m_i!)
